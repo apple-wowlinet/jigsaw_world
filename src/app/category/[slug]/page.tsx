@@ -4,7 +4,7 @@ import { useParams } from 'next/navigation'
 import { useState, useEffect, Suspense } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Puzzle, Users, Star, ChevronLeft, ChevronRight, Filter, Grid3X3, List, Clock } from 'lucide-react'
+import { Puzzle, Users, Star, ChevronLeft, ChevronRight, Filter, Grid3X3, List, Clock, Play } from 'lucide-react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -233,91 +233,87 @@ function CategoryContent() {
             {viewMode === 'grid' && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {paginatedPuzzles.map((puzzle, index) => (
-                  <Card 
+                  <Link 
                     key={puzzle.id} 
-                    className={cn(
-                      "group overflow-hidden border-0 shadow-lg cursor-pointer relative",
-                      "bg-white dark:bg-[#121218]/50",
-                      "backdrop-blur-sm",
-                      "border border-border/50 dark:border-white/10",
-                      "transition-all duration-300 ease-out",
-                      "hover:shadow-xl dark:hover:shadow-2xl dark:hover:shadow-black/50",
-                      "hover:-translate-y-1 hover:border-primary/20 dark:hover:border-white/20",
-                      "animate-fade-in"
-                    )}
+                    href={`/play/${puzzle.id}`}
+                    className="block cursor-pointer animate-fade-in"
                     style={{ animationDelay: `${index * 50}ms` }}
                   >
-                    <CardHeader className="p-0 relative aspect-[4/3] overflow-hidden">
-                      <Image
-                        src={puzzle.image_url}
-                        alt={puzzle.title}
-                        fill
-                        className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                      />
-                      
-                      {/* Gradient Overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-500" />
-                      
-                      {/* Badges */}
-                      <div className="absolute top-3 right-3 flex gap-2">
-                        <span className={cn(
-                          "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold backdrop-blur-md shadow-lg border border-white/10",
-                          getDifficultyStyle(puzzle.difficulty)
-                        )}>
-                          {puzzle.difficulty}
-                        </span>
-                      </div>
-                      
-                      {/* Hover play button */}
-                      <Link href={`/play/${puzzle.id}`}>
+                    <Card 
+                      className={cn(
+                        "group overflow-hidden border-0 shadow-lg cursor-pointer relative h-full",
+                        "bg-white dark:bg-[#121218]/50",
+                        "backdrop-blur-sm",
+                        "border border-border/50 dark:border-white/10",
+                        "transition-all duration-300 ease-out",
+                        "hover:shadow-xl dark:hover:shadow-2xl dark:hover:shadow-black/50",
+                        "hover:-translate-y-1 hover:border-primary/20 dark:hover:border-white/20"
+                      )}
+                    >
+                      <CardHeader className="p-0 relative aspect-[4/3] overflow-hidden">
+                        <Image
+                          src={puzzle.image_url}
+                          alt={puzzle.title}
+                          fill
+                          className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                        />
+                        
+                        {/* Gradient Overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-500" />
+                        
+                        {/* Badges */}
+                        <div className="absolute top-3 right-3 flex gap-2">
+                          <span className={cn(
+                            "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold backdrop-blur-md shadow-lg border border-white/10",
+                            getDifficultyStyle(puzzle.difficulty)
+                          )}>
+                            {puzzle.difficulty}
+                          </span>
+                        </div>
+                        
+                        {/* Hover play button */}
                         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 bg-black/20 backdrop-blur-[2px]">
-                          <Button size="sm" className="rounded-full w-12 h-12 p-0 bg-white text-black hover:bg-white/90 hover:scale-105 transition-all shadow-xl">
-                            <span className="ml-1 text-xl">▶</span>
+                          <Button size="sm" className="rounded-full w-12 h-12 p-0 bg-white text-black hover:bg-white/90 hover:scale-105 transition-all shadow-2xl shadow-black/30 ring-1 ring-white/40">
+                            <Play className="w-5 h-5 fill-current ml-0.5" />
                           </Button>
                         </div>
-                      </Link>
 
-                      {/* Bottom Info Overlay */}
-                      <div className="absolute bottom-0 left-0 right-0 p-4 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-                        <h3 className="font-bold text-white mb-1 line-clamp-1 drop-shadow-md">
-                          {puzzle.title}
-                        </h3>
-                        <div className="flex items-center justify-between text-xs text-white/80">
-                          <span className="flex items-center">
-                            <Puzzle className="w-3.5 h-3.5 mr-1" />
-                            {puzzle.piece_count}
+                        {/* Bottom Info Overlay */}
+                        <div className="absolute bottom-0 left-0 right-0 p-4 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+                          <h3 className="font-bold text-white mb-1 line-clamp-1 drop-shadow-md">
+                            {puzzle.title}
+                          </h3>
+                          <div className="flex items-center justify-between text-xs text-white/80">
+                            <span className="flex items-center">
+                              <Puzzle className="w-3.5 h-3.5 mr-1" />
+                              {puzzle.piece_count} pcs
+                            </span>
+                            <span className="flex items-center">
+                              <Star className="w-3.5 h-3.5 mr-1 text-yellow-400 fill-yellow-400" />
+                              {puzzle.rating.toFixed(1)}
+                            </span>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      
+                      <CardContent className="p-4 relative">
+                        {/* Subtle shine effect on hover */}
+                        <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/5 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+                        
+                        <div className="flex items-center justify-between text-sm text-muted-foreground dark:text-gray-400">
+                          <span className="flex items-center gap-1.5">
+                            <Users className="w-3.5 h-3.5" />
+                            {puzzle.plays_count.toLocaleString()} plays
                           </span>
-                          <span className="flex items-center">
-                            <Star className="w-3.5 h-3.5 mr-1 text-yellow-400 fill-yellow-400" />
-                            {puzzle.rating.toFixed(1)}
+                          <span className="flex items-center gap-1.5">
+                            <Clock className="w-3.5 h-3.5" />
+                            ~{Math.round(puzzle.piece_count / 10)} min
                           </span>
                         </div>
-                      </div>
-                    </CardHeader>
-                    
-                    <CardContent className="p-4 relative">
-                      {/* Subtle shine effect on hover */}
-                      <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/5 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
-                      
-                      <div className="flex items-center justify-between text-sm text-muted-foreground dark:text-gray-400 mb-3">
-                        <span className="flex items-center gap-1.5">
-                          <Users className="w-3.5 h-3.5" />
-                          {puzzle.plays_count.toLocaleString()} plays
-                        </span>
-                        <span className="text-xs opacity-70">
-                          {new Date(puzzle.created_at).toLocaleDateString()}
-                        </span>
-                      </div>
-                      
-                      <Link href={`/p/${puzzle.id}`} className="block">
-                        <Button variant="ghost" size="sm" className="w-full justify-between hover:bg-secondary/50 dark:hover:bg-white/5 group/btn">
-                          View Details
-                          <ChevronRight className="w-4 h-4 text-muted-foreground group-hover/btn:translate-x-1 transition-transform" />
-                        </Button>
-                      </Link>
-                    </CardContent>
-                  </Card>
+                      </CardContent>
+                    </Card>
+                  </Link>
                 ))}
               </div>
             )}

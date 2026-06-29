@@ -98,13 +98,30 @@ export function CategoriesSection() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Section Header */}
-        <div className="text-center mb-20">
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground dark:text-white mb-4 tracking-tight">
-            Browse by Category
-          </h2>
-          <p className="text-lg md:text-xl text-muted-foreground dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
-            Explore our curated collections featuring stunning photography and art.
-          </p>
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-20">
+          <div>
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground dark:text-white mb-4 tracking-tight">
+              Browse by Category
+            </h2>
+            <p className="text-lg md:text-xl text-muted-foreground dark:text-gray-400 max-w-2xl leading-relaxed">
+              Explore our curated collections featuring stunning photography and art.
+            </p>
+          </div>
+          <Link 
+            href="/categories"
+            className={cn(
+              "inline-flex items-center px-8 py-4 rounded-full cursor-pointer",
+              "bg-secondary/80 dark:bg-white/5 backdrop-blur-sm",
+              "border border-transparent dark:border-white/10",
+              "text-secondary-foreground dark:text-white font-medium",
+              "hover:bg-secondary dark:hover:bg-white/10 dark:hover:border-white/20",
+              "transition-all duration-300 shadow-sm hover:shadow-md hover:scale-105"
+            )}
+          >
+            <Grid3X3 className="w-5 h-5 mr-3" />
+            View All Categories
+            <ArrowRight className="w-4 h-4 ml-2 opacity-70" />
+          </Link>
         </div>
 
         {/* Categories Grid */}
@@ -112,7 +129,7 @@ export function CategoriesSection() {
           {categories.map((category, index) => {
             const IconComponent = category.icon
             return (
-              <Link key={category.id} href={`/c/${category.slug}`} className="block h-full">
+              <Link key={category.id} href={`/category/${category.slug}`} className="block h-full">
                 <Card 
                   className={cn(
                     "group h-full overflow-hidden border-0 shadow-lg cursor-pointer relative",
@@ -178,25 +195,6 @@ export function CategoriesSection() {
               </Link>
             )
           })}
-        </div>
-
-        {/* View All Categories Link */}
-        <div className="mt-16 text-center">
-          <Link 
-            href="/categories"
-            className={cn(
-              "inline-flex items-center px-8 py-4 rounded-full",
-              "bg-secondary/80 dark:bg-white/5 backdrop-blur-sm",
-              "border border-transparent dark:border-white/10",
-              "text-secondary-foreground dark:text-white font-medium",
-              "hover:bg-secondary dark:hover:bg-white/10 dark:hover:border-white/20",
-              "transition-all duration-300 shadow-sm hover:shadow-md hover:scale-105"
-            )}
-          >
-            <Grid3X3 className="w-5 h-5 mr-3" />
-            View All Categories
-            <ArrowRight className="w-4 h-4 ml-2 opacity-70" />
-          </Link>
         </div>
       </div>
     </section>

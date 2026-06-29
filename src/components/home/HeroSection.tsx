@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Play, Clock, Sparkles, Puzzle, ArrowRight } from 'lucide-react'
+import { Play, Sparkles, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
@@ -78,57 +78,32 @@ export function HeroSection() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Left Content */}
           <div className="space-y-8 animate-fade-in">
-            {/* Badge */}
-            <div className="inline-flex items-center px-4 py-2 rounded-full bg-accent-subtle dark:bg-accent/20 border border-accent/30 dark:border-accent/30">
-              <Sparkles className="w-4 h-4 mr-2 text-accent" />
-              <span className="text-sm font-semibold text-accent dark:text-accent">Daily Challenge</span>
-            </div>
-            
-            {/* Title */}
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight">
-              {dailyPuzzle.title}
+            {/* Slogan */}
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.1] tracking-tight">
+              <span className="text-foreground dark:text-white dark:drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">Piece Together</span>
+              <br />
+              <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent drop-shadow-sm dark:from-blue-400 dark:via-orange-400 dark:to-blue-400">
+                Moments of Joy
+              </span>
             </h1>
-            
+
             {/* Description */}
-            <p className="text-lg text-muted-foreground leading-relaxed max-w-xl">
-              {dailyPuzzle.description}
+            <p className="text-lg text-muted-foreground dark:text-slate-300 leading-relaxed max-w-xl">
+              Discover thousands of beautiful jigsaw puzzles, challenge your mind, and relax with every piece you place. Your next masterpiece awaits.
             </p>
             
-            {/* Stats */}
-            <div className="flex flex-wrap items-center gap-4">
-              <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-card dark:bg-card/80 border border-border dark:border-white/10 shadow-sm">
-                <div className="p-2 rounded-lg bg-primary-subtle dark:bg-primary/20">
-                  <Puzzle className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Difficulty</p>
-                  <p className="font-semibold text-foreground">{dailyPuzzle.piece_count} pieces</p>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-card dark:bg-card/80 border border-border dark:border-white/10 shadow-sm">
-                <div className="p-2 rounded-lg bg-success-subtle dark:bg-success/20">
-                  <Clock className="h-5 w-5 text-success" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Avg. Time</p>
-                  <p className="font-semibold text-foreground">15-25 min</p>
-                </div>
-              </div>
-            </div>
-            
             {/* CTA Buttons */}
-            <div className="flex flex-wrap gap-4">
-              <Link href={`/play/${dailyPuzzle.id}`}>
-                <Button size="lg" className="btn-shine text-base px-8 h-12">
-                  <Play className="w-5 h-5 mr-2" />
+            <div className="flex flex-wrap gap-4 pt-2">
+              <Link href={`/play/${dailyPuzzle.id}`} className="cursor-pointer group/btn">
+                <Button size="lg" className="cursor-pointer btn-shine text-base px-8 h-12 shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 hover:-translate-y-0.5 transition-all duration-300">
+                  <Play className="w-5 h-5 mr-2 fill-current" />
                   Play Now
                 </Button>
               </Link>
-              <Link href={`/p/${dailyPuzzle.id}`}>
-                <Button size="lg" variant="outline" className="text-base px-8 h-12 group bg-card dark:bg-transparent dark:text-white dark:border-white/20 dark:hover:bg-white/10 dark:hover:border-white/40">
-                  View Details
-                  <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
+              <Link href="/explore/weekly" className="cursor-pointer group/btn">
+                <Button size="lg" variant="outline" className="cursor-pointer text-base px-8 h-12 group bg-card dark:bg-transparent dark:text-white dark:border-white/20 dark:hover:bg-white/10 dark:hover:border-white/40 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300">
+                  View What's Hot
+                  <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover/btn:translate-x-1" />
                 </Button>
               </Link>
             </div>
@@ -155,42 +130,34 @@ export function HeroSection() {
                       onLoad={() => setImageLoaded(true)}
                     />
                     
-                    {/* Overlay gradient */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+                    {/* Title area with localized overlay */}
+                    <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent">
+                      <h2 className="text-2xl md:text-3xl font-bold" style={{ color: '#ffffff', textShadow: '0 2px 8px rgba(0,0,0,1), 0 1px 3px rgba(0,0,0,1)' }}>
+                        {dailyPuzzle.title}
+                      </h2>
+                    </div>
                     
                     {/* Hover play button */}
-                    <Link href={`/play/${dailyPuzzle.id}`}>
-                      <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-all duration-300 bg-black/50 backdrop-blur-sm">
-                        <Button size="lg" className="bg-white text-foreground hover:bg-white/90 scale-90 hover:scale-100 transition-transform shadow-xl">
-                          <Play className="w-5 h-5 mr-2 fill-current" />
-                          Start Puzzle
-                        </Button>
+                    <Link href={`/play/${dailyPuzzle.id}`} className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-all duration-300 bg-black/50 backdrop-blur-sm group/start cursor-pointer">
+                      <div className="flex items-center justify-center w-20 h-20 rounded-full bg-white/95 dark:bg-white/90 shadow-2xl scale-75 group-hover/start:scale-100 transition-transform duration-300">
+                        <span className="absolute inset-0 rounded-full bg-white/40 animate-ping" />
+                        <Play className="relative w-8 h-8 text-primary fill-primary ml-1" />
                       </div>
+                      <span className="absolute bottom-24 text-white font-semibold text-lg drop-shadow-lg">
+                        Start Puzzle
+                      </span>
                     </Link>
                     
-                    {/* Daily badge */}
+                    {/* Daily Challenge badge */}
                     <div className="absolute top-4 left-4">
-                      <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-white/95 dark:bg-white/90 text-foreground shadow-lg">
-                        <Clock className="w-3 h-3 mr-1" />
-                        Daily
+                      <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-white/95 dark:bg-white/10 dark:backdrop-blur-md border border-white/20 text-foreground dark:text-white shadow-lg">
+                        <Sparkles className="w-4 h-4 mr-2 text-accent" />
+                        Daily Challenge
                       </span>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-              
-              {/* Floating stats card */}
-              <div className="absolute -bottom-6 -right-6 bg-card dark:bg-card border border-border dark:border-white/10 rounded-2xl p-4 shadow-xl hidden lg:block animate-float">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-success-subtle dark:bg-success/20 flex items-center justify-center">
-                    <span className="text-2xl">🏆</span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">1,247 players</p>
-                    <p className="text-xs text-muted-foreground">completed today</p>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>

@@ -3,11 +3,11 @@ import { Puzzle, Mail, Github, Twitter, Instagram } from 'lucide-react'
 
 const footerLinks = {
   categories: [
-    { href: '/c/nature', label: 'Nature' },
-    { href: '/c/ocean', label: 'Ocean' },
-    { href: '/c/city', label: 'City' },
-    { href: '/c/forest', label: 'Forest' },
-    { href: '/c/art', label: 'Art' },
+    { href: '/category/nature', label: 'Nature' },
+    { href: '/category/ocean', label: 'Ocean' },
+    { href: '/category/city', label: 'City' },
+    { href: '/category/forest', label: 'Forest' },
+    { href: '/category/art', label: 'Art' },
   ],
   explore: [
     { href: '/daily', label: 'Daily Puzzle' },
