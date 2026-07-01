@@ -351,7 +351,7 @@ function PlayPuzzleContent() {
 
   if (!puzzle) {
     return (
-      <div className="min-h-screen bg-muted dark:bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-muted dark:bg-[#08080c] flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent mx-auto mb-4" />
           <p className="text-muted-foreground">Loading puzzle...</p>
@@ -361,9 +361,9 @@ function PlayPuzzleContent() {
   }
 
   return (
-    <div className="min-h-screen bg-muted dark:bg-background flex flex-col">
+    <div className="min-h-screen bg-muted dark:bg-[#08080c] flex flex-col">
       {/* Game Header */}
-      <header className="bg-card dark:bg-card/80 border-b border-border dark:border-white/10 px-4 sm:px-6 py-4">
+      <header className="bg-card dark:bg-[#13131a] border-b border-border dark:border-white/10 px-4 sm:px-6 py-4">
         <div className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-4">
             <Link href="/">
@@ -374,8 +374,8 @@ function PlayPuzzleContent() {
             <div>
               <h1 className="text-lg font-bold text-foreground">{puzzle.title}</h1>
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                <span className="flex items-center">
-                  <Puzzle className="h-4 w-4 mr-1" />
+                <span className="flex items-center gap-1.5 bg-secondary/60 dark:bg-[#0f172a] border border-border/60 dark:border-primary/35 rounded-lg pl-2.5 pr-1 py-1 shadow-sm dark:shadow-[0_0_0_1px_rgba(96,165,250,0.12)]">
+                  <Puzzle className="h-4 w-4 text-primary dark:text-primary" />
                   <select
                     value={selectedNop}
                     onChange={(e) => {
@@ -383,7 +383,7 @@ function PlayPuzzleContent() {
                       const choice = choices.find((c) => c.nop === nop)
                       if (choice) rebuildWithChoice(choice)
                     }}
-                    className="bg-transparent border border-border/50 dark:border-white/10 rounded-md px-2 py-0.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer hover:bg-secondary/50 dark:hover:bg-white/5 transition-colors"
+                    className="bg-transparent rounded-md px-1.5 py-0.5 text-sm font-semibold text-foreground dark:text-white dark:[&>option]:bg-[#0f172a] dark:[&>option]:text-white focus:outline-none focus:ring-2 focus:ring-primary/60 cursor-pointer hover:bg-white/40 dark:hover:bg-primary/10 transition-colors"
                     aria-label="Select piece count"
                   >
                     {choices.length === 0 && (
@@ -415,19 +415,19 @@ function PlayPuzzleContent() {
 
           <div className="flex items-center justify-between sm:justify-end gap-4">
             {/* Timer */}
-            <div className="flex items-center gap-2 bg-secondary dark:bg-secondary/50 px-4 py-2 rounded-xl">
-              <Clock className="h-4 w-4 text-muted-foreground" />
-              <span className="text-xl font-mono font-bold text-foreground">{formatTime(timer)}</span>
+            <div className="flex items-center gap-2 bg-secondary/80 dark:bg-[#0f172a] border border-border/60 dark:border-primary/35 px-4 py-2 rounded-xl shadow-sm dark:shadow-[0_0_0_1px_rgba(96,165,250,0.12)]">
+              <Clock className="h-4 w-4 text-primary dark:text-primary" />
+              <span className="text-xl font-mono font-extrabold text-foreground dark:text-white tabular-nums tracking-tight dark:drop-shadow-[0_0_6px_rgba(255,255,255,0.18)]">{formatTime(timer)}</span>
             </div>
 
             {/* Progress - Circular */}
             <div className="hidden sm:flex items-center gap-2">
               <div className="relative w-12 h-12">
                 <svg className="w-full h-full -rotate-90" viewBox="0 0 44 44">
-                  <circle cx="22" cy="22" r="18" fill="none" stroke="currentColor" strokeWidth="4" className="text-secondary dark:text-secondary/50" />
+                  <circle cx="22" cy="22" r="18" fill="none" stroke="currentColor" strokeWidth="4" className="text-secondary dark:text-white/15" />
                   <circle
                     cx="22" cy="22" r="18" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round"
-                    className="text-primary transition-all duration-500"
+                    className="text-primary transition-all duration-500 drop-shadow-[0_0_6px_rgba(96,165,250,0.5)]"
                     style={{
                       strokeDasharray: `${2 * Math.PI * 18}`,
                       strokeDashoffset: `${2 * Math.PI * 18 * (1 - progress / 100)}`,
@@ -435,7 +435,7 @@ function PlayPuzzleContent() {
                   />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-xs font-bold text-foreground">{progress}</span>
+                  <span className="text-xs font-bold text-foreground tabular-nums">{progress}</span>
                 </div>
               </div>
             </div>
@@ -446,7 +446,12 @@ function PlayPuzzleContent() {
                 variant="ghost"
                 size="icon"
                 onClick={togglePreview}
-                className={cn(showPreview && "bg-primary/10 text-primary dark:bg-primary/20", "dark:hover:bg-white/10")}
+                className={cn(
+                  "border border-transparent transition-all",
+                  showPreview
+                    ? "bg-primary/10 text-primary border-primary/30 dark:bg-primary/20 dark:text-primary dark:border-primary/40 hover:bg-primary/20 dark:hover:bg-primary/30"
+                    : "bg-secondary/60 text-foreground border-border/60 dark:bg-white/[0.06] dark:text-white dark:border-white/10 hover:bg-secondary dark:hover:bg-white/10"
+                )}
                 title="Toggle reference image"
               >
                 {showPreview ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
@@ -456,25 +461,36 @@ function PlayPuzzleContent() {
                 variant="ghost"
                 size="icon"
                 onClick={scatterPieces}
-                className="dark:hover:bg-white/10"
+                className="bg-secondary/60 text-foreground border border-border/60 dark:bg-white/[0.06] dark:text-white dark:border-white/10 hover:bg-secondary dark:hover:bg-white/10 transition-all"
                 title="Scatter unsolved pieces"
               >
                 <Shuffle className="h-4 w-4" />
               </Button>
 
               {!isPlaying ? (
-                <Button onClick={startGame} size="sm" className="btn-shine">
+                <Button onClick={startGame} size="sm" className="btn-shine shadow-md shadow-primary/20 dark:shadow-primary/30">
                   <Play className="h-4 w-4 mr-1" />
                   Start
                 </Button>
               ) : (
-                <Button onClick={pauseGame} variant="outline" size="sm" className="dark:bg-transparent">
+                <Button
+                  onClick={pauseGame}
+                  variant="outline"
+                  size="sm"
+                  className="bg-secondary/60 text-foreground border-border/60 hover:bg-secondary dark:bg-white/[0.06] dark:text-white dark:border-white/15 dark:hover:bg-white/10 dark:hover:border-white/25"
+                >
                   <Pause className="h-4 w-4 mr-1" />
                   Pause
                 </Button>
               )}
 
-              <Button onClick={resetGame} variant="outline" size="sm" className="dark:bg-transparent">
+              <Button
+                onClick={resetGame}
+                variant="outline"
+                size="sm"
+                className="bg-secondary/60 text-foreground border-border/60 hover:bg-secondary dark:bg-white/[0.06] dark:text-white dark:border-white/15 dark:hover:bg-white/10 dark:hover:border-white/25"
+                title="Restart puzzle"
+              >
                 <RotateCcw className="h-4 w-4" />
               </Button>
             </div>
@@ -485,10 +501,10 @@ function PlayPuzzleContent() {
         <div className="sm:hidden mt-3 flex items-center justify-center">
           <div className="relative w-10 h-10">
             <svg className="w-full h-full -rotate-90" viewBox="0 0 44 44">
-              <circle cx="22" cy="22" r="18" fill="none" stroke="currentColor" strokeWidth="4" className="text-secondary dark:text-secondary/50" />
+              <circle cx="22" cy="22" r="18" fill="none" stroke="currentColor" strokeWidth="4" className="text-secondary dark:text-white/15" />
               <circle
                 cx="22" cy="22" r="18" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round"
-                className="text-primary transition-all duration-500"
+                className="text-primary transition-all duration-500 drop-shadow-[0_0_6px_rgba(96,165,250,0.5)]"
                 style={{
                   strokeDasharray: `${2 * Math.PI * 18}`,
                   strokeDashoffset: `${2 * Math.PI * 18 * (1 - progress / 100)}`,
@@ -496,7 +512,7 @@ function PlayPuzzleContent() {
               />
             </svg>
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-[10px] font-bold text-foreground">{progress}</span>
+              <span className="text-[10px] font-bold text-foreground tabular-nums">{progress}</span>
             </div>
           </div>
         </div>
@@ -506,7 +522,7 @@ function PlayPuzzleContent() {
       <div className="flex-1 p-4 sm:p-6 overflow-hidden">
         <div
           ref={canvasWrapRef}
-          className="relative w-full h-[calc(100vh-180px)] min-h-[500px] bg-card dark:bg-card/80 rounded-2xl shadow-lg overflow-hidden"
+          className="relative w-full h-[calc(100vh-180px)] min-h-[500px] bg-card dark:bg-[#13131a] rounded-2xl shadow-lg overflow-hidden"
         >
           <canvas
             ref={canvasRef}
@@ -520,7 +536,7 @@ function PlayPuzzleContent() {
 
           {/* Loading overlay until engine ready */}
           {!isReady && (
-            <div className="absolute inset-0 bg-card/80 dark:bg-card/90 backdrop-blur-sm flex items-center justify-center">
+            <div className="absolute inset-0 bg-card/80 dark:bg-[#13131a]/90 backdrop-blur-sm flex items-center justify-center">
               <div className="text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent mx-auto mb-4" />
                 <p className="text-muted-foreground">Preparing puzzle...</p>
@@ -604,7 +620,7 @@ function PlayPuzzleContent() {
 export default function PlayPuzzlePage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-muted dark:bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-muted dark:bg-[#08080c] flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent" />
       </div>
     }>
