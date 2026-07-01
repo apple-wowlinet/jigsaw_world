@@ -157,6 +157,7 @@ export interface Piece {
   hasMoved: boolean;
   canvas: HTMLCanvasElement | null;
   alpha: Uint8ClampedArray | null;
+  renderDpr: number;
   neighbors: Piece[];
   edges: { top: Edge; right: Edge; bottom: Edge; left: Edge };
 }
@@ -343,11 +344,21 @@ function outline(c: CanvasRenderingContext2D, p: Piece) {
   c.closePath();
 }
 
+function getRenderDpr() {
+  return typeof window === 'undefined' ? 1 : window.devicePixelRatio || 1;
+}
+
 function paintPiece(p: Piece, subCanvas: HTMLCanvasElement) {
+  const dpr = getRenderDpr();
+  const cssW = Math.ceil(p.width);
+  const cssH = Math.ceil(p.height);
   const canvas = document.createElement('canvas');
-  canvas.width = Math.ceil(p.width);
-  canvas.height = Math.ceil(p.height);
+  canvas.width = Math.ceil(cssW * dpr);
+  canvas.height = Math.ceil(cssH * dpr);
   const g = canvas.getContext('2d')!;
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  g.imageSmoothingEnabled = true;
+  g.imageSmoothingQuality = 'high';
   outline(g, p);
   g.save();
   g.clip();
@@ -359,7 +370,7 @@ function paintPiece(p: Piece, subCanvas: HTMLCanvasElement) {
   gloss.addColorStop(0.55, 'rgba(255,255,255,.04)');
   gloss.addColorStop(1, 'rgba(17,32,47,.08)');
   g.fillStyle = gloss;
-  g.fillRect(0, 0, canvas.width, canvas.height);
+  g.fillRect(0, 0, cssW, cssH);
   g.restore();
   // 暗描边（底）+ 亮描边（顶）
   outline(g, p);
@@ -371,6 +382,7 @@ function paintPiece(p: Piece, subCanvas: HTMLCanvasElement) {
   g.strokeStyle = 'rgba(255,255,255,.4)';
   g.stroke();
   p.canvas = canvas;
+  p.renderDpr = dpr;
   p.alpha = g.getImageData(0, 0, canvas.width, canvas.height).data;
 }
 
@@ -425,6 +437,7 @@ function buildPieces(subject: SubjectData, choice: PieceChoice, seed: number): P
         hasMoved: false,
         canvas: null,
         alpha: null,
+        renderDpr: 1,
         neighbors: [],
         edges: {
           top: {} as Edge,
@@ -788,8 +801,9 @@ export class Puzzle {
     const b = pieceBounds(piece);
     if (point.x < b.x || point.x > b.x + b.w || point.y < b.y || point.y > b.y + b.h)
       return false;
-    const lx = Math.floor(point.x - b.x);
-    const ly = Math.floor(point.y - b.y);
+    const dpr = piece.renderDpr || 1;
+    const lx = Math.floor((point.x - b.x) * dpr);
+    const ly = Math.floor((point.y - b.y) * dpr);
     if (
       lx < 0 ||
       ly < 0 ||
@@ -985,15 +999,17 @@ export class Puzzle {
         ctx.shadowOffsetY = 6;
       } else {
         ctx.shadowColor = 'rgba(0,0,0,.35)';
-        ctx.shadowBlur = 4;
-        ctx.shadowOffsetY = 2;
+        ctx.shadowBlur = 2;
+        ctx.shadowOffsetY = 1;
       }
       ctx.translate(p.x, p.y);
       if (p.angle) ctx.rotate((p.angle * Math.PI) / 180);
       ctx.drawImage(
         p.canvas!,
         -(p.core.x + p.core.width / 2),
-        -(p.core.y + p.core.height / 2)
+        -(p.core.y + p.core.height / 2),
+        p.width,
+        p.height
       );
       ctx.restore();
     }
