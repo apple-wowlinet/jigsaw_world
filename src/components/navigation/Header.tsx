@@ -99,9 +99,9 @@ export function Header() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setIsSearchFocused(true)}
                 onBlur={() => setIsSearchFocused(false)}
-                className="w-full pl-10 pr-4 bg-secondary dark:bg-secondary/50 border-transparent dark:border-white/10 focus:bg-card dark:focus:bg-card"
+                className="w-full pl-10 pr-4 bg-secondary dark:bg-[#0f172a]/80 border-transparent dark:border-white/10 text-foreground dark:text-slate-100 placeholder:text-muted-foreground dark:placeholder:text-slate-500 focus:bg-card dark:focus:bg-[#111827] dark:focus:border-primary/40 dark:focus:ring-primary/30 shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
               />
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground dark:text-slate-500" />
             </div>
           </form>
 
@@ -144,9 +144,9 @@ export function Header() {
                     placeholder="Search puzzles..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 dark:bg-secondary/50 dark:border-white/10"
+                    className="w-full pl-10 dark:bg-[#0f172a]/80 dark:border-white/10 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-[#111827] dark:focus:border-primary/40 dark:focus:ring-primary/30 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
                   />
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground dark:text-slate-500" />
                 </div>
               </form>
 
