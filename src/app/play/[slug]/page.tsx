@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation'
 import { useState, useEffect, useRef, Suspense, useCallback, useMemo } from 'react'
-import { Play, Pause, RotateCcw, Clock, Puzzle, Home, Shuffle, Eye, EyeOff, ChevronLeft, Trophy, Star, X } from 'lucide-react'
+import { Play, Pause, RotateCcw, Clock, Home, Shuffle, Eye, EyeOff, ChevronLeft, Trophy, Star, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
@@ -75,7 +75,6 @@ function PlayPuzzleContent() {
   const [moves, setMoves] = useState(0)
   const [showPreview, setShowPreview] = useState(true)
   const [pieceCount, setPieceCount] = useState(0)
-  const [gridLabel, setGridLabel] = useState('')
   const [choices, setChoices] = useState<PieceChoice[]>([])
   const [selectedNop, setSelectedNop] = useState(0)
 
@@ -161,7 +160,6 @@ function PlayPuzzleContent() {
 
     setPieceCount(choice.nop)
     setSelectedNop(choice.nop)
-    setGridLabel(`${choice.rows} × ${choice.cols}`)
     setProgress(0)
     setMoves(0)
     setIsReady(true)
@@ -374,32 +372,25 @@ function PlayPuzzleContent() {
             <div>
               <h1 className="text-lg font-bold text-foreground">{puzzle.title}</h1>
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                <span className="flex items-center gap-1.5 bg-secondary/60 dark:bg-[#0f172a] border border-border/60 dark:border-primary/35 rounded-lg pl-2.5 pr-1 py-1 shadow-sm dark:shadow-[0_0_0_1px_rgba(96,165,250,0.12)]">
-                  <Puzzle className="h-4 w-4 text-primary dark:text-primary" />
-                  <select
-                    value={selectedNop}
-                    onChange={(e) => {
-                      const nop = Number(e.target.value)
-                      const choice = choices.find((c) => c.nop === nop)
-                      if (choice) rebuildWithChoice(choice)
-                    }}
-                    className="bg-transparent rounded-md px-1.5 py-0.5 text-sm font-semibold text-foreground dark:text-white dark:[&>option]:bg-[#0f172a] dark:[&>option]:text-white focus:outline-none focus:ring-2 focus:ring-primary/60 cursor-pointer hover:bg-white/40 dark:hover:bg-primary/10 transition-colors"
-                    aria-label="Select piece count"
-                  >
-                    {choices.length === 0 && (
-                      <option value={0}>{pieceCount || puzzle.piece_count} pieces</option>
-                    )}
-                    {choices.map((c) => (
-                      <option key={c.nop} value={c.nop}>
-                        {c.nop} pieces ({c.rows}×{c.cols})
-                      </option>
-                    ))}
-                  </select>
-                </span>
-                {gridLabel && (
-                  <span className="hidden sm:inline">•</span>
-                )}
-                {gridLabel && <span className="hidden sm:inline">{gridLabel}</span>}
+                <select
+                  value={selectedNop}
+                  onChange={(e) => {
+                    const nop = Number(e.target.value)
+                    const choice = choices.find((c) => c.nop === nop)
+                    if (choice) rebuildWithChoice(choice)
+                  }}
+                  className="bg-secondary/60 dark:bg-[#0f172a] border border-border/60 dark:border-primary/35 rounded-lg pl-2.5 pr-1 py-1 shadow-sm dark:shadow-[0_0_0_1px_rgba(96,165,250,0.12)] text-sm font-semibold text-foreground dark:text-white dark:[&>option]:bg-[#0f172a] dark:[&>option]:text-white focus:outline-none focus:ring-2 focus:ring-primary/60 cursor-pointer hover:bg-white/40 dark:hover:bg-primary/10 transition-colors"
+                  aria-label="Select piece count"
+                >
+                  {choices.length === 0 && (
+                    <option value={0}>{pieceCount || puzzle.piece_count} pieces</option>
+                  )}
+                  {choices.map((c) => (
+                    <option key={c.nop} value={c.nop}>
+                      {c.nop} pieces ({c.rows}×{c.cols})
+                    </option>
+                  ))}
+                </select>
                 <span className="hidden sm:inline">•</span>
                 <span className={cn(
                   "hidden sm:inline px-2 py-0.5 rounded text-xs font-medium",
