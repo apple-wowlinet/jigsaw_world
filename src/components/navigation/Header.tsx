@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Search, Menu, X, Puzzle, Sparkles } from 'lucide-react'
+import { Search, Menu, X, Puzzle, Sparkles, ImagePlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ThemeToggle } from '@/components/theme/ThemeToggle'
@@ -21,6 +21,7 @@ export function Header() {
   }
 
   const navLinks = [
+    { href: '/create', label: 'Create', icon: ImagePlus },
     { href: '/daily', label: 'Daily Puzzle', icon: Sparkles },
     { href: '/categories', label: 'Categories' },
     { 
@@ -151,8 +152,16 @@ export function Header() {
               </form>
 
               {/* Mobile Nav Links */}
-              <Link 
-                href="/daily" 
+              <Link
+                href="/create"
+                className="flex items-center px-3 py-2 rounded-lg text-base font-medium text-foreground hover:bg-secondary dark:hover:bg-secondary/50 transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <ImagePlus className="w-4 h-4 mr-2 text-primary" />
+                Create
+              </Link>
+              <Link
+                href="/daily"
                 className="flex items-center px-3 py-2 rounded-lg text-base font-medium text-foreground hover:bg-secondary dark:hover:bg-secondary/50 transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
