@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { Search, Menu, X, Puzzle, Sparkles, ImagePlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { ThemeToggle } from '@/components/theme/ThemeToggle'
 import { cn } from '@/lib/utils'
 
 export function Header() {
@@ -100,18 +99,21 @@ export function Header() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setIsSearchFocused(true)}
                 onBlur={() => setIsSearchFocused(false)}
-                className="w-full pl-10 pr-4 bg-secondary dark:bg-[#0f172a]/80 border-transparent dark:border-white/10 text-foreground dark:text-slate-100 placeholder:text-muted-foreground dark:placeholder:text-slate-500 focus:bg-card dark:focus:bg-[#111827] dark:focus:border-primary/40 dark:focus:ring-primary/30 shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+                className="w-full pl-4 pr-10 bg-secondary dark:bg-[#0f172a]/80 border-transparent dark:border-white/10 text-foreground dark:text-slate-100 placeholder:text-muted-foreground dark:placeholder:text-slate-500 focus:bg-card dark:focus:bg-[#111827] dark:focus:border-primary/50 dark:focus-visible:ring-0 dark:focus-visible:ring-offset-0 dark:focus:shadow-[0_0_0_1px_rgba(96,165,250,0.35),0_0_12px_rgba(96,165,250,0.2)] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
               />
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground dark:text-slate-500" />
+              <button
+                type="submit"
+                aria-label="Search"
+                className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer disabled:cursor-default disabled:opacity-50 transition-opacity"
+                disabled={!searchQuery.trim()}
+              >
+                <Search className="h-4 w-4 text-muted-foreground dark:text-slate-500" />
+              </button>
             </div>
           </form>
 
           {/* Right Side Actions */}
           <div className="hidden md:flex items-center space-x-2">
-            <ThemeToggle />
-            
-            <div className="h-6 w-px bg-border dark:bg-white/10 mx-2" />
-            
             <Link href="/login">
               <Button variant="ghost" size="sm">
                 Login
@@ -145,9 +147,16 @@ export function Header() {
                     placeholder="Search puzzles..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 dark:bg-[#0f172a]/80 dark:border-white/10 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-[#111827] dark:focus:border-primary/40 dark:focus:ring-primary/30 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+                    className="w-full pl-4 pr-10 dark:bg-[#0f172a]/80 dark:border-white/10 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-[#111827] dark:focus:border-primary/50 dark:focus-visible:ring-0 dark:focus-visible:ring-offset-0 dark:focus:shadow-[0_0_0_1px_rgba(96,165,250,0.35),0_0_12px_rgba(96,165,250,0.2)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
                   />
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground dark:text-slate-500" />
+                  <button
+                    type="submit"
+                    aria-label="Search"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer disabled:cursor-default disabled:opacity-50 transition-opacity"
+                    disabled={!searchQuery.trim()}
+                  >
+                    <Search className="h-4 w-4 text-muted-foreground dark:text-slate-500" />
+                  </button>
                 </div>
               </form>
 
@@ -203,10 +212,6 @@ export function Header() {
               </div>
 
               <div className="border-t border-border dark:border-white/10 pt-3 mt-3">
-                <div className="flex items-center justify-between px-3 mb-3">
-                  <span className="text-sm font-medium text-muted-foreground">Theme</span>
-                  <ThemeToggle variant="dropdown" />
-                </div>
                 <div className="space-y-2">
                   <Link href="/login" onClick={() => setIsMenuOpen(false)}>
                     <Button variant="outline" className="w-full dark:bg-transparent">

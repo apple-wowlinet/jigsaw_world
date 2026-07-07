@@ -34,6 +34,11 @@ function SearchContent() {
   const [searchInput, setSearchInput] = useState(query)
   const [showFilters, setShowFilters] = useState(false)
 
+  // URL 中的 q 变化时（如同页 <Link> 跳转），同步搜索框内容
+  useEffect(() => {
+    setSearchInput(query)
+  }, [query])
+
   useEffect(() => {
     const mockResults: PuzzleItem[] = [
       {
@@ -411,7 +416,7 @@ function SearchContent() {
                         <Link
                           key={suggestion}
                           href={`/search?q=${suggestion}`}
-                          className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-secondary/50 dark:bg-white/5 text-foreground hover:bg-secondary dark:hover:bg-white/10 border border-transparent hover:border-border dark:hover:border-white/10 transition-all"
+                          className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-secondary/50 dark:bg-white/10 text-foreground dark:text-slate-100 hover:bg-secondary dark:hover:bg-white/[0.18] border border-transparent hover:border-border dark:border-white/10 dark:hover:border-white/20 transition-all"
                         >
                           {suggestion}
                         </Link>
