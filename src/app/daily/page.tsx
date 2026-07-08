@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Play, Clock, Sparkles, Puzzle, ArrowRight, Calendar } from 'lucide-react'
+import { Play, Clock, Sparkles, ArrowRight, Calendar } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
@@ -101,12 +101,6 @@ export default function DailyPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
               {/* Left Content */}
               <div className="space-y-8 animate-fade-in">
-                {/* Badge */}
-                <div className="inline-flex items-center px-4 py-2 rounded-full bg-accent-subtle dark:bg-accent/20 border border-accent/30 dark:border-accent/30 backdrop-blur-sm">
-                  <Sparkles className="w-4 h-4 mr-2 text-accent" />
-                  <span className="text-sm font-semibold text-accent dark:text-accent">Today's Challenge</span>
-                </div>
-                
                 {/* Title */}
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground dark:text-white leading-tight">
                   {dailyPuzzle.title}
@@ -116,29 +110,6 @@ export default function DailyPage() {
                 <p className="text-lg text-muted-foreground dark:text-gray-400 leading-relaxed max-w-xl">
                   {dailyPuzzle.description}
                 </p>
-                
-                {/* Stats */}
-                <div className="flex flex-wrap items-center gap-4">
-                  <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-card dark:bg-card/50 border border-border dark:border-white/10 shadow-sm backdrop-blur-sm">
-                    <div className="p-2 rounded-lg bg-primary-subtle dark:bg-primary/20">
-                      <Puzzle className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Difficulty</p>
-                      <p className="font-semibold text-foreground dark:text-white">{dailyPuzzle.piece_count} pieces</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-card dark:bg-card/50 border border-border dark:border-white/10 shadow-sm backdrop-blur-sm">
-                    <div className="p-2 rounded-lg bg-success-subtle dark:bg-success/20">
-                      <Clock className="h-5 w-5 text-success" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Avg. Time</p>
-                      <p className="font-semibold text-foreground dark:text-white">15-25 min</p>
-                    </div>
-                  </div>
-                </div>
                 
                 {/* CTA Buttons */}
                 <div className="flex flex-wrap gap-4">
@@ -190,8 +161,16 @@ export default function DailyPage() {
                           </div>
                         </Link>
                         
-                        {/* Daily badge */}
+                        {/* Today's Challenge badge */}
                         <div className="absolute top-4 left-4">
+                          <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-accent-subtle/95 dark:bg-accent/20 border border-accent/30 backdrop-blur-sm text-accent shadow-lg">
+                            <Sparkles className="w-3 h-3 mr-1" />
+                            Today&apos;s Challenge
+                          </span>
+                        </div>
+
+                        {/* Daily date badge */}
+                        <div className="absolute top-4 right-4">
                           <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-white/95 dark:bg-white/90 text-foreground shadow-lg">
                             <Clock className="w-3 h-3 mr-1" />
                             {new Date(dailyPuzzle.created_at).toLocaleDateString()}
@@ -214,10 +193,12 @@ export default function DailyPage() {
                 <h2 className="text-2xl font-bold text-foreground dark:text-white mb-2">Previous Challenges</h2>
                 <p className="text-muted-foreground dark:text-gray-400">Missed a day? Catch up on past daily puzzles.</p>
               </div>
-              <Button variant="outline" className="hidden sm:flex dark:border-white/10 dark:text-white dark:hover:bg-white/10">
-                <Calendar className="w-4 h-4 mr-2" />
-                View Archive
-              </Button>
+              <Link href="/daily/archive">
+                <Button variant="outline" className="hidden sm:flex cursor-pointer dark:bg-white/5 dark:border-white/15 dark:text-white dark:hover:bg-white/10 dark:hover:border-white/25">
+                  <Calendar className="w-4 h-4 mr-2" />
+                  View Archive
+                </Button>
+              </Link>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
