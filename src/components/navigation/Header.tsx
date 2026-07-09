@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Search, Menu, X, Puzzle, Sparkles, ImagePlus } from 'lucide-react'
+import { Search, Menu, X, Puzzle, Sparkles, ImagePlus, Trophy } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
@@ -22,6 +22,7 @@ export function Header() {
   const navLinks = [
     { href: '/create', label: 'Create', icon: ImagePlus },
     { href: '/daily', label: 'Daily Puzzle', icon: Sparkles },
+    { href: '/leaderboard', label: 'Leaderboard', icon: Trophy },
     { href: '/categories', label: 'Categories' },
     { 
       label: 'Explore', 
@@ -176,6 +177,14 @@ export function Header() {
               >
                 <Sparkles className="w-4 h-4 mr-2 text-accent" />
                 Daily Puzzle
+              </Link>
+              <Link
+                href="/leaderboard"
+                className="flex items-center px-3 py-2 rounded-lg text-base font-medium text-foreground hover:bg-secondary dark:hover:bg-secondary/50 transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <Trophy className="w-4 h-4 mr-2 text-yellow-500" />
+                Leaderboard
               </Link>
               <Link 
                 href="/categories" 
