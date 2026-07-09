@@ -4,7 +4,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { useState, useEffect, useRef, Suspense, useCallback, useMemo } from 'react'
 import {
   Play, Pause, RotateCcw, Clock, Home, Shuffle, Eye, EyeOff,
-  ChevronLeft, Trophy, Star, X, Volume2, VolumeX, RefreshCw, Bug,
+  ChevronLeft, ChevronRight, Trophy, Star, X, Volume2, VolumeX, RefreshCw, Bug,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -858,13 +858,24 @@ function PlayPuzzleContent() {
                   </div>
 
                   <div className="flex gap-3">
-                    <Button onClick={resetGame} variant="outline" className="flex-1 dark:bg-transparent">
-                      <RotateCcw className="w-4 h-4 mr-2" />
-                      Play Again
-                    </Button>
-                    <Button onClick={() => router.push('/')} className="flex-1">
+                    <Button onClick={() => router.push('/')} variant="outline" className="flex-1 dark:bg-transparent">
                       <Home className="w-4 h-4 mr-2" />
                       Home
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        const num = parseInt(slug, 10)
+                        if (Number.isNaN(num)) {
+                          router.push('/play/1')
+                          return
+                        }
+                        const nextId = ((num) % Object.keys(PUZZLES).length) + 1
+                        router.push(`/play/${nextId}`)
+                      }}
+                      className="flex-1 btn-shine"
+                    >
+                      Next Level
+                      <ChevronRight className="w-4 h-4 ml-2" />
                     </Button>
                   </div>
                 </CardContent>
