@@ -219,11 +219,6 @@ function PodiumBlock({ entry, place }: { entry: LeaderboardEntry; place: 1 | 2 |
           'p-4 md:p-6 flex flex-col items-center',
           isChampion ? 'md:py-12' : 'md:py-8'
         )}>
-          {/* Crown — champion only, bounces with gold drop-shadow */}
-          {isChampion && (
-            <div className="text-3xl mb-1 podium-crown" aria-hidden="true">👑</div>
-          )}
-
           {/* Avatar inside an animated metallic gradient ring */}
           <div className={cn(
             'relative w-20 h-20 md:w-24 md:h-24 rounded-full p-[3px] mb-3',

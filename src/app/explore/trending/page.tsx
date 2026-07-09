@@ -137,7 +137,7 @@ function TrendingContent() {
 
       <div className="relative z-10">
         {/* Header */}
-        <section className="relative pt-24 pb-12 overflow-hidden">
+        <section className="relative pt-5 pb-8 overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Breadcrumb */}
             <nav className="flex items-center text-sm text-muted-foreground mb-8 animate-fade-in">

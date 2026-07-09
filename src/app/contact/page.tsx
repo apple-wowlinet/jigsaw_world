@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
-import { Mail, MessageCircle, Twitter, Instagram, Github, Clock, Send, CheckCircle2, ArrowRight } from 'lucide-react'
+import { Mail, Twitter, Instagram, Github, Clock, Send, CheckCircle2 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -56,9 +55,6 @@ export default function ContactPage() {
       <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
         {/* Header */}
         <div className="text-center mb-16 animate-fade-in">
-          <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-primary-subtle dark:bg-primary/20 flex items-center justify-center">
-            <MessageCircle className="w-8 h-8 text-primary" />
-          </div>
           <h1 className="text-4xl md:text-5xl font-bold text-foreground dark:text-white tracking-tight mb-4">
             Contact Us
           </h1>
@@ -172,12 +168,6 @@ export default function ContactPage() {
                     <Send className="w-4 h-4 mr-2" />
                     Send Message
                   </Button>
-                  <Link href="/" className="w-full sm:w-auto">
-                    <Button type="button" variant="outline" size="lg" className="cursor-pointer dark:bg-transparent w-full sm:w-auto">
-                      Back to Home
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  </Link>
                 </div>
               </form>
             )}

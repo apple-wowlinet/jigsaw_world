@@ -1,6 +1,4 @@
 import Link from 'next/link'
-import { FileText } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 
 const lastUpdated = 'July 1, 2026'
 
@@ -143,9 +141,6 @@ export default function TermsPage() {
       <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
         {/* Header */}
         <div className="text-center mb-16 animate-fade-in">
-          <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-primary-subtle dark:bg-primary/20 flex items-center justify-center">
-            <FileText className="w-8 h-8 text-primary" />
-          </div>
           <h1 className="text-4xl md:text-5xl font-bold text-foreground dark:text-white tracking-tight mb-4">
             Terms of Service
           </h1>
@@ -172,15 +167,6 @@ export default function TermsPage() {
               </div>
             </section>
           ))}
-        </div>
-
-        {/* Footer link */}
-        <div className="mt-16 text-center animate-fade-in">
-          <Link href="/">
-            <Button variant="outline" className="cursor-pointer dark:bg-transparent">
-              Back to Home
-            </Button>
-          </Link>
         </div>
       </div>
     </div>

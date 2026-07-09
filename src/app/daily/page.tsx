@@ -154,8 +154,8 @@ export default function DailyPage() {
                         
                         {/* Hover play button */}
                         <Link href={`/play/${dailyPuzzle.id}`}>
-                          <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-all duration-300 bg-black/40 backdrop-blur-[2px]">
-                            <Button size="lg" className="bg-white text-foreground hover:bg-white/90 scale-90 hover:scale-100 transition-transform shadow-xl rounded-full w-16 h-16 p-0 flex items-center justify-center">
+                          <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-all duration-300 bg-black/40 backdrop-blur-[2px] cursor-pointer">
+                            <Button size="lg" className="bg-white text-black hover:bg-white/90 scale-90 hover:scale-100 transition-transform shadow-xl rounded-full w-16 h-16 p-0 flex items-center justify-center cursor-pointer">
                               <Play className="w-6 h-6 ml-1 fill-current" />
                             </Button>
                           </div>
@@ -171,7 +171,7 @@ export default function DailyPage() {
 
                         {/* Daily date badge */}
                         <div className="absolute top-4 right-4">
-                          <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-white/95 dark:bg-white/90 text-foreground shadow-lg">
+                          <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-white/95 text-foreground dark:bg-black/60 dark:text-white backdrop-blur-sm shadow-lg">
                             <Clock className="w-3 h-3 mr-1" />
                             {new Date(dailyPuzzle.created_at).toLocaleDateString()}
                           </span>

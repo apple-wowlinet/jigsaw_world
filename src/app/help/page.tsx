@@ -44,9 +44,6 @@ export default function HelpPage() {
       <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
         {/* Header */}
         <div className="text-center mb-16 animate-fade-in">
-          <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-primary-subtle dark:bg-primary/20 flex items-center justify-center">
-            <HelpCircle className="w-8 h-8 text-primary" />
-          </div>
           <h1 className="text-4xl md:text-5xl font-bold text-foreground dark:text-white tracking-tight mb-4">
             Help Center
           </h1>
@@ -96,11 +93,6 @@ export default function HelpPage() {
                   <Mail className="w-4 h-4 mr-2" />
                   Contact Us
                   <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </Link>
-              <Link href="/">
-                <Button variant="outline" className="cursor-pointer dark:bg-transparent">
-                  Back to Home
                 </Button>
               </Link>
             </div>

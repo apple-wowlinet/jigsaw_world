@@ -126,7 +126,7 @@ function PuzzleDetailContent() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-12">
           <div className="animate-pulse">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div className="lg:col-span-2 space-y-6">
@@ -171,7 +171,7 @@ function PuzzleDetailContent() {
         <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-[100px] mix-blend-screen" />
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-8">
         {/* Breadcrumb */}
         <nav className="flex items-center text-sm text-muted-foreground mb-8 animate-fade-in">
           <Link href="/" className="hover:text-primary transition-colors flex items-center">

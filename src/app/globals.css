@@ -517,16 +517,6 @@ textarea::placeholder {
 .podium-float.delay-1 { animation-delay: 0.6s; }
 .podium-float.delay-2 { animation-delay: 1.2s; }
 
-/* Crown bounce for rank 1 */
-@keyframes crownBounce {
-  0%, 100% { transform: translateY(0) rotate(-3deg); }
-  50% { transform: translateY(-4px) rotate(3deg); }
-}
-.podium-crown {
-  animation: crownBounce 2.5s ease-in-out infinite;
-  filter: drop-shadow(0 2px 6px rgba(250, 204, 21, 0.5));
-}
-
 /* Shimmer sweep across the champion's ring, reused from btn-shine concept */
 @keyframes ringShimmer {
   0% { background-position: -200% 0; }
