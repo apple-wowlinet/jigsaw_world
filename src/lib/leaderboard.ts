@@ -29,7 +29,7 @@ function delay(ms: number): Promise<void> {
 
 const mockLeaderboards: Record<LeaderboardPeriod, LeaderboardEntry[]> = {
   all: [
-    { rank: 1, userId: 'u1', username: 'PuzzleMaster', avatar: '👑', score: 48200 },
+    { rank: 1, userId: 'u1', username: 'PuzzleMaster', avatar: '🏆', score: 48200 },
     { rank: 2, userId: 'u2', username: 'SpeedSolver', avatar: '🥈', score: 41500 },
     { rank: 3, userId: 'u3', username: 'PixelNinja', avatar: '🥉', score: 38900 },
     { rank: 4, userId: 'u4', username: 'JigsawPro', avatar: '🧩', score: 34200 },
@@ -43,7 +43,7 @@ const mockLeaderboards: Record<LeaderboardPeriod, LeaderboardEntry[]> = {
     { rank: 12, userId: 'u12', username: 'CornerKing', avatar: '🏰', score: 18900 },
   ],
   monthly: [
-    { rank: 1, userId: 'u3', username: 'PixelNinja', avatar: '👑', score: 12400 },
+    { rank: 1, userId: 'u3', username: 'PixelNinja', avatar: '🏆', score: 12400 },
     { rank: 2, userId: 'u7', username: 'TileTamer', avatar: '🥈', score: 10800 },
     { rank: 3, userId: 'u1', username: 'PuzzleMaster', avatar: '🥉', score: 9600 },
     { rank: 4, userId: 'u9', username: 'QuiltQueen', avatar: '💎', score: 8200 },
@@ -57,7 +57,7 @@ const mockLeaderboards: Record<LeaderboardPeriod, LeaderboardEntry[]> = {
     { rank: 12, userId: 'u10', username: 'FrameFinder', avatar: '🔍', score: 3900 },
   ],
   weekly: [
-    { rank: 1, userId: 'u9', username: 'QuiltQueen', avatar: '👑', score: 3200 },
+    { rank: 1, userId: 'u9', username: 'QuiltQueen', avatar: '🏆', score: 3200 },
     { rank: 2, userId: 'u11', username: 'EdgeWizard', avatar: '🥈', score: 2900 },
     { rank: 3, userId: 'u5', username: 'PieceHunter', avatar: '🥉', score: 2600 },
     { rank: 4, userId: 'u7', username: 'TileTamer', avatar: '🎨', score: 2300 },
