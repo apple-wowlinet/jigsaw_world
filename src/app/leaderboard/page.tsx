@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
-import { Trophy } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -104,11 +103,7 @@ function LeaderboardContent() {
         {/* Title */}
         <section className="pt-24 pb-8">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary mb-4 border border-primary/20 animate-fade-in">
-              <Trophy className="w-4 h-4 mr-2" />
-              Leaderboard
-            </div>
-            <h1 className="text-4xl md:text-5xl font-bold text-foreground dark:text-white mb-4 tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-foreground to-foreground/70 dark:from-white dark:to-white/70 animate-fade-in" style={{ animationDelay: '100ms' }}>
+            <h1 className="text-4xl md:text-5xl font-bold text-foreground dark:text-white mb-4 tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-foreground to-foreground/70 dark:from-white dark:to-white/70 animate-fade-in">
               Top Players
             </h1>
             <p className="text-lg text-muted-foreground dark:text-gray-400 max-w-2xl mx-auto leading-relaxed animate-fade-in" style={{ animationDelay: '150ms' }}>
@@ -194,29 +189,72 @@ function LeaderboardContent() {
   )
 }
 
-// Single podium column. `place` is 1/2/3 for medal styling and height.
+// Single podium column. `place` is 1/2/3 for medal styling, height, and rank flair.
 function PodiumBlock({ entry, place }: { entry: LeaderboardEntry; place: 1 | 2 | 3 }) {
-  const heightClass = place === 1 ? 'md:py-10' : 'md:py-7'
-  const avatarSize = place === 1 ? 'text-5xl' : 'text-4xl'
+  const isChampion = place === 1
+  // Avatar sizing: champion largest, runners-up slightly smaller.
+  const avatarSize = isChampion ? 'text-5xl md:text-6xl' : 'text-4xl md:text-5xl'
+  // Animated metallic ring gradient class around the avatar circle.
+  const ringClass =
+    place === 1 ? 'podium-ring-gold'
+    : place === 2 ? 'podium-ring-silver'
+    : 'podium-ring-bronze'
+  // Metallic gradient text class for the score.
+  const scoreTextClass =
+    place === 1 ? 'podium-score-gold'
+    : place === 2 ? 'podium-score-silver'
+    : 'podium-score-bronze'
+  // Card glow + float: champion pulses a gold halo, runners-up float gently.
+  const cardAnimClass = isChampion ? 'podium-champion' : cn('podium-float', place === 2 ? 'delay-1' : 'delay-2')
+
   return (
     <div className="animate-fade-in" style={{ animationDelay: `${place * 60}ms` }}>
       <Card className={cn(
-        'border text-center bg-card dark:bg-card/60 backdrop-blur-sm shadow-lg',
-        borderStyle(place)
+        'border text-center bg-card dark:bg-card/60 backdrop-blur-sm shadow-xl',
+        'relative overflow-visible',
+        borderStyle(place),
+        cardAnimClass
       )}>
-        <CardContent className={cn('p-4 md:p-6 flex flex-col items-center', heightClass)}>
-          <div className={cn('mb-2', avatarSize)}>{entry.avatar}</div>
-          {place === 1 && <div className="text-2xl mb-1">👑</div>}
+        <CardContent className={cn(
+          'p-4 md:p-6 flex flex-col items-center',
+          isChampion ? 'md:py-12' : 'md:py-8'
+        )}>
+          {/* Crown — champion only, bounces with gold drop-shadow */}
+          {isChampion && (
+            <div className="text-3xl mb-1 podium-crown" aria-hidden="true">👑</div>
+          )}
+
+          {/* Avatar inside an animated metallic gradient ring */}
+          <div className={cn(
+            'relative w-20 h-20 md:w-24 md:h-24 rounded-full p-[3px] mb-3',
+            ringClass
+          )}>
+            <div className="w-full h-full rounded-full bg-card dark:bg-[#13131a] flex items-center justify-center">
+              <span className={avatarSize}>{entry.avatar}</span>
+            </div>
+          </div>
+
+          {/* Rank number badge */}
           <div className={cn(
             'inline-flex items-center justify-center w-7 h-7 rounded-full border text-sm font-bold mb-2',
             badgeStyle(place)
           )}>
             {place}
           </div>
-          <span className="font-semibold text-foreground dark:text-white text-sm md:text-base truncate max-w-full">
+
+          <span className={cn(
+            'font-bold text-foreground dark:text-white truncate max-w-full',
+            isChampion ? 'text-base md:text-lg' : 'text-sm md:text-base'
+          )}>
             {entry.username}
           </span>
-          <span className="font-bold text-primary text-sm md:text-lg mt-1">
+
+          {/* Metallic gradient score */}
+          <span className={cn(
+            'font-extrabold mt-1',
+            scoreTextClass,
+            isChampion ? 'text-xl md:text-2xl' : 'text-base md:text-lg'
+          )}>
             {entry.score.toLocaleString()}
           </span>
           <span className="text-xs text-muted-foreground dark:text-gray-500">pts</span>
