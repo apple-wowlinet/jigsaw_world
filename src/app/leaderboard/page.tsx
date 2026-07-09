@@ -26,16 +26,18 @@ function getRankStyle(rank: number) {
 
 function LeaderboardContent() {
   const [period, setPeriod] = useState<LeaderboardPeriod>('all')
-  const [entries, setEntries] = useState<LeaderboardEntry[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loaded, setLoaded] = useState<{ period: LeaderboardPeriod; data: LeaderboardEntry[] } | null>(null)
 
   useEffect(() => {
-    setLoading(true)
+    let cancelled = false
     fetchLeaderboard(period).then((data) => {
-      setEntries(data)
-      setLoading(false)
+      if (!cancelled) setLoaded({ period, data })
     })
+    return () => { cancelled = true }
   }, [period])
+
+  const loading = loaded?.period !== period
+  const entries = loaded?.data ?? []
 
   const periodMeta = PERIODS.find((p) => p.value === period)!
 
