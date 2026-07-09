@@ -11,6 +11,7 @@ const footerLinks = {
   ],
   explore: [
     { href: '/daily', label: 'Daily Puzzle' },
+    { href: '/leaderboard', label: 'Leaderboard' },
     { href: '/explore/weekly', label: 'Most Played This Week' },
     { href: '/explore/all-time', label: 'Most Played All Time' },
     { href: '/explore/trending', label: 'Trending' },
