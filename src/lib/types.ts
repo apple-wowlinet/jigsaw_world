@@ -9,3 +9,13 @@ export interface Puzzle {
   created_at: string | null;
   updated_at: string | null;
 }
+
+export type LeaderboardPeriod = 'all' | 'monthly' | 'weekly'
+
+export interface LeaderboardEntry {
+  rank: number       // 1-based
+  userId: string
+  username: string
+  avatar: string     // emoji (matches existing puzzle-detail convention)
+  score: number      // points / 积分
+}
