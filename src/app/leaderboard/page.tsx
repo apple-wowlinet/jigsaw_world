@@ -15,13 +15,25 @@ const PERIODS: { value: LeaderboardPeriod; label: string; description: string }[
 ]
 
 // Medal colors reused from puzzle/[slug]/page.tsx getRankStyle convention.
-function getRankStyle(rank: number) {
-  switch (rank) {
-    case 1: return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/40'
-    case 2: return 'bg-gray-400/20 text-gray-300 border-gray-400/40'
-    case 3: return 'bg-orange-600/20 text-orange-400 border-orange-600/40'
-    default: return 'bg-secondary text-secondary-foreground border-border'
-  }
+// RANK_BADGE_STYLE: full styling for the rank badge circle (bg + text + border).
+// RANK_BORDER_STYLE: border-only classes for the podium Card outline.
+const RANK_BADGE_STYLE: Record<number, string> = {
+  1: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/40',
+  2: 'bg-gray-400/20 text-gray-300 border-gray-400/40',
+  3: 'bg-orange-600/20 text-orange-400 border-orange-600/40',
+}
+const RANK_BORDER_STYLE: Record<number, string> = {
+  1: 'border-yellow-500/40',
+  2: 'border-gray-400/40',
+  3: 'border-orange-600/40',
+}
+const DEFAULT_BADGE_STYLE = 'bg-secondary text-secondary-foreground border-border'
+
+function badgeStyle(rank: number) {
+  return RANK_BADGE_STYLE[rank] ?? DEFAULT_BADGE_STYLE
+}
+function borderStyle(rank: number) {
+  return RANK_BORDER_STYLE[rank] ?? 'border-border'
 }
 
 function LeaderboardContent() {
@@ -187,17 +199,17 @@ function PodiumBlock({ entry, place }: { entry: LeaderboardEntry; place: 1 | 2 |
   const heightClass = place === 1 ? 'md:py-10' : 'md:py-7'
   const avatarSize = place === 1 ? 'text-5xl' : 'text-4xl'
   return (
-    <div className={cn('animate-fade-in', place !== 1 && 'mt-6 md:mt-10')} style={{ animationDelay: `${place * 60}ms` }}>
+    <div className="animate-fade-in" style={{ animationDelay: `${place * 60}ms` }}>
       <Card className={cn(
         'border text-center bg-card dark:bg-card/60 backdrop-blur-sm shadow-lg',
-        getRankStyle(place).split(' ').filter(c => c.startsWith('border-')).join(' ')
+        borderStyle(place)
       )}>
         <CardContent className={cn('p-4 md:p-6 flex flex-col items-center', heightClass)}>
           <div className={cn('mb-2', avatarSize)}>{entry.avatar}</div>
           {place === 1 && <div className="text-2xl mb-1">👑</div>}
           <div className={cn(
             'inline-flex items-center justify-center w-7 h-7 rounded-full border text-sm font-bold mb-2',
-            getRankStyle(place)
+            badgeStyle(place)
           )}>
             {place}
           </div>
