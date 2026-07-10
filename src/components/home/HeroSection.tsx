@@ -102,7 +102,7 @@ export function HeroSection() {
               </Link>
               <Link href="/explore/weekly" className="cursor-pointer group/btn">
                 <Button size="lg" variant="outline" className="cursor-pointer text-base px-8 h-12 group bg-card dark:bg-transparent dark:text-white dark:border-white/20 dark:hover:bg-white/10 dark:hover:border-white/40 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300">
-                  View What's Hot
+                  View What&apos;s Hot
                   <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover/btn:translate-x-1" />
                 </Button>
               </Link>

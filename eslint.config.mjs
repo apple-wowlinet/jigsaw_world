@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    ".tmp-verify/**",
+    "docs/jigex-prog.js",
+    "src/template/jigex-prog.js",
   ]),
 ]);
 

@@ -7,7 +7,7 @@
 import { buildPieces } from '../src/lib/puzzle/core/knife';
 import { scatter, ensureScatterCapacity } from '../src/lib/puzzle/core/scatter';
 import { pieceBounds, Group } from '../src/lib/puzzle/core/group';
-import type { Piece, PieceChoice } from '../src/lib/puzzle/core/types';
+import type { PieceChoice } from '../src/lib/puzzle/core/types';
 import type { SubjectData } from '../src/lib/puzzle/core/subject';
 
 let failures = 0;

@@ -17,38 +17,37 @@ interface DailyPuzzle {
   created_at: string
 }
 
+const historyPuzzles: DailyPuzzle[] = [
+  {
+    id: '2',
+    title: 'Ocean Sunset',
+    image_url: 'https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=800&h=600&fit=crop',
+    description: 'A calming sunset over the ocean waves.',
+    piece_count: 150,
+    created_at: '2026-07-09T00:00:00.000Z'
+  },
+  {
+    id: '3',
+    title: 'Urban Lights',
+    image_url: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&h=600&fit=crop',
+    description: 'City lights shining bright in the night.',
+    piece_count: 200,
+    created_at: '2026-07-08T00:00:00.000Z'
+  },
+  {
+    id: '4',
+    title: 'Forest Path',
+    image_url: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&h=600&fit=crop',
+    description: 'A mysterious path leading through the ancient forest.',
+    piece_count: 120,
+    created_at: '2026-07-07T00:00:00.000Z'
+  }
+]
+
 export default function DailyPage() {
   const [dailyPuzzle, setDailyPuzzle] = useState<DailyPuzzle | null>(null)
   const [loading, setLoading] = useState(true)
   const [imageLoaded, setImageLoaded] = useState(false)
-
-  // Mock previous daily puzzles
-  const historyPuzzles: DailyPuzzle[] = [
-    {
-      id: '2',
-      title: 'Ocean Sunset',
-      image_url: 'https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=800&h=600&fit=crop',
-      description: 'A calming sunset over the ocean waves.',
-      piece_count: 150,
-      created_at: new Date(Date.now() - 86400000).toISOString()
-    },
-    {
-      id: '3',
-      title: 'Urban Lights',
-      image_url: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&h=600&fit=crop',
-      description: 'City lights shining bright in the night.',
-      piece_count: 200,
-      created_at: new Date(Date.now() - 86400000 * 2).toISOString()
-    },
-    {
-      id: '4',
-      title: 'Forest Path',
-      image_url: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&h=600&fit=crop',
-      description: 'A mysterious path leading through the ancient forest.',
-      piece_count: 120,
-      created_at: new Date(Date.now() - 86400000 * 3).toISOString()
-    }
-  ]
 
   useEffect(() => {
     const mockDailyPuzzle: DailyPuzzle = {
@@ -202,7 +201,7 @@ export default function DailyPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {historyPuzzles.map((puzzle, index) => (
+              {historyPuzzles.map((puzzle) => (
                 <Link key={puzzle.id} href={`/play/${puzzle.id}`} className="block h-full">
                   <Card className="group h-full overflow-hidden border-0 shadow-md hover:shadow-xl transition-all duration-300 bg-card dark:bg-[#121218] dark:border dark:border-white/10 hover:-translate-y-1">
                     <div className="relative aspect-video overflow-hidden">

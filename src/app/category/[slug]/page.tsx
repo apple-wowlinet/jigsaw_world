@@ -115,18 +115,6 @@ function CategoryContent() {
     setCurrentPage(1)
   }
 
-  const renderStars = (rating: number) => {
-    return Array.from({ length: 5 }, (_, i) => (
-      <Star
-        key={i}
-        className={cn(
-          "h-3.5 w-3.5",
-          i < Math.floor(rating) ? 'star-filled' : 'star-empty'
-        )}
-      />
-    ))
-  }
-
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
