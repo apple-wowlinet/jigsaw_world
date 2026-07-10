@@ -4,6 +4,7 @@ import './globals.css'
 import { Header } from '@/components/navigation/Header'
 import { ConditionalFooter } from '@/components/navigation/ConditionalFooter'
 import { ThemeProvider } from '@/components/theme/ThemeProvider'
+import { AuthProvider } from '@/components/auth/AuthProvider'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -37,13 +38,15 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <ThemeProvider>
-          <div className="min-h-screen flex flex-col">
-            <Header />
-            <main className="flex-1">
-              {children}
-            </main>
-            <ConditionalFooter />
-          </div>
+          <AuthProvider>
+            <div className="min-h-screen flex flex-col">
+              <Header />
+              <main className="flex-1">
+                {children}
+              </main>
+              <ConditionalFooter />
+            </div>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

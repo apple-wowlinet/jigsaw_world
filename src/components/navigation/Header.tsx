@@ -2,15 +2,22 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Search, Menu, X, Puzzle, Sparkles, ImagePlus, Trophy } from 'lucide-react'
+import { Search, Menu, X, Puzzle, Sparkles, ImagePlus, Trophy, LogOut, UserCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { useAuth } from '@/components/auth/AuthProvider'
 import { cn } from '@/lib/utils'
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [isSearchFocused, setIsSearchFocused] = useState(false)
+  const { user, loading, signOut } = useAuth()
+
+  const displayName = user?.user_metadata?.username
+    || user?.user_metadata?.full_name
+    || user?.email?.split('@')[0]
+    || 'Player'
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -33,6 +40,11 @@ export function Header() {
       ]
     },
   ]
+
+  const handleSignOut = async () => {
+    await signOut()
+    setIsMenuOpen(false)
+  }
 
   return (
     <header className="sticky top-0 z-50 glass border-b border-border">
@@ -115,16 +127,33 @@ export function Header() {
 
           {/* Right Side Actions */}
           <div className="hidden md:flex items-center space-x-2">
-            <Link href="/login">
-              <Button variant="ghost" size="sm">
-                Login
-              </Button>
-            </Link>
-            <Link href="/register">
-              <Button size="sm" className="btn-shine">
-                Register
-              </Button>
-            </Link>
+            {loading ? (
+              <div className="h-9 w-28 rounded-lg bg-secondary animate-pulse" />
+            ) : user ? (
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 rounded-lg bg-secondary px-3 py-2 text-sm font-medium text-secondary-foreground">
+                  <UserCircle className="h-4 w-4 text-primary" />
+                  <span className="max-w-28 truncate">{displayName}</span>
+                </div>
+                <Button variant="ghost" size="sm" onClick={handleSignOut}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Log out
+                </Button>
+              </div>
+            ) : (
+              <>
+                <Link href="/login">
+                  <Button variant="ghost" size="sm">
+                    Login
+                  </Button>
+                </Link>
+                <Link href="/register">
+                  <Button size="sm" className="btn-shine">
+                    Register
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -221,18 +250,33 @@ export function Header() {
               </div>
 
               <div className="border-t border-border dark:border-white/10 pt-3 mt-3">
-                <div className="space-y-2">
-                  <Link href="/login" onClick={() => setIsMenuOpen(false)}>
-                    <Button variant="outline" className="w-full dark:bg-transparent">
-                      Login
+                {loading ? (
+                  <div className="h-10 rounded-lg bg-secondary animate-pulse" />
+                ) : user ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 rounded-lg bg-secondary px-3 py-2 text-sm font-medium text-secondary-foreground">
+                      <UserCircle className="h-4 w-4 text-primary" />
+                      <span className="truncate">{displayName}</span>
+                    </div>
+                    <Button variant="outline" className="w-full dark:bg-transparent" onClick={handleSignOut}>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Log out
                     </Button>
-                  </Link>
-                  <Link href="/register" onClick={() => setIsMenuOpen(false)}>
-                    <Button className="w-full">
-                      Register
-                    </Button>
-                  </Link>
-                </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Link href="/login" onClick={() => setIsMenuOpen(false)}>
+                      <Button variant="outline" className="w-full dark:bg-transparent">
+                        Login
+                      </Button>
+                    </Link>
+                    <Link href="/register" onClick={() => setIsMenuOpen(false)}>
+                      <Button className="w-full">
+                        Register
+                      </Button>
+                    </Link>
+                  </div>
+                )}
               </div>
             </div>
           </div>
