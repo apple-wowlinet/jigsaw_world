@@ -22,9 +22,7 @@ auth.users (Supabase 内置)
    ├─< activity_logs               运营日志
    └─< favorites                   收藏
 
-categories ─< puzzles ─< puzzle_piece_options
-                │
-                └─< daily_challenges ──> events（赛季/活动）
+categories ─< puzzles ─< daily_challenges ──> events（赛季/活动）
 
 levels（等级字典）          achievements（conditions jsonb）
 ```
@@ -52,13 +50,12 @@ user_stats.total_completions: +1
 
 ---
 
-## 表清单（16 张 + 2 视图）
+## 表清单（15 张 + 2 视图）
 
 | 表 | 用途 | RLS |
 |----|------|-----|
 | `categories` | 分类 | 公共读 |
-| `puzzles` | 关卡（扩展，含运营/SEO/图片元数据） | 公共读 |
-| `puzzle_piece_options` | 块数档位 | 公共读 |
+| `puzzles` | 关卡（扩展，含运营字段） | 公共读 |
 | `events` | 活动/赛季（圣诞/周年庆） | 公共读 |
 | `daily_challenges` | 每日挑战（关联 event） | 公共读 |
 | `levels` | 等级字典 | 公共读 |
@@ -102,11 +99,13 @@ user_stats.total_completions: +1
 ### ⑥ 排行榜可扩展
 不再写死时间排行。`user_best_records` 同时存 `best_time`/`best_moves`/`best_score`，配 `v_leaderboard_time` / `v_leaderboard_moves` 视图。以后加 score 模式只加视图。
 
-### ⑦ puzzles 图片元数据
-新增 `image_width`/`image_height`/`aspect_ratio`（裁剪/排版）、`image_source`（unsplash/pexels/generated/user_upload/official，版权管理）。
+### ⑦ puzzles SEO 简化
+不单独存 `seo_title`/`seo_description` 等字段，SEO title 和 description 直接复用 `title` 与 `description`。
 
 ### ⑧ user_preferences
-`favorite_piece_count`/`favorite_category_id`/`preferred_theme`/`sound_enabled`/`music_enabled`/`preferred_difficulty`，登录即恢复设置。
+`favorite_category_id`/`sound_enabled`/`music_enabled`/`preferred_difficulty`，登录即恢复设置。主题不入库，网站按用户系统暗黑模式自动调整。
+
+> 碎片数量选项由拼图程序按图片尺寸与当前画布自动生成，不在数据库保存为关卡配置字段。
 
 ### ⑨ activity_logs
 统一记录：`achievement_unlock`/`xp_gain`/`level_up`/`reward_claim`/`daily_completed`/`puzzle_completed`/`streak_milestone`，运营后台「最近 24 小时」一览无余。
@@ -190,14 +189,10 @@ total_xp, level, xp
 daily_current_streak, daily_max_streak, daily_participations, daily_last_date
 ```
 
-### puzzles（运营 + SEO + 图片）
+### puzzles（运营）
 ```sql
 -- 运营
 publish_at, editor_score, is_featured, is_active, sort_order
--- 图片
-image_width, image_height, aspect_ratio, image_source
--- SEO
-seo_title, seo_description, og_image_url, meta_keywords
 ```
 
 ### levels
@@ -214,7 +209,7 @@ slug, name, description, banner_url, starts_at, ends_at, is_active
 
 ## RLS 策略
 
-- **公共读**：categories / puzzles / puzzle_piece_options / events / daily_challenges / achievements / levels
+- **公共读**：categories / puzzles / events / daily_challenges / achievements / levels
 - **仅本人**：其余所有用户表（`user_id = auth.uid()`）
 - **写操作**：内容表增删改走 service_role（服务端，绕过 RLS）
 
@@ -270,5 +265,5 @@ ORDER BY dc.challenge_date;
 
 1. **难度大小写**：DB 存小写 `easy/medium/hard/expert`，显示层转 Title Case
 2. **`plays` vs `plays_count`**：DB 统一 `plays_count`
-3. **`piece_count`**：旧字段保留兼容，新逻辑读 `default_piece_count` + `puzzle_piece_options`
+3. **碎片数量选项**：前端根据图片尺寸与画布动态生成，不从 `puzzles` 或档位表读取
 4. **初始化数据**：levels / achievements / events 字典表需种子数据（可用 seed migration）

@@ -10,7 +10,7 @@ export interface Puzzle {
   updated_at: string | null;
 }
 
-export type LeaderboardPeriod = 'all' | 'monthly' | 'weekly'
+export type LeaderboardPeriod = 'daily' | 'weekly' | 'monthly' | 'all'
 
 export interface LeaderboardEntry {
   rank: number       // 1-based

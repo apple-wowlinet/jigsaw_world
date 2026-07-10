@@ -10,7 +10,7 @@
 --   4. achievements.conditions jsonb 抽象（支持 AND/OR 多条件）
 --   5. daily_challenges 增加 event_id 支持 season
 --   6. leaderboard 可扩展（board_type: time/moves/score）
---   7. puzzles 增加 image_width/height/aspect_ratio/source
+--   7. puzzles SEO 复用 title/description，不单独存 SEO 字段
 --   8. user_preferences 偏好
 --   9. activity_logs 运营日志
 --  10. user_stats 增加等级（level + xp 当前段）
@@ -31,11 +31,6 @@ EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 -- 排行榜分类
 DO $$ BEGIN
   CREATE TYPE leaderboard_type_enum AS ENUM ('time', 'moves', 'score');
-EXCEPTION WHEN duplicate_object THEN NULL; END $$;
-
--- 图片来源（版权管理）
-DO $$ BEGIN
-  CREATE TYPE image_source_enum AS ENUM ('unsplash', 'pexels', 'generated', 'user_upload', 'official');
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- 活动日志类型
@@ -92,13 +87,23 @@ CREATE TRIGGER trg_categories_updated BEFORE UPDATE ON public.categories
 -- ============================================================
 -- 2. puzzles —— 关卡（扩展现有表）
 --    现有表已有：id, title, slug, image_url, description,
---                seo_description, piece_count, created_at, updated_at
+--                created_at, updated_at
 -- ============================================================
+ALTER TABLE public.puzzles
+  DROP COLUMN IF EXISTS image_width,
+  DROP COLUMN IF EXISTS image_height,
+  DROP COLUMN IF EXISTS aspect_ratio,
+  DROP COLUMN IF EXISTS image_source,
+  DROP COLUMN IF EXISTS seo_title,
+  DROP COLUMN IF EXISTS seo_description,
+  DROP COLUMN IF EXISTS og_image_url,
+  DROP COLUMN IF EXISTS meta_keywords;
+
+DROP TYPE IF EXISTS image_source_enum;
+
 ALTER TABLE public.puzzles
   -- 关系
   ADD COLUMN IF NOT EXISTS category_id          uuid REFERENCES public.categories(id) ON DELETE SET NULL,
-  -- 块数（default + 档位表见 puzzle_piece_options）
-  ADD COLUMN IF NOT EXISTS default_piece_count  integer,
   -- 难度
   ADD COLUMN IF NOT EXISTS difficulty           difficulty_enum NOT NULL DEFAULT 'easy',
   -- 冗余计数（公共读，加速列表/排行）
@@ -112,41 +117,14 @@ ALTER TABLE public.puzzles
   ADD COLUMN IF NOT EXISTS is_active            boolean NOT NULL DEFAULT true,
   ADD COLUMN IF NOT EXISTS sort_order           integer NOT NULL DEFAULT 0,
   ADD COLUMN IF NOT EXISTS publish_at           timestamptz,            -- 预约上线
-  ADD COLUMN IF NOT EXISTS editor_score         smallint NOT NULL DEFAULT 0,  -- 人工推荐分 0-100
-  -- 图片元数据（裁剪/排版/版权）
-  ADD COLUMN IF NOT EXISTS image_width          integer,
-  ADD COLUMN IF NOT EXISTS image_height         integer,
-  ADD COLUMN IF NOT EXISTS aspect_ratio        text,                    -- 如 '4:3' '16:9'
-  ADD COLUMN IF NOT EXISTS image_source        image_source_enum NOT NULL DEFAULT 'official',
-  -- SEO 扩展
-  ADD COLUMN IF NOT EXISTS seo_title            text,
-  ADD COLUMN IF NOT EXISTS og_image_url         text,
-  ADD COLUMN IF NOT EXISTS meta_keywords        text;
-
--- 回填 default_piece_count（兼容旧数据）
-UPDATE public.puzzles
-   SET default_piece_count = piece_count
- WHERE default_piece_count IS NULL AND piece_count IS NOT NULL;
+  ADD COLUMN IF NOT EXISTS editor_score         smallint NOT NULL DEFAULT 0;  -- 人工推荐分 0-100
 
 DROP TRIGGER IF EXISTS trg_puzzles_updated ON public.puzzles;
 CREATE TRIGGER trg_puzzles_updated BEFORE UPDATE ON public.puzzles
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
 -- ============================================================
--- 3. puzzle_piece_options —— 单关可选块数档位
--- ============================================================
-CREATE TABLE IF NOT EXISTS public.puzzle_piece_options (
-  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  puzzle_id   uuid NOT NULL REFERENCES public.puzzles(id) ON DELETE CASCADE,
-  nop         integer NOT NULL,
-  rows        integer NOT NULL,
-  cols        integer NOT NULL,
-  sort_order  integer NOT NULL DEFAULT 0,
-  UNIQUE (puzzle_id, nop)
-);
-
--- ============================================================
--- 4. game_sessions —— 用户参与关卡记录（明细，每次开局一条）
+-- 3. game_sessions —— 用户参与关卡记录（明细，每次开局一条）
 --    ★ 职责单一：仅记录历史明细。排行榜查 user_best_records，统计查 user_stats。
 -- ============================================================
 CREATE TABLE IF NOT EXISTS public.game_sessions (
@@ -169,7 +147,7 @@ CREATE INDEX IF NOT EXISTS idx_gs_user          ON public.game_sessions (user_id
 CREATE INDEX IF NOT EXISTS idx_gs_puzzle_piece  ON public.game_sessions (puzzle_id, piece_count);
 
 -- ============================================================
--- 5. user_best_records —— 个人最佳（每用户×关×档位一条）
+-- 4. user_best_records —— 个人最佳（每用户×关×档位一条）
 --    ★ 排行榜数据源：玩家刷 1000 遍仍只一条，查询快
 -- ============================================================
 CREATE TABLE IF NOT EXISTS public.user_best_records (
@@ -196,7 +174,7 @@ CREATE INDEX IF NOT EXISTS idx_ubr_board_moves
   ON public.user_best_records (puzzle_id, piece_count, best_moves ASC) WHERE best_moves IS NOT NULL;
 
 -- ============================================================
--- 6. daily_challenges —— 每日挑战
+-- 5. daily_challenges —— 每日挑战
 --    ★ 增加 event_id 支持 season（圣诞/万圣节/周年庆）
 -- ============================================================
 CREATE TABLE IF NOT EXISTS public.events (
@@ -215,7 +193,6 @@ CREATE TABLE IF NOT EXISTS public.daily_challenges (
   id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   challenge_date  date NOT NULL UNIQUE,
   puzzle_id       uuid NOT NULL REFERENCES public.puzzles(id) ON DELETE CASCADE,
-  piece_count     integer NOT NULL,
   title           text,
   description     text,
   event_id        uuid REFERENCES public.events(id) ON DELETE SET NULL,  -- 所属活动/赛季
@@ -225,7 +202,7 @@ CREATE TABLE IF NOT EXISTS public.daily_challenges (
 CREATE INDEX IF NOT EXISTS idx_daily_event ON public.daily_challenges (event_id);
 
 -- ============================================================
--- 7. daily_challenge_participations —— 用户参与每日挑战
+-- 6. daily_challenge_participations —— 用户参与每日挑战
 -- ============================================================
 CREATE TABLE IF NOT EXISTS public.daily_challenge_participations (
   id                   uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -243,7 +220,7 @@ CREATE TABLE IF NOT EXISTS public.daily_challenge_participations (
 CREATE INDEX IF NOT EXISTS idx_dcp_user ON public.daily_challenge_participations (user_id, completed_at DESC);
 
 -- ============================================================
--- 8. user_stats —— 用户聚合统计（扩展运营指标 + 等级段）
+-- 7. user_stats —— 用户聚合统计（扩展运营指标 + 等级段）
 -- ============================================================
 CREATE TABLE IF NOT EXISTS public.user_stats (
   user_id               uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -272,7 +249,7 @@ CREATE TRIGGER trg_user_stats_updated BEFORE UPDATE ON public.user_stats
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
 -- ============================================================
--- 8a. user_difficulty_stats / user_category_stats —— 维度统计
+-- 7a. user_difficulty_stats / user_category_stats —— 维度统计
 -- ============================================================
 CREATE TABLE IF NOT EXISTS public.user_difficulty_stats (
   user_id      uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -289,7 +266,7 @@ CREATE TABLE IF NOT EXISTS public.user_category_stats (
 );
 
 -- ============================================================
--- 9. levels —— 等级字典（DB 驱动升级，改等级不用改代码）
+-- 8. levels —— 等级字典（DB 驱动升级，改等级不用改代码）
 -- ============================================================
 CREATE TABLE IF NOT EXISTS public.levels (
   level         integer PRIMARY KEY,
@@ -300,7 +277,7 @@ CREATE TABLE IF NOT EXISTS public.levels (
 );
 
 -- ============================================================
--- 10. achievements —— 成就（conditions jsonb 抽象，支持 AND/OR 多条件）
+-- 9. achievements —— 成就（conditions jsonb 抽象，支持 AND/OR 多条件）
 -- ============================================================
 CREATE TABLE IF NOT EXISTS public.achievements (
   id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -330,13 +307,11 @@ CREATE TABLE IF NOT EXISTS public.user_achievements (
 );
 
 -- ============================================================
--- 11. user_preferences —— 用户偏好（登录恢复设置）
+-- 10. user_preferences —— 用户偏好（登录恢复设置）
 -- ============================================================
 CREATE TABLE IF NOT EXISTS public.user_preferences (
   user_id              uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  favorite_piece_count integer,           -- 偏好块数
   favorite_category_id uuid REFERENCES public.categories(id) ON DELETE SET NULL,
-  preferred_theme      text,              -- 'light' | 'dark' | 'system'
   sound_enabled        boolean NOT NULL DEFAULT true,
   music_enabled        boolean NOT NULL DEFAULT true,
   preferred_difficulty difficulty_enum,   -- 偏好难度
@@ -344,12 +319,15 @@ CREATE TABLE IF NOT EXISTS public.user_preferences (
   updated_at           timestamptz NOT NULL DEFAULT now()
 );
 
+ALTER TABLE public.user_preferences
+  DROP COLUMN IF EXISTS preferred_theme;
+
 DROP TRIGGER IF EXISTS trg_user_prefs_updated ON public.user_preferences;
 CREATE TRIGGER trg_user_prefs_updated BEFORE UPDATE ON public.user_preferences
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
 -- ============================================================
--- 12. activity_logs —— 运营日志（成就解锁/XP/升级/领奖等）
+-- 11. activity_logs —— 运营日志（成就解锁/XP/升级/领奖等）
 -- ============================================================
 CREATE TABLE IF NOT EXISTS public.activity_logs (
   id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -367,7 +345,7 @@ CREATE INDEX IF NOT EXISTS idx_activity_user_time ON public.activity_logs (user_
 CREATE INDEX IF NOT EXISTS idx_activity_type_time ON public.activity_logs (type, created_at DESC);
 
 -- ============================================================
--- 13. favorites —— 用户收藏（点赞拼图）
+-- 12. favorites —— 用户收藏（点赞拼图）
 -- ============================================================
 CREATE TABLE IF NOT EXISTS public.favorites (
   user_id     uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -377,7 +355,7 @@ CREATE TABLE IF NOT EXISTS public.favorites (
 );
 
 -- ============================================================
--- 14. 索引（高频查询）
+-- 13. 索引（高频查询）
 -- ============================================================
 CREATE INDEX IF NOT EXISTS idx_puzzles_category    ON public.puzzles (category_id);
 CREATE INDEX IF NOT EXISTS idx_puzzles_difficulty  ON public.puzzles (difficulty);
@@ -388,13 +366,12 @@ CREATE INDEX IF NOT EXISTS idx_puzzles_editor      ON public.puzzles (editor_sco
 CREATE INDEX IF NOT EXISTS idx_categories_active   ON public.categories (is_active, sort_order);
 
 -- ============================================================
--- 15. 行级安全策略（RLS）
+-- 14. 行级安全策略（RLS）
 -- ============================================================
 
 -- 公共读
 ALTER TABLE public.categories                 ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.puzzles                    ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.puzzle_piece_options       ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.daily_challenges           ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.events                     ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.achievements               ENABLE ROW LEVEL SECURITY;
@@ -403,8 +380,6 @@ ALTER TABLE public.levels                     ENABLE ROW LEVEL SECURITY;
 DO $$ BEGIN CREATE POLICY "public_read_categories"    ON public.categories            FOR SELECT USING (true);
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 DO $$ BEGIN CREATE POLICY "public_read_puzzles"       ON public.puzzles               FOR SELECT USING (true);
-EXCEPTION WHEN duplicate_object THEN NULL; END $$;
-DO $$ BEGIN CREATE POLICY "public_read_piece_options" ON public.puzzle_piece_options  FOR SELECT USING (true);
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 DO $$ BEGIN CREATE POLICY "public_read_daily"         ON public.daily_challenges      FOR SELECT USING (true);
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
@@ -462,7 +437,7 @@ EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 -- service_role key 在服务端执行，绕过 RLS。前端仅 SELECT。
 
 -- ============================================================
--- 16. 视图：可扩展排行榜（board_type: time/moves/score）
+-- 15. 视图：可扩展排行榜（board_type: time/moves/score）
 -- ============================================================
 CREATE OR REPLACE VIEW public.v_leaderboard_time AS
 SELECT

@@ -8,8 +8,6 @@ CREATE TABLE IF NOT EXISTS public.puzzles (
   slug text UNIQUE NOT NULL,
   image_url text NOT NULL,
   description text,
-  seo_description text,
-  piece_count integer DEFAULT 100 NOT NULL,
   created_at timestamptz DEFAULT now(),
   updated_at timestamptz DEFAULT now()
 );
