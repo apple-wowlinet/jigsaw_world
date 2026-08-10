@@ -6,100 +6,7 @@ import Link from 'next/link'
 import { ArrowLeft, Calendar, Clock, ArrowRight, Puzzle, Search, X } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-
-interface DailyPuzzle {
-  id: string
-  title: string
-  image_url: string
-  description: string
-  piece_count: number
-  created_at: string
-}
-
-// 按月份分组的归档数据生成器（mock）
-const makeArchive = (): DailyPuzzle[] => {
-  const seeds: Array<Omit<DailyPuzzle, 'id' | 'created_at'>> = [
-    {
-      title: 'Ocean Sunset',
-      image_url: 'https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=800&h=600&fit=crop',
-      description: 'A calming sunset over the ocean waves.',
-      piece_count: 150
-    },
-    {
-      title: 'Urban Lights',
-      image_url: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&h=600&fit=crop',
-      description: 'City lights shining bright in the night.',
-      piece_count: 200
-    },
-    {
-      title: 'Forest Path',
-      image_url: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&h=600&fit=crop',
-      description: 'A mysterious path leading through the ancient forest.',
-      piece_count: 120
-    },
-    {
-      title: 'Misty Mountains',
-      image_url: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&h=600&fit=crop',
-      description: 'Mist rolling over jagged mountain peaks at dawn.',
-      piece_count: 180
-    },
-    {
-      title: 'Desert Dunes',
-      image_url: 'https://images.unsplash.com/photo-1473580044384-7ba9967e16a0?w=800&h=600&fit=crop',
-      description: 'Golden sand dunes sculpted by the wind.',
-      piece_count: 90
-    },
-    {
-      title: 'Northern Lights',
-      image_url: 'https://images.unsplash.com/photo-1483347756197-71ef80e95f73?w=800&h=600&fit=crop',
-      description: 'Aurora borealis dancing over a snowy landscape.',
-      piece_count: 250
-    },
-    {
-      title: 'Cherry Blossom',
-      image_url: 'https://images.unsplash.com/photo-1522383225653-ed111181a951?w=800&h=600&fit=crop',
-      description: 'Delicate pink cherry blossoms in full bloom.',
-      piece_count: 140
-    },
-    {
-      title: 'Lake Reflection',
-      image_url: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=800&h=600&fit=crop',
-      description: 'A still lake perfectly mirroring the surrounding peaks.',
-      piece_count: 160
-    },
-    {
-      title: 'Autumn Trail',
-      image_url: 'https://images.unsplash.com/photo-1507783548227-544c3b8fc065?w=800&h=600&fit=crop',
-      description: 'A trail blanketed in vibrant autumn leaves.',
-      piece_count: 110
-    },
-    {
-      title: 'Coastal Cliffs',
-      image_url: 'https://images.unsplash.com/photo-1505857347264-847e289fc03d?w=800&h=600&fit=crop',
-      description: 'Dramatic cliffs dropping into the crashing sea.',
-      piece_count: 220
-    },
-    {
-      title: 'Lavender Field',
-      image_url: 'https://images.unsplash.com/photo-1499002238440-d264edd596ec?w=800&h=600&fit=crop',
-      description: 'Endless rows of purple lavender at sunset.',
-      piece_count: 130
-    },
-    {
-      title: 'Glacier Bay',
-      image_url: 'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?w=800&h=600&fit=crop',
-      description: 'Towering ice formations in a remote glacial bay.',
-      piece_count: 240
-    }
-  ]
-  // 从今天往前推，每天一个挑战
-  const day = 86400000
-  return seeds.map((s, i) => ({
-    ...s,
-    id: String(i + 2),
-    created_at: new Date(Date.now() - day * (i + 1)).toISOString()
-  }))
-}
+import { fetchDailyHistory, type DailyPuzzle } from '@/lib/data/public'
 
 function formatMonth(date: Date): string {
   return date.toLocaleDateString(undefined, { year: 'numeric', month: 'long' })
@@ -111,12 +18,15 @@ export default function ArchivePage() {
   const [query, setQuery] = useState('')
 
   useEffect(() => {
-    // mock 异步加载
-    const t = setTimeout(() => {
-      setArchive(makeArchive())
+    let cancelled = false
+
+    fetchDailyHistory(60).then((items) => {
+      if (cancelled) return
+      setArchive(items)
       setLoading(false)
-    }, 600)
-    return () => clearTimeout(t)
+    })
+
+    return () => { cancelled = true }
   }, [])
 
   // 按月份分组，月份倒序（最近在前）

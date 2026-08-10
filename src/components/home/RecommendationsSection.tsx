@@ -1,52 +1,26 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Clock, Puzzle, ArrowRight, Star, Play } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { fetchPuzzles, type PublicPuzzle } from '@/lib/data/public'
 import { cn } from '@/lib/utils'
 
-interface Puzzle {
-  id: string
-  title: string
-  image_url: string
-  piece_count: number
-  difficulty: 'Easy' | 'Medium' | 'Hard'
-  rating: number
-  plays: number
-}
-
 export function RecommendationsSection() {
-  const recommendations: Puzzle[] = [
-    {
-      id: '1',
-      title: 'Ocean Waves',
-      image_url: 'https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=400&h=300&fit=crop',
-      piece_count: 150,
-      difficulty: 'Medium',
-      rating: 4.8,
-      plays: 2847
-    },
-    {
-      id: '2',
-      title: 'Forest Path',
-      image_url: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=300&fit=crop',
-      piece_count: 200,
-      difficulty: 'Hard',
-      rating: 4.6,
-      plays: 1923
-    },
-    {
-      id: '3',
-      title: 'City Skyline',
-      image_url: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400&h=300&fit=crop',
-      piece_count: 100,
-      difficulty: 'Easy',
-      rating: 4.9,
-      plays: 4521
-    }
-  ]
+  const [recommendations, setRecommendations] = useState<PublicPuzzle[]>([])
+
+  useEffect(() => {
+    let cancelled = false
+
+    fetchPuzzles({ limit: 3, orderBy: 'featured' }).then((puzzles) => {
+      if (!cancelled) setRecommendations(puzzles)
+    })
+
+    return () => { cancelled = true }
+  }, [])
 
   const getDifficultyStyle = (difficulty: string) => {
     switch (difficulty) {
@@ -142,7 +116,7 @@ export function RecommendationsSection() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4 text-sm text-muted-foreground dark:text-gray-400">
                       <span className="flex items-center gap-1">
-                        {puzzle.plays.toLocaleString()} plays
+                        {puzzle.plays_count.toLocaleString()} plays
                       </span>
                       <span className="flex items-center gap-1">
                         <Star className="w-4 h-4 text-warning fill-warning" />

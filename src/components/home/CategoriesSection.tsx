@@ -1,92 +1,48 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Mountain, Waves, Building, TreePine, Palette, Camera, ArrowRight, Grid3X3 } from 'lucide-react'
+import { Mountain, Waves, Building, TreePine, Palette, Camera, ArrowRight, Grid3X3, PawPrint, Sparkles, Utensils, Map } from 'lucide-react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { fetchCategories, type PublicCategory } from '@/lib/data/public'
 import { cn } from '@/lib/utils'
 
-interface Category {
-  id: string
-  name: string
-  slug: string
-  description: string
-  icon: React.ComponentType<{ className?: string }>
-  image_url: string
-  puzzle_count: number
-  color: string
-  darkColor: string
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  trees: TreePine,
+  waves: Waves,
+  'paw-print': PawPrint,
+  'building-2': Building,
+  sparkles: Sparkles,
+  utensils: Utensils,
+  map: Map,
+  palette: Palette,
+  camera: Camera,
+}
+
+const gradientMap: Record<string, string> = {
+  nature: 'from-green-500 to-emerald-600',
+  ocean: 'from-blue-500 to-cyan-600',
+  animals: 'from-orange-500 to-red-600',
+  cities: 'from-purple-500 to-indigo-600',
+  fantasy: 'from-fuchsia-500 to-pink-600',
+  food: 'from-amber-500 to-orange-600',
+  travel: 'from-sky-500 to-blue-600',
+  art: 'from-pink-500 to-rose-600',
 }
 
 export function CategoriesSection() {
-  const categories: Category[] = [
-    {
-      id: '1',
-      name: 'Nature',
-      slug: 'nature',
-      description: 'Beautiful landscapes and natural scenes',
-      icon: Mountain,
-      image_url: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=300&fit=crop',
-      puzzle_count: 25,
-      color: 'from-green-500 to-emerald-600',
-      darkColor: 'from-green-400 to-emerald-500'
-    },
-    {
-      id: '2',
-      name: 'Ocean',
-      slug: 'ocean',
-      description: 'Stunning ocean and beach views',
-      icon: Waves,
-      image_url: 'https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=400&h=300&fit=crop',
-      puzzle_count: 18,
-      color: 'from-blue-500 to-cyan-600',
-      darkColor: 'from-blue-400 to-cyan-500'
-    },
-    {
-      id: '3',
-      name: 'City',
-      slug: 'city',
-      description: 'Urban landscapes and cityscapes',
-      icon: Building,
-      image_url: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400&h=300&fit=crop',
-      puzzle_count: 32,
-      color: 'from-purple-500 to-indigo-600',
-      darkColor: 'from-purple-400 to-indigo-500'
-    },
-    {
-      id: '4',
-      name: 'Forest',
-      slug: 'forest',
-      description: 'Peaceful forest and woodland scenes',
-      icon: TreePine,
-      image_url: 'https://images.unsplash.com/photo-1511497584788-876760111969?w=400&h=300&fit=crop',
-      puzzle_count: 21,
-      color: 'from-emerald-500 to-teal-600',
-      darkColor: 'from-emerald-400 to-teal-500'
-    },
-    {
-      id: '5',
-      name: 'Art',
-      slug: 'art',
-      description: 'Artistic and creative puzzles',
-      icon: Palette,
-      image_url: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=400&h=300&fit=crop',
-      puzzle_count: 15,
-      color: 'from-pink-500 to-rose-600',
-      darkColor: 'from-pink-400 to-rose-500'
-    },
-    {
-      id: '6',
-      name: 'Photography',
-      slug: 'photography',
-      description: 'Stunning photographic puzzles',
-      icon: Camera,
-      image_url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
-      puzzle_count: 28,
-      color: 'from-amber-500 to-orange-600',
-      darkColor: 'from-amber-400 to-orange-500'
-    }
-  ]
+  const [categories, setCategories] = useState<PublicCategory[]>([])
+
+  useEffect(() => {
+    let cancelled = false
+
+    fetchCategories(6).then((items) => {
+      if (!cancelled) setCategories(items)
+    })
+
+    return () => { cancelled = true }
+  }, [])
 
   return (
     <section className="py-24 relative overflow-hidden bg-background dark:bg-[#08080c]">
@@ -127,7 +83,8 @@ export function CategoriesSection() {
         {/* Categories Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {categories.map((category, index) => {
-            const IconComponent = category.icon
+            const IconComponent = iconMap[category.icon] ?? Mountain
+            const gradient = gradientMap[category.slug] ?? 'from-primary to-accent'
             return (
               <Link key={category.id} href={`/category/${category.slug}`} className="block h-full">
                 <Card 
@@ -155,7 +112,7 @@ export function CategoriesSection() {
                     {/* Gradient Overlay */}
                     <div className={cn(
                       "absolute inset-0 bg-gradient-to-t opacity-60 transition-opacity duration-500 group-hover:opacity-75",
-                      category.color,
+                      gradient,
                       "dark:opacity-70 dark:group-hover:opacity-85"
                     )} />
                     

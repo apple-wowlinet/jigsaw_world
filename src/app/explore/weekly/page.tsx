@@ -6,23 +6,11 @@ import Link from 'next/link'
 import { Puzzle, Users, Star, ChevronLeft, ChevronRight, Filter, Check, ChevronDown, Calendar } from 'lucide-react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { fetchPuzzles, type PublicPuzzle } from '@/lib/data/public'
 import { cn } from '@/lib/utils'
 
-interface PuzzleItem {
-  id: string
-  title: string
-  image_url: string
-  description: string
-  piece_count: number
-  difficulty: 'Easy' | 'Medium' | 'Hard'
-  plays_count: number
-  rating: number
-  created_at: string
-  category: string
-}
-
 function WeeklyContent() {
-  const [puzzles, setPuzzles] = useState<PuzzleItem[]>([])
+  const [puzzles, setPuzzles] = useState<PublicPuzzle[]>([])
   const [loading, setLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
   const [difficultyFilter, setDifficultyFilter] = useState<'All' | 'Easy' | 'Medium' | 'Hard'>('All')
@@ -44,27 +32,16 @@ function WeeklyContent() {
   }, [filterOpen])
 
   useEffect(() => {
-    // Mock data for Weekly Top Puzzles
-    const mockPuzzles: PuzzleItem[] = Array.from({ length: 24 }, (_, i) => ({
-      id: `w-${i + 1}`,
-      title: `Weekly Challenge ${i + 1}`,
-      image_url: `https://images.unsplash.com/photo-${1506905925346 + (i * 123)}?w=400&h=300&fit=crop`,
-      description: `One of the most played puzzles this week. Join ${Math.floor(Math.random() * 1000)} others in solving this masterpiece.`,
-      piece_count: [100, 250, 500, 1000][i % 4],
-      difficulty: ['Easy', 'Medium', 'Hard'][i % 3] as 'Easy' | 'Medium' | 'Hard',
-      plays_count: Math.floor(Math.random() * 2000) + 500, // Higher play counts for weekly top
-      rating: 4.5 + (Math.random() * 0.5), // High ratings
-      created_at: new Date(Date.now() - (i % 7) * 86400000).toISOString(), // Within last week
-      category: ['Nature', 'City', 'Art', 'Animals'][i % 4]
-    }))
+    let cancelled = false
 
-    // Sort by plays (simulating popularity)
-    mockPuzzles.sort((a, b) => b.plays_count - a.plays_count)
-
-    setTimeout(() => {
-      setPuzzles(mockPuzzles)
+    fetchPuzzles({ limit: 48, orderBy: 'plays' }).then((items) => {
+      if (cancelled) return
+      setPuzzles(items)
       setLoading(false)
-    }, 800)
+
+    })
+
+    return () => { cancelled = true }
   }, [])
 
   const getDifficultyStyle = (difficulty: string) => {
@@ -297,7 +274,7 @@ function WeeklyContent() {
                       </span>
                     </div>
 
-                    <Link href={`/p/${puzzle.id}`} className="block">
+                    <Link href={`/puzzle/${puzzle.id}`} className="block">
                       <Button variant="ghost" size="sm" className="w-full justify-between hover:bg-secondary/50 dark:hover:bg-white/5 group/btn">
                         View Details
                         <ChevronRight className="w-4 h-4 text-muted-foreground group-hover/btn:translate-x-1 transition-transform" />

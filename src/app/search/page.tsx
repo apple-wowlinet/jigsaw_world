@@ -9,19 +9,8 @@ import { Search, Puzzle, Frown, Sparkles, Clock, Star, Filter, X, TrendingUp } f
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { fetchPuzzles, type PublicPuzzle } from '@/lib/data/public'
 import { cn } from '@/lib/utils'
-
-interface PuzzleItem {
-  id: string
-  title: string
-  image_url: string
-  description: string
-  piece_count: number
-  difficulty: 'Easy' | 'Medium' | 'Hard'
-  rating: number
-  plays: number
-  category: string
-}
 
 const popularSearches = ['mountain', 'ocean', 'forest', 'city', 'sunset', 'animals', 'flowers', 'space']
 const recentSearches = ['beach sunset', 'winter mountain', 'city night']
@@ -29,7 +18,7 @@ const recentSearches = ['beach sunset', 'winter mountain', 'city night']
 function SearchContent() {
   const searchParams = useSearchParams()
   const query = searchParams.get('q') || ''
-  const [searchResults, setSearchResults] = useState<PuzzleItem[]>([])
+  const [searchResults, setSearchResults] = useState<PublicPuzzle[]>([])
   const [loading, setLoading] = useState(true)
   const [searchInput, setSearchInput] = useState(query)
   const [showFilters, setShowFilters] = useState(false)
@@ -40,88 +29,32 @@ function SearchContent() {
   }, [query])
 
   useEffect(() => {
-    const mockResults: PuzzleItem[] = [
-      {
-        id: '1',
-        title: 'Mountain Landscape',
-        image_url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
-        description: 'A breathtaking mountain landscape with snow-capped peaks and rolling hills',
-        piece_count: 100,
-        difficulty: 'Easy',
-        rating: 4.8,
-        plays: 3421,
-        category: 'Nature'
-      },
-      {
-        id: '2',
-        title: 'Ocean Waves',
-        image_url: 'https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=400&h=300&fit=crop',
-        description: 'Stunning ocean waves crashing against the shore at golden hour',
-        piece_count: 150,
-        difficulty: 'Medium',
-        rating: 4.6,
-        plays: 2847,
-        category: 'Ocean'
-      },
-      {
-        id: '3',
-        title: 'City Skyline at Night',
-        image_url: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400&h=300&fit=crop',
-        description: 'Beautiful city skyline illuminated against the night sky',
-        piece_count: 200,
-        difficulty: 'Hard',
-        rating: 4.9,
-        plays: 4521,
-        category: 'City'
-      },
-      {
-        id: '4',
-        title: 'Autumn Forest Path',
-        image_url: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=300&fit=crop',
-        description: 'A serene forest path surrounded by vibrant autumn colors',
-        piece_count: 120,
-        difficulty: 'Medium',
-        rating: 4.7,
-        plays: 1923,
-        category: 'Forest'
-      },
-      {
-        id: '5',
-        title: 'Desert Dunes',
-        image_url: 'https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=400&h=300&fit=crop',
-        description: 'Golden sand dunes stretching into the horizon',
-        piece_count: 80,
-        difficulty: 'Easy',
-        rating: 4.5,
-        plays: 1234,
-        category: 'Nature'
-      },
-      {
-        id: '6',
-        title: 'Northern Lights',
-        image_url: 'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?w=400&h=300&fit=crop',
-        description: 'Spectacular aurora borealis dancing across the night sky',
-        piece_count: 250,
-        difficulty: 'Hard',
-        rating: 4.9,
-        plays: 5678,
-        category: 'Nature'
-      }
-    ]
+    let cancelled = false
 
-    setTimeout(() => {
-      if (query) {
-        const filtered = mockResults.filter(p => 
-          p.title.toLowerCase().includes(query.toLowerCase()) ||
-          p.description.toLowerCase().includes(query.toLowerCase()) ||
-          p.category.toLowerCase().includes(query.toLowerCase())
-        )
-        setSearchResults(filtered)
-      } else {
-        setSearchResults([])
-      }
+    if (!query.trim()) {
+      setSearchResults([])
       setLoading(false)
-    }, 600)
+      return
+    }
+
+    setLoading(true)
+    fetchPuzzles({ search: query, limit: 60, orderBy: 'plays' }).then((results) => {
+      if (!cancelled) {
+        setSearchResults(results)
+        setLoading(false)
+      }
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [query])
+
+  useEffect(() => {
+    if (!query.trim()) {
+      setLoading(false)
+      setSearchResults([])
+    }
   }, [query])
 
   const handleSearch = (e: React.FormEvent) => {
@@ -382,7 +315,7 @@ function SearchContent() {
                             ~{Math.round(puzzle.piece_count / 10)} min
                           </span>
                           <Link 
-                            href={`/p/${puzzle.id}`}
+                            href={`/puzzle/${puzzle.id}`}
                             className="text-sm font-medium text-primary hover:text-primary/80 dark:hover:text-primary-400 transition-colors flex items-center group/link"
                           >
                             View Details 

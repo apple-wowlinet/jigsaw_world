@@ -18,40 +18,13 @@ import { ResumeDialog } from '@/components/puzzle/ResumeDialog'
 import { loadSave, storeSave, clearSave, getRotationPref, setRotationPref } from '@/lib/puzzle/storage/save-store'
 import { getImage } from '@/lib/puzzle/storage/image-store'
 import { sfx } from '@/lib/puzzle/audio/sfx'
+import { fetchPuzzleBySlug } from '@/lib/data/public'
 
 interface PuzzleMeta {
   id: string
   title: string
   image_url: string
   difficulty: 'easy' | 'medium' | 'hard'
-}
-
-// Mock puzzle catalog (keyed by slug). Will be replaced by Supabase fetching later.
-const PUZZLES: Record<string, PuzzleMeta> = {
-  '1': {
-    id: '1',
-    title: 'Mountain Landscape',
-    image_url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop',
-    difficulty: 'easy',
-  },
-  '2': {
-    id: '2',
-    title: 'Ocean Sunset',
-    image_url: 'https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=800&h=600&fit=crop',
-    difficulty: 'easy',
-  },
-  '3': {
-    id: '3',
-    title: 'Forest Path',
-    image_url: 'https://images.unsplash.com/photo-1511497584788-876760111969?w=800&h=600&fit=crop',
-    difficulty: 'medium',
-  },
-  '4': {
-    id: '4',
-    title: 'City Lights',
-    image_url: 'https://images.unsplash.com/photo-1514565131-fce0801e5785?w=800&h=600&fit=crop',
-    difficulty: 'hard',
-  },
 }
 
 function PlayPuzzleContent() {
@@ -77,6 +50,8 @@ function PlayPuzzleContent() {
   const [choices, setChoices] = useState<PieceChoice[]>([])
   const [selectedNop, setSelectedNop] = useState(0)
   const [debugInfo, setDebugInfo] = useState<PuzzleDebugInfo | null>(null)
+  const [remotePuzzle, setRemotePuzzle] = useState<PuzzleMeta | null>(null)
+  const [puzzleLoading, setPuzzleLoading] = useState(!isCustom)
 
   // 游戏构建参数（作为 PuzzleCanvas 的 key 输入，变化即重建）
   const [subject, setSubject] = useState<SubjectData | null>(null)
@@ -95,14 +70,37 @@ function PlayPuzzleContent() {
   const timerRunningRef = useRef(false)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  useEffect(() => {
+    if (isCustom) {
+      setPuzzleLoading(false)
+      return
+    }
+
+    let cancelled = false
+    setPuzzleLoading(true)
+
+    fetchPuzzleBySlug(slug).then((item) => {
+      if (cancelled) return
+      setRemotePuzzle(item ? {
+        id: item.id,
+        title: item.title,
+        image_url: item.image_url,
+        difficulty: item.difficulty.toLowerCase() as PuzzleMeta['difficulty'],
+      } : null)
+      setPuzzleLoading(false)
+    })
+
+    return () => { cancelled = true }
+  }, [isCustom, slug])
+
   const puzzle = useMemo<PuzzleMeta | null>(() => {
     if (isCustom) {
       return idbKey
         ? { id: 'custom', title: '我的拼图', image_url: '', difficulty: 'medium' }
         : null
     }
-    return PUZZLES[slug] || PUZZLES['1']
-  }, [slug, isCustom, idbKey])
+    return remotePuzzle
+  }, [isCustom, idbKey, remotePuzzle])
 
   const pieceCount = choice?.nop ?? 0
 
@@ -420,7 +418,7 @@ function PlayPuzzleContent() {
 
   /* ---------------- 渲染 ---------------- */
 
-  if (!puzzle || loadError) {
+  if (puzzleLoading || !puzzle || loadError) {
     return (
       <div className="min-h-screen bg-muted dark:bg-[#08080c] flex items-center justify-center">
         <div className="text-center max-w-sm px-6">
@@ -864,13 +862,7 @@ function PlayPuzzleContent() {
                     </Button>
                     <Button
                       onClick={() => {
-                        const num = parseInt(slug, 10)
-                        if (Number.isNaN(num)) {
-                          router.push('/play/1')
-                          return
-                        }
-                        const nextId = ((num) % Object.keys(PUZZLES).length) + 1
-                        router.push(`/play/${nextId}`)
+                        router.push('/explore/weekly')
                       }}
                       className="flex-1 btn-shine"
                     >

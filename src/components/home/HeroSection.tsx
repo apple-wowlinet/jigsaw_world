@@ -6,16 +6,8 @@ import Link from 'next/link'
 import { Play, Sparkles, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { fetchDailyPuzzle, type DailyPuzzle } from '@/lib/data/public'
 import { cn } from '@/lib/utils'
-
-interface DailyPuzzle {
-  id: string
-  title: string
-  image_url: string
-  description: string
-  piece_count: number
-  created_at: string
-}
 
 export function HeroSection() {
   const [dailyPuzzle, setDailyPuzzle] = useState<DailyPuzzle | null>(null)
@@ -23,19 +15,16 @@ export function HeroSection() {
   const [imageLoaded, setImageLoaded] = useState(false)
 
   useEffect(() => {
-    const mockDailyPuzzle: DailyPuzzle = {
-      id: '1',
-      title: 'Mountain Landscape',
-      image_url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop',
-      description: 'A beautiful mountain landscape puzzle to challenge your mind and provide hours of entertainment',
-      piece_count: 100,
-      created_at: new Date().toISOString()
-    }
-    
-    setTimeout(() => {
-      setDailyPuzzle(mockDailyPuzzle)
-      setLoading(false)
-    }, 1000)
+    let cancelled = false
+
+    fetchDailyPuzzle().then((puzzle) => {
+      if (!cancelled) {
+        setDailyPuzzle(puzzle)
+        setLoading(false)
+      }
+    })
+
+    return () => { cancelled = true }
   }, [])
 
   if (loading) {

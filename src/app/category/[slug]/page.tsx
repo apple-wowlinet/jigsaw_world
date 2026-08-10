@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { Puzzle, Users, Star, ChevronLeft, ChevronRight, Filter, Clock, Play, Check, ChevronDown } from 'lucide-react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { fetchCategories, fetchPuzzles } from '@/lib/data/public'
 import { cn } from '@/lib/utils'
 
 interface PuzzleItem {
@@ -57,32 +58,28 @@ function CategoryContent() {
   }, [filterOpen])
 
   useEffect(() => {
-    const mockCategory: Category = {
-      id: '1',
-      name: slug.charAt(0).toUpperCase() + slug.slice(1),
-      slug: slug,
-      description: `Beautiful ${slug} puzzles to challenge your mind. Explore our collection of carefully curated puzzles featuring stunning ${slug} imagery.`,
-      puzzle_count: 24,
-      icon: '🏞️'
-    }
+    let cancelled = false
 
-    const mockPuzzles: PuzzleItem[] = Array.from({ length: 24 }, (_, i) => ({
-      id: `${i + 1}`,
-      title: `${mockCategory.name} Puzzle ${i + 1}`,
-      image_url: `https://images.unsplash.com/photo-${1506905925346 + i}?w=400&h=300&fit=crop`,
-      description: `A beautiful ${slug} puzzle with ${100 + (i * 10)} pieces`,
-      piece_count: 100 + (i * 10),
-      difficulty: ['Easy', 'Medium', 'Hard'][i % 3] as 'Easy' | 'Medium' | 'Hard',
-      plays_count: Math.floor(Math.random() * 5000) + 100,
-      rating: 4 + (Math.random() * 1),
-      created_at: new Date(Date.now() - i * 86400000).toISOString()
-    }))
+    Promise.all([
+      fetchCategories(),
+      fetchPuzzles({ categorySlug: slug, limit: 100, orderBy: 'plays' }),
+    ]).then(([categories, items]) => {
+      if (cancelled) return
 
-    setTimeout(() => {
-      setCategory(mockCategory)
-      setPuzzles(mockPuzzles)
+      const currentCategory = categories.find((item) => item.slug === slug)
+      setCategory(currentCategory ? {
+        id: currentCategory.id,
+        name: currentCategory.name,
+        slug: currentCategory.slug,
+        description: currentCategory.description,
+        puzzle_count: currentCategory.puzzle_count,
+        icon: '🧩',
+      } : null)
+      setPuzzles(items)
       setLoading(false)
-    }, 800)
+    })
+
+    return () => { cancelled = true }
   }, [slug])
 
   const getDifficultyStyle = (difficulty: string) => {

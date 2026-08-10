@@ -6,63 +6,29 @@ import Link from 'next/link'
 import { Play, Clock, Sparkles, ArrowRight, Calendar } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { fetchDailyHistory, fetchDailyPuzzle, type DailyPuzzle } from '@/lib/data/public'
 import { cn } from '@/lib/utils'
-
-interface DailyPuzzle {
-  id: string
-  title: string
-  image_url: string
-  description: string
-  piece_count: number
-  created_at: string
-}
-
-const historyPuzzles: DailyPuzzle[] = [
-  {
-    id: '2',
-    title: 'Ocean Sunset',
-    image_url: 'https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=800&h=600&fit=crop',
-    description: 'A calming sunset over the ocean waves.',
-    piece_count: 150,
-    created_at: '2026-07-09T00:00:00.000Z'
-  },
-  {
-    id: '3',
-    title: 'Urban Lights',
-    image_url: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&h=600&fit=crop',
-    description: 'City lights shining bright in the night.',
-    piece_count: 200,
-    created_at: '2026-07-08T00:00:00.000Z'
-  },
-  {
-    id: '4',
-    title: 'Forest Path',
-    image_url: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&h=600&fit=crop',
-    description: 'A mysterious path leading through the ancient forest.',
-    piece_count: 120,
-    created_at: '2026-07-07T00:00:00.000Z'
-  }
-]
 
 export default function DailyPage() {
   const [dailyPuzzle, setDailyPuzzle] = useState<DailyPuzzle | null>(null)
+  const [historyPuzzles, setHistoryPuzzles] = useState<DailyPuzzle[]>([])
   const [loading, setLoading] = useState(true)
   const [imageLoaded, setImageLoaded] = useState(false)
 
   useEffect(() => {
-    const mockDailyPuzzle: DailyPuzzle = {
-      id: '1',
-      title: 'Mountain Landscape',
-      image_url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop',
-      description: 'A beautiful mountain landscape puzzle to challenge your mind and provide hours of entertainment',
-      piece_count: 100,
-      created_at: new Date().toISOString()
-    }
-    
-    setTimeout(() => {
-      setDailyPuzzle(mockDailyPuzzle)
+    let cancelled = false
+
+    Promise.all([
+      fetchDailyPuzzle(),
+      fetchDailyHistory(4),
+    ]).then(([today, history]) => {
+      if (cancelled) return
+      setDailyPuzzle(today)
+      setHistoryPuzzles(history.filter((item) => item.id !== today?.id).slice(0, 3))
       setLoading(false)
-    }, 1000)
+    })
+
+    return () => { cancelled = true }
   }, [])
 
   if (loading) {

@@ -16,8 +16,7 @@ const PERIODS: { value: LeaderboardPeriod; label: string; description: string }[
   { value: 'all', label: 'All Time', description: 'All-time total score' },
 ]
 
-// TODO: Replace this with the real authenticated user id once auth is wired in.
-const MOCK_CURRENT_USER_ID: string | null = 'u10'
+const CURRENT_USER_ID: string | null = null
 
 type EnrichedEntry = LeaderboardEntry & {
   avgTime: string
@@ -112,8 +111,8 @@ function LeaderboardContent() {
 
   const top3 = filteredEntries.slice(0, 3)
   const rest = filteredEntries.slice(3)
-  const currentUser = MOCK_CURRENT_USER_ID
-    ? entries.find((entry) => entry.userId === MOCK_CURRENT_USER_ID)
+  const currentUser = CURRENT_USER_ID
+    ? entries.find((entry) => entry.userId === CURRENT_USER_ID)
     : null
   const nextPlayer = currentUser
     ? entries.find((entry) => entry.rank === currentUser.rank - 1)

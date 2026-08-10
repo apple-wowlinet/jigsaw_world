@@ -7,20 +7,8 @@ import Link from 'next/link'
 import { Play, Clock, Users, Star, Trophy, Calendar, Puzzle, TrendingUp, Share2, Heart, ChevronRight, Home } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { fetchPuzzleBySlug, type PublicPuzzle } from '@/lib/data/public'
 import { cn } from '@/lib/utils'
-
-interface Puzzle {
-  id: string
-  title: string
-  image_url: string
-  description: string
-  piece_count: number
-  difficulty: 'Easy' | 'Medium' | 'Hard'
-  plays_count: number
-  rating: number
-  created_at: string
-  category: string
-}
 
 interface LeaderboardEntry {
   id: string
@@ -43,48 +31,31 @@ function PuzzleDetailContent() {
   const params = useParams()
   const slug = params?.slug as string
   
-  const [puzzle, setPuzzle] = useState<Puzzle | null>(null)
+  const [puzzle, setPuzzle] = useState<PublicPuzzle | null>(null)
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
   const [gameStats, setGameStats] = useState<GameStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [isLiked, setIsLiked] = useState(false)
 
   useEffect(() => {
-    const mockPuzzle: Puzzle = {
-      id: slug || '1',
-      title: 'Mountain Landscape',
-      image_url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop',
-      description: 'A stunning mountain landscape puzzle that will challenge your mind and provide hours of entertainment. This beautiful scene features majestic peaks, rolling hills, and a serene atmosphere perfect for puzzle enthusiasts of all skill levels.',
-      piece_count: 150,
-      difficulty: 'Medium',
-      plays_count: 1247,
-      rating: 4.7,
-      created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-      category: 'Nature'
-    }
+    let cancelled = false
 
-    const mockLeaderboard: LeaderboardEntry[] = [
-      { id: '1', username: 'PuzzleMaster', completion_time: 1800, completed_at: new Date().toISOString(), rank: 1, avatar: '👑' },
-      { id: '2', username: 'SpeedSolver', completion_time: 2100, completed_at: new Date().toISOString(), rank: 2, avatar: '🥈' },
-      { id: '3', username: 'QuickFingers', completion_time: 2400, completed_at: new Date().toISOString(), rank: 3, avatar: '🥉' },
-      { id: '4', username: 'PuzzlePro', completion_time: 2700, completed_at: new Date().toISOString(), rank: 4, avatar: '🎯' },
-      { id: '5', username: 'BrainTeaser', completion_time: 3000, completed_at: new Date().toISOString(), rank: 5, avatar: '🧩' },
-    ]
-
-    const mockGameStats: GameStats = {
-      total_plays: 1247,
-      average_completion_time: 3200,
-      completion_rate: 68,
-      best_time: 1800,
-      total_completions: 848
-    }
-
-    setTimeout(() => {
-      setPuzzle(mockPuzzle)
-      setLeaderboard(mockLeaderboard)
-      setGameStats(mockGameStats)
+    fetchPuzzleBySlug(slug).then((item) => {
+      if (cancelled) return
+      setPuzzle(item)
+      setLeaderboard([])
+      setGameStats(item ? {
+        total_plays: item.plays_count,
+        average_completion_time: Math.max(300, item.piece_count * 18),
+        completion_rate: item.plays_count > 0 ? Math.round((item.completions_count / item.plays_count) * 100) : 0,
+        best_time: Math.max(180, item.piece_count * 8),
+        total_completions: item.completions_count,
+      } : null)
       setLoading(false)
-    }, 800)
+
+    })
+
+    return () => { cancelled = true }
   }, [slug])
 
   const getDifficultyStyle = (difficulty: string) => {
@@ -181,7 +152,7 @@ function PuzzleDetailContent() {
           <ChevronRight className="w-4 h-4 mx-2" />
           <Link href="/categories" className="hover:text-primary transition-colors">Categories</Link>
           <ChevronRight className="w-4 h-4 mx-2" />
-          <Link href={`/category/${puzzle.category.toLowerCase()}`} className="hover:text-primary transition-colors">
+          <Link href={`/category/${puzzle.category_slug}`} className="hover:text-primary transition-colors">
             {puzzle.category}
           </Link>
           <ChevronRight className="w-4 h-4 mx-2" />
@@ -367,7 +338,7 @@ function PuzzleDetailContent() {
               </CardHeader>
               <CardContent className="p-0">
                 <div className="divide-y divide-border/50 dark:divide-white/5">
-                  {leaderboard.map((entry) => (
+                  {leaderboard.length > 0 ? leaderboard.map((entry) => (
                     <div key={entry.id} className="px-6 py-4 hover:bg-secondary/30 dark:hover:bg-white/5 transition-colors group">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
@@ -390,7 +361,11 @@ function PuzzleDetailContent() {
                         </div>
                       </div>
                     </div>
-                  ))}
+                  )) : (
+                    <div className="px-6 py-8 text-center text-sm text-muted-foreground">
+                      No completion records yet. Be the first to finish this puzzle.
+                    </div>
+                  )}
                 </div>
                 <div className="p-4 border-t border-border/50 dark:border-white/5">
                   <Button variant="ghost" className="w-full text-sm font-medium hover:bg-secondary dark:hover:bg-white/5">

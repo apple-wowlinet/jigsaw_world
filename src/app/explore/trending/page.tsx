@@ -6,23 +6,11 @@ import Link from 'next/link'
 import { Puzzle, Star, ChevronLeft, ChevronRight, Filter, Check, ChevronDown, TrendingUp, Flame, Zap } from 'lucide-react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { fetchPuzzles, type PublicPuzzle } from '@/lib/data/public'
 import { cn } from '@/lib/utils'
 
-interface PuzzleItem {
-  id: string
-  title: string
-  image_url: string
-  description: string
-  piece_count: number
-  difficulty: 'Easy' | 'Medium' | 'Hard'
-  plays_count: number
-  rating: number
-  created_at: string
-  category: string
-}
-
 function TrendingContent() {
-  const [puzzles, setPuzzles] = useState<PuzzleItem[]>([])
+  const [puzzles, setPuzzles] = useState<PublicPuzzle[]>([])
   const [loading, setLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
   const [difficultyFilter, setDifficultyFilter] = useState<'All' | 'Easy' | 'Medium' | 'Hard'>('All')
@@ -44,27 +32,16 @@ function TrendingContent() {
   }, [filterOpen])
 
   useEffect(() => {
-    // Mock data for Trending
-    const mockPuzzles: PuzzleItem[] = Array.from({ length: 24 }, (_, i) => ({
-      id: `tr-${i + 1}`,
-      title: `Trending Puzzle ${i + 1}`,
-      image_url: `https://images.unsplash.com/photo-${1506905925346 + (i * 333)}?w=400&h=300&fit=crop`,
-      description: `Rising fast! This puzzle has gained huge popularity in the last 24 hours.`,
-      piece_count: [100, 300, 500][i % 3],
-      difficulty: ['Easy', 'Medium'][i % 2] as 'Easy' | 'Medium',
-      plays_count: Math.floor(Math.random() * 5000) + 1000,
-      rating: 4.2 + (Math.random() * 0.8),
-      created_at: new Date(Date.now() - (i * 2) * 3600000).toISOString(), // Hours ago
-      category: ['Viral', 'Hot', 'New'][i % 3]
-    }))
+    let cancelled = false
 
-    // Sort by recent and plays
-    mockPuzzles.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-
-    setTimeout(() => {
-      setPuzzles(mockPuzzles)
+    fetchPuzzles({ limit: 48, orderBy: 'editor' }).then((items) => {
+      if (cancelled) return
+      setPuzzles(items)
       setLoading(false)
-    }, 800)
+
+    })
+
+    return () => { cancelled = true }
   }, [])
 
   const getDifficultyStyle = (difficulty: string) => {
@@ -305,7 +282,7 @@ function TrendingContent() {
                       </span>
                     </div>
 
-                    <Link href={`/p/${puzzle.id}`} className="block">
+                    <Link href={`/puzzle/${puzzle.id}`} className="block">
                       <Button variant="ghost" size="sm" className="w-full justify-between hover:bg-secondary/50 dark:hover:bg-white/5 group/btn">
                         View Details
                         <ChevronRight className="w-4 h-4 text-muted-foreground group-hover/btn:translate-x-1 transition-transform" />

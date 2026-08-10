@@ -86,9 +86,19 @@ CREATE TRIGGER trg_categories_updated BEFORE UPDATE ON public.categories
 
 -- ============================================================
 -- 2. puzzles —— 关卡（扩展现有表）
---    现有表已有：id, title, slug, image_url, description,
---                created_at, updated_at
+--    先确保基础表存在，再做增量扩展，避免单独执行本迁移时报 relation does not exist。
 -- ============================================================
+CREATE TABLE IF NOT EXISTS public.puzzles (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  title       text NOT NULL,
+  slug        text UNIQUE NOT NULL,
+  image_url   text NOT NULL,
+  description text,
+  piece_count integer NOT NULL DEFAULT 100,
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  updated_at  timestamptz NOT NULL DEFAULT now()
+);
+
 ALTER TABLE public.puzzles
   DROP COLUMN IF EXISTS image_width,
   DROP COLUMN IF EXISTS image_height,
@@ -104,6 +114,7 @@ DROP TYPE IF EXISTS image_source_enum;
 ALTER TABLE public.puzzles
   -- 关系
   ADD COLUMN IF NOT EXISTS category_id          uuid REFERENCES public.categories(id) ON DELETE SET NULL,
+  ADD COLUMN IF NOT EXISTS piece_count          integer NOT NULL DEFAULT 100,
   -- 难度
   ADD COLUMN IF NOT EXISTS difficulty           difficulty_enum NOT NULL DEFAULT 'easy',
   -- 冗余计数（公共读，加速列表/排行）
