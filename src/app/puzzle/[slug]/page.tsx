@@ -15,6 +15,7 @@ import {
   Eye,
   Heart,
   Home,
+  ImageIcon,
   Play,
   Puzzle,
   Share2,
@@ -511,19 +512,31 @@ function DetailRow({
 }
 
 function RelatedPuzzleCard({ puzzle }: { puzzle: PublicPuzzle }) {
+  const [imageError, setImageError] = useState(false)
+
   return (
     <Link
       href={`/puzzle/${puzzle.slug}`}
       className="group overflow-hidden rounded-xl border border-border/80 bg-background transition-all hover:-translate-y-1 hover:border-primary/30 hover:shadow-lg dark:border-white/10"
     >
-      <div className="relative aspect-[4/3] overflow-hidden">
-        <Image
-          src={puzzle.image_url}
-          alt={puzzle.title}
-          fill
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
-        />
+      <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+        {imageError ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-indigo-100 via-sky-50 to-rose-100 text-indigo-400 dark:from-indigo-950 dark:via-slate-900 dark:to-rose-950">
+            <ImageIcon className="mb-2 h-9 w-9" />
+            <span className="text-xs font-semibold uppercase tracking-[0.2em]">
+              {puzzle.category}
+            </span>
+          </div>
+        ) : (
+          <Image
+            src={puzzle.image_url}
+            alt={puzzle.title}
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            onError={() => setImageError(true)}
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+        )}
         <span className="absolute bottom-2 left-2 rounded-full bg-indigo-500 px-2 py-1 text-[10px] font-bold uppercase text-white shadow-md">
           {puzzle.category}
         </span>
