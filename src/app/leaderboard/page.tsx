@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
+import Link from 'next/link'
 import { ChevronDown, Crown, Globe2, Search, Sparkles, Star, Trophy, Users } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -9,11 +10,11 @@ import { cn } from '@/lib/utils'
 import { LeaderboardEntry, LeaderboardPeriod } from '@/lib/types'
 import { fetchLeaderboard } from '@/lib/leaderboard'
 
-const PERIODS: { value: LeaderboardPeriod; label: string; description: string }[] = [
-  { value: 'daily', label: 'Daily', description: "Today's score" },
-  { value: 'weekly', label: 'Weekly', description: "This week's score" },
-  { value: 'monthly', label: 'Monthly', description: "This month's score" },
-  { value: 'all', label: 'All Time', description: 'All-time total score' },
+const PERIODS: { value: LeaderboardPeriod; label: string; description: string; href: string }[] = [
+  { value: 'all', label: 'All Time', description: 'All-time total score', href: '/leaderboard' },
+  { value: 'daily', label: 'Daily', description: "Today's score", href: '/leaderboard/daily' },
+  { value: 'weekly', label: 'Weekly', description: "This week's score", href: '/leaderboard/weekly' },
+  { value: 'monthly', label: 'Monthly', description: "This month's score", href: '/leaderboard/monthly' },
 ]
 
 const CURRENT_USER_ID: string | null = null
@@ -60,8 +61,7 @@ function enrichEntry(entry: LeaderboardEntry): EnrichedEntry {
   }
 }
 
-function LeaderboardContent() {
-  const [period, setPeriod] = useState<LeaderboardPeriod>('weekly')
+function LeaderboardContent({ period }: { period: LeaderboardPeriod }) {
   const [query, setQuery] = useState('')
   const [loaded, setLoaded] = useState<{ period: LeaderboardPeriod; data: LeaderboardEntry[] } | null>(null)
 
@@ -155,17 +155,17 @@ function LeaderboardContent() {
         <section className="mt-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex rounded-2xl bg-white/70 p-1 shadow-sm ring-1 ring-slate-200/70 backdrop-blur dark:bg-white/5 dark:ring-white/10">
             {PERIODS.map((p) => (
-              <Button
+              <Link
                 key={p.value}
-                variant="ghost"
-                onClick={() => setPeriod(p.value)}
+                href={p.href}
+                aria-current={period === p.value ? 'page' : undefined}
                 className={cn(
-                  'min-w-[86px] rounded-xl text-slate-500 hover:bg-blue-50 hover:text-blue-700 dark:text-slate-300 dark:hover:bg-white/10',
+                  'inline-flex h-10 min-w-[86px] items-center justify-center rounded-xl px-4 py-2 text-sm font-medium text-slate-500 transition-all duration-200 hover:bg-blue-50 hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-[0.98] dark:text-slate-300 dark:hover:bg-white/10',
                   period === p.value && 'bg-blue-100 text-blue-700 shadow-sm hover:bg-blue-100 dark:bg-blue-500/20 dark:text-blue-200'
                 )}
               >
                 {p.label}
-              </Button>
+              </Link>
             ))}
           </div>
 
@@ -420,14 +420,18 @@ function getMedalStyle(rank: number) {
   }
 }
 
-export default function LeaderboardPage() {
+export function LeaderboardView({ period }: { period: LeaderboardPeriod }) {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-background dark:bg-[#08080c] flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent" />
       </div>
     }>
-      <LeaderboardContent />
+      <LeaderboardContent period={period} />
     </Suspense>
   )
+}
+
+export default function LeaderboardPage() {
+  return <LeaderboardView period="all" />
 }
