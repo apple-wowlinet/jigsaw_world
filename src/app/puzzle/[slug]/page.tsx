@@ -319,7 +319,7 @@ function PuzzleDetailContent() {
           </div>
         </section>
 
-        <section className="mt-10 grid grid-cols-3 divide-x divide-slate-200/80 overflow-hidden rounded-2xl border border-slate-200/75 bg-white/70 px-1 py-7 shadow-[0_12px_36px_-26px_rgba(15,23,42,0.35)] backdrop-blur-sm dark:divide-white/10 dark:border-white/10 dark:bg-white/[0.035] sm:px-8 sm:py-8">
+        <section className="mt-9 grid grid-cols-3 divide-x divide-slate-200/75 px-1 py-6 dark:divide-white/10 sm:px-8 sm:py-7">
           <OverviewStat
             icon={<Users className="h-8 w-8 text-[#286cff]" />}
             value={gameStats.totalPlays.toLocaleString()}
@@ -337,11 +337,15 @@ function PuzzleDetailContent() {
           />
         </section>
 
-        <div className="mt-8 grid gap-7 lg:grid-cols-2">
-          <section className="relative overflow-hidden rounded-[24px] border border-slate-200/75 bg-white/85 p-6 shadow-[0_18px_55px_-40px_rgba(34,41,76,0.45)] dark:border-white/10 dark:bg-[#13131a] sm:p-8">
+        <div className="mt-6 grid gap-5 lg:grid-cols-2">
+          <section className="relative overflow-hidden rounded-[28px] bg-white/80 p-6 shadow-[0_16px_45px_-38px_rgba(34,41,76,0.38)] dark:bg-white/[0.035] sm:p-8">
             <Puzzle
               aria-hidden="true"
-              className="absolute -bottom-8 right-4 h-32 w-32 rotate-12 text-slate-100/75 dark:text-white/[0.025]"
+              className="absolute -bottom-10 right-20 h-28 w-28 -rotate-12 text-slate-100/80 dark:text-white/[0.025]"
+            />
+            <Puzzle
+              aria-hidden="true"
+              className="absolute -bottom-4 right-3 h-28 w-28 rotate-12 text-slate-100/80 dark:text-white/[0.025]"
             />
             <h2 className="relative mb-4 text-xl font-extrabold text-[#17203d] dark:text-white">
               About This Puzzle
@@ -384,23 +388,23 @@ function PuzzleDetailContent() {
             </dl>
           </section>
 
-          <section className="overflow-hidden rounded-[24px] border border-slate-200/75 bg-white/85 shadow-[0_18px_55px_-40px_rgba(34,41,76,0.45)] dark:border-white/10 dark:bg-[#13131a]">
-            <div className="flex items-center justify-between border-b border-slate-200/70 px-6 py-5 dark:border-white/10 sm:px-8">
+          <section className="overflow-hidden rounded-[28px] bg-white/80 shadow-[0_16px_45px_-38px_rgba(34,41,76,0.38)] dark:bg-white/[0.035]">
+            <div className="flex items-center justify-between px-6 pb-3 pt-6 sm:px-8 sm:pt-7">
               <h2 className="flex items-center gap-2.5 text-xl font-extrabold text-[#17203d] dark:text-white">
                 <Trophy className="h-6 w-6 fill-amber-400/15 text-amber-400" />
                 Leaderboard
               </h2>
               <Link
                 href="/leaderboard"
-                className="inline-flex items-center gap-1 text-[11px] font-bold text-[#ff5f55] transition-colors hover:text-[#e94138] sm:text-xs"
+                className="inline-flex items-center gap-1 text-[11px] font-bold text-[#6655e8] transition-colors hover:text-[#5040cc] sm:text-xs"
               >
                 View Full Leaderboard
                 <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </div>
 
-            <div className="px-6 pb-6 pt-2 sm:px-8">
-              <ol>
+            <div className="px-6 pb-6 sm:px-8">
+              <ol className="border-t border-slate-200/60 pt-1 dark:border-white/[0.07]">
                 {leaderboardPreview.map((entry) => (
                   <LeaderboardRow key={entry.rank} {...entry} />
                 ))}
