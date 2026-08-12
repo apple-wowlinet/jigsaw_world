@@ -1,116 +1,132 @@
 'use client'
 
+import { useEffect, useState, Suspense } from 'react'
 import { useParams } from 'next/navigation'
-import { useState, useEffect, Suspense } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Play, Clock, Users, Star, Trophy, Calendar, Puzzle, TrendingUp, Share2, Heart, ChevronRight, Home } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import {
+  ArrowRight,
+  BarChart3,
+  CalendarDays,
+  CheckCircle2,
+  ChevronRight,
+  Clock3,
+  Crown,
+  Eye,
+  Heart,
+  Home,
+  Play,
+  Puzzle,
+  Share2,
+  Star,
+  Tag,
+  Trophy,
+  Users,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { fetchPuzzleBySlug, type PublicPuzzle } from '@/lib/data/public'
 import { cn } from '@/lib/utils'
-
-interface LeaderboardEntry {
-  id: string
-  username: string
-  completion_time: number
-  completed_at: string
-  rank: number
-  avatar: string
-}
+import {
+  fetchPuzzleBySlug,
+  fetchPuzzles,
+  type PublicPuzzle,
+} from '@/lib/data/public'
 
 interface GameStats {
-  total_plays: number
-  average_completion_time: number
-  completion_rate: number
-  best_time: number
-  total_completions: number
+  totalPlays: number
+  averageCompletionTime: number
+  completionRate: number
+}
+
+function formatApproximateTime(seconds: number) {
+  const minutes = Math.max(1, Math.round(seconds / 60))
+  return `~${minutes} min`
 }
 
 function PuzzleDetailContent() {
   const params = useParams()
   const slug = params?.slug as string
-  
   const [puzzle, setPuzzle] = useState<PublicPuzzle | null>(null)
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
-  const [gameStats, setGameStats] = useState<GameStats | null>(null)
+  const [relatedPuzzles, setRelatedPuzzles] = useState<PublicPuzzle[]>([])
   const [loading, setLoading] = useState(true)
   const [isLiked, setIsLiked] = useState(false)
+  const [shareCopied, setShareCopied] = useState(false)
 
   useEffect(() => {
     let cancelled = false
 
-    fetchPuzzleBySlug(slug).then((item) => {
+    async function loadPuzzle() {
+      setLoading(true)
+      const item = await fetchPuzzleBySlug(slug)
+
       if (cancelled) return
       setPuzzle(item)
-      setLeaderboard([])
-      setGameStats(item ? {
-        total_plays: item.plays_count,
-        average_completion_time: Math.max(300, item.piece_count * 18),
-        completion_rate: item.plays_count > 0 ? Math.round((item.completions_count / item.plays_count) * 100) : 0,
-        best_time: Math.max(180, item.piece_count * 8),
-        total_completions: item.completions_count,
-      } : null)
+
+      if (item) {
+        const related = await fetchPuzzles({
+          categorySlug: item.category_slug,
+          limit: 5,
+          orderBy: 'rating',
+        })
+
+        if (cancelled) return
+        setRelatedPuzzles(
+          related.filter((candidate) => candidate.slug !== item.slug).slice(0, 4)
+        )
+      }
+
       setLoading(false)
+    }
 
-    })
-
-    return () => { cancelled = true }
+    loadPuzzle()
+    return () => {
+      cancelled = true
+    }
   }, [slug])
 
-  const getDifficultyStyle = (difficulty: string) => {
-    switch (difficulty) {
-      case 'Easy': return 'difficulty-easy'
-      case 'Medium': return 'difficulty-medium'
-      case 'Hard': return 'difficulty-hard'
-      default: return 'bg-muted text-muted-foreground'
+  const handleShare = async () => {
+    const shareData = {
+      title: puzzle?.title ?? 'JigsawWorld puzzle',
+      text: puzzle?.description ?? 'Play this puzzle on JigsawWorld',
+      url: window.location.href,
+    }
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData)
+        return
+      }
+
+      await navigator.clipboard.writeText(window.location.href)
+      setShareCopied(true)
+      window.setTimeout(() => setShareCopied(false), 2000)
+    } catch {
+      // The native share sheet can be dismissed by the user.
     }
   }
 
-  const formatTime = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60)
-    const remainingSeconds = seconds % 60
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
-  }
-
-  const renderStars = (rating: number) => {
-    return Array.from({ length: 5 }, (_, i) => (
-      <Star
-        key={i}
-        className={cn(
-          "h-5 w-5",
-          i < Math.floor(rating) ? 'star-filled' : 'star-empty'
-        )}
-      />
-    ))
-  }
-
-  const getRankStyle = (rank: number) => {
-    switch (rank) {
-      case 1: return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/40'
-      case 2: return 'bg-gray-400/20 text-gray-300 border-gray-400/40'
-      case 3: return 'bg-orange-600/20 text-orange-400 border-orange-600/40'
-      default: return 'bg-secondary text-secondary-foreground border-border dark:bg-secondary/50 dark:border-white/10'
-    }
+  const difficultyClass = (difficulty: PublicPuzzle['difficulty']) => {
+    if (difficulty === 'Easy') return 'difficulty-easy'
+    if (difficulty === 'Medium') return 'difficulty-medium'
+    return 'difficulty-hard'
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-12">
-          <div className="animate-pulse">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2 space-y-6">
-                <div className="bg-secondary dark:bg-secondary/30 aspect-[4/3] rounded-2xl" />
-                <div className="h-8 bg-secondary dark:bg-secondary/30 rounded w-3/4" />
-                <div className="space-y-2">
-                  <div className="h-4 bg-secondary dark:bg-secondary/30 rounded w-full" />
-                  <div className="h-4 bg-secondary dark:bg-secondary/30 rounded w-5/6" />
+      <div className="min-h-screen bg-[#f8fafc] dark:bg-[#08080c]">
+        <div className="mx-auto max-w-7xl px-4 py-7 sm:px-6 lg:px-8">
+          <div className="mb-6 h-4 w-72 rounded-full skeleton" />
+          <div className="overflow-hidden rounded-2xl border bg-card shadow-sm">
+            <div className="grid lg:grid-cols-[3fr_2fr]">
+              <div className="aspect-[4/3] skeleton lg:min-h-[500px]" />
+              <div className="space-y-7 p-7 lg:p-9">
+                <div className="h-10 w-4/5 rounded-lg skeleton" />
+                <div className="h-20 rounded-lg skeleton" />
+                <div className="grid grid-cols-3 gap-3">
+                  {[0, 1, 2].map((item) => (
+                    <div key={item} className="h-28 rounded-xl skeleton" />
+                  ))}
                 </div>
-              </div>
-              <div className="space-y-6">
-                <div className="h-40 bg-secondary dark:bg-secondary/30 rounded-2xl" />
-                <div className="h-64 bg-secondary dark:bg-secondary/30 rounded-2xl" />
+                <div className="h-12 rounded-lg skeleton" />
               </div>
             </div>
           </div>
@@ -119,275 +135,426 @@ function PuzzleDetailContent() {
     )
   }
 
-  if (!puzzle || !gameStats) {
+  if (!puzzle) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="flex min-h-[70vh] items-center justify-center bg-background px-4">
         <div className="text-center">
-          <div className="text-6xl mb-4">🧩</div>
-          <h1 className="text-2xl font-bold text-foreground mb-2">Puzzle not found</h1>
-          <p className="text-muted-foreground mb-6">The puzzle you&apos;re looking for doesn&apos;t exist.</p>
-          <Link href="/">
-            <Button>Back to Home</Button>
+          <Puzzle className="mx-auto mb-4 h-14 w-14 text-primary" />
+          <h1 className="mb-2 text-2xl font-bold">Puzzle not found</h1>
+          <p className="mb-6 text-muted-foreground">
+            The puzzle you&apos;re looking for doesn&apos;t exist.
+          </p>
+          <Link
+            href="/"
+            className="inline-flex h-10 items-center justify-center rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            Back to Home
           </Link>
         </div>
       </div>
     )
   }
+
+  const gameStats: GameStats = {
+    totalPlays: puzzle.plays_count,
+    averageCompletionTime: Math.max(300, puzzle.piece_count * 18),
+    completionRate:
+      puzzle.plays_count > 0
+        ? Math.round((puzzle.completions_count / puzzle.plays_count) * 100)
+        : 0,
+  }
+
+  const addedDate = new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(new Date(puzzle.created_at))
 
   return (
-    <div className="min-h-screen bg-background dark:bg-[#08080c] relative overflow-hidden">
-      {/* Ambient Background Glow */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] mix-blend-screen" />
-        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-[100px] mix-blend-screen" />
-      </div>
-
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-8">
-        {/* Breadcrumb */}
-        <nav className="flex items-center text-sm text-muted-foreground mb-8 animate-fade-in">
-          <Link href="/" className="hover:text-primary transition-colors flex items-center">
-            <Home className="w-4 h-4 mr-1" />
+    <div className="min-h-screen bg-[#f8fafc] pb-16 dark:bg-[#08080c]">
+      <div className="mx-auto max-w-7xl px-4 pt-6 sm:px-6 lg:px-8">
+        <nav
+          aria-label="Breadcrumb"
+          className="mb-6 flex min-w-0 items-center gap-2 overflow-hidden text-xs font-medium text-muted-foreground sm:text-sm"
+        >
+          <Link href="/" className="flex shrink-0 items-center gap-1 transition-colors hover:text-primary">
+            <Home className="h-3.5 w-3.5" />
             Home
           </Link>
-          <ChevronRight className="w-4 h-4 mx-2" />
-          <Link href="/categories" className="hover:text-primary transition-colors">Categories</Link>
-          <ChevronRight className="w-4 h-4 mx-2" />
-          <Link href={`/category/${puzzle.category_slug}`} className="hover:text-primary transition-colors">
+          <ChevronRight className="h-3.5 w-3.5 shrink-0" />
+          <Link href="/categories" className="shrink-0 transition-colors hover:text-primary">
+            Categories
+          </Link>
+          <ChevronRight className="h-3.5 w-3.5 shrink-0" />
+          <Link
+            href={`/category/${puzzle.category_slug}`}
+            className="shrink-0 transition-colors hover:text-primary"
+          >
             {puzzle.category}
           </Link>
-          <ChevronRight className="w-4 h-4 mx-2" />
-          <span className="text-foreground font-medium truncate max-w-[200px]">{puzzle.title}</span>
+          <ChevronRight className="h-3.5 w-3.5 shrink-0" />
+          <span className="truncate text-foreground">{puzzle.title}</span>
         </nav>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8 animate-fade-in">
-            {/* Puzzle Preview */}
-            <div className="relative group">
-              <div className="absolute -inset-1 bg-gradient-to-r from-primary via-purple-500 to-accent rounded-2xl blur opacity-20 group-hover:opacity-40 transition-opacity duration-500" />
-              <Card className="relative overflow-hidden border-0 shadow-2xl bg-card dark:bg-[#121218] dark:border dark:border-white/10">
-                <CardContent className="p-0">
-                  <div className="relative aspect-[4/3]">
-                    <Image
-                      src={puzzle.image_url}
-                      alt={puzzle.title}
-                      fill
-                      className="object-cover"
-                      priority
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                    
-                    {/* Badges */}
-                    <div className="absolute top-4 left-4 flex gap-2">
-                      <span className={cn(
-                        "inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold backdrop-blur-md shadow-lg border border-white/10",
-                        getDifficultyStyle(puzzle.difficulty)
-                      )}>
-                        {puzzle.difficulty}
-                      </span>
-                      <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold bg-white/95 dark:bg-white/90 text-black backdrop-blur-md shadow-lg">
-                        {puzzle.category}
-                      </span>
-                    </div>
+        <section className="overflow-hidden rounded-2xl border border-border/80 bg-card shadow-[0_12px_45px_-25px_rgba(15,23,42,0.28)] dark:border-white/10 dark:shadow-black/30">
+          <div className="grid lg:grid-cols-[3fr_2fr]">
+            <div className="group relative aspect-[4/3] min-h-[310px] overflow-hidden sm:min-h-[420px] lg:aspect-auto lg:min-h-[520px]">
+              <Image
+                src={puzzle.image_url}
+                alt={puzzle.title}
+                fill
+                priority
+                sizes="(max-width: 1024px) 100vw, 60vw"
+                className="object-cover transition-transform duration-700 group-hover:scale-[1.02]"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-black/10" />
 
-                    {/* Action buttons */}
-                    <div className="absolute top-4 right-4 flex gap-2">
-                      <button 
-                        onClick={() => setIsLiked(!isLiked)}
-                        className={cn(
-                          "p-2.5 rounded-full backdrop-blur-md shadow-lg border border-white/10 transition-all duration-200 hover:scale-110",
-                          isLiked ? "bg-red-500 text-white border-red-500" : "bg-black/30 text-white hover:bg-black/50"
-                        )}
-                      >
-                        <Heart className={cn("w-5 h-5", isLiked && "fill-current")} />
-                      </button>
-                      <button className="p-2.5 rounded-full bg-black/30 text-white backdrop-blur-md shadow-lg border border-white/10 hover:bg-black/50 hover:scale-110 transition-all">
-                        <Share2 className="w-5 h-5" />
-                      </button>
-                    </div>
+              <div className="absolute left-4 top-4 flex flex-wrap gap-2 sm:left-6 sm:top-6">
+                <span className="rounded-full bg-indigo-500 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-white shadow-lg shadow-indigo-950/20">
+                  {puzzle.category}
+                </span>
+                <span
+                  className={cn(
+                    'rounded-full px-3 py-1.5 text-xs font-bold uppercase tracking-wide shadow-lg backdrop-blur-md',
+                    difficultyClass(puzzle.difficulty)
+                  )}
+                >
+                  {puzzle.difficulty}
+                </span>
+              </div>
 
-                    {/* Hover play overlay */}
-                    <Link href={`/play/${puzzle.id}`}>
-                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 bg-black/40 backdrop-blur-[2px]">
-                        <Button size="lg" className="rounded-full h-16 w-16 p-0 bg-white text-black hover:bg-white/90 hover:scale-110 transition-all shadow-2xl">
-                          <Play className="w-6 h-6 ml-1 fill-current" />
-                        </Button>
-                      </div>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="absolute right-4 top-4 flex gap-2 sm:right-6 sm:top-6">
+                <button
+                  type="button"
+                  onClick={() => setIsLiked((liked) => !liked)}
+                  aria-label={isLiked ? 'Remove from favorites' : 'Save to favorites'}
+                  aria-pressed={isLiked}
+                  className={cn(
+                    'flex h-10 w-10 items-center justify-center rounded-full border border-white/60 shadow-lg backdrop-blur-md transition-all hover:scale-105',
+                    isLiked
+                      ? 'bg-rose-500 text-white'
+                      : 'bg-white/90 text-slate-600 hover:bg-white'
+                  )}
+                >
+                  <Heart className={cn('h-5 w-5', isLiked && 'fill-current')} />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleShare}
+                  aria-label="Share puzzle"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-white/60 bg-white/90 text-slate-600 shadow-lg backdrop-blur-md transition-all hover:scale-105 hover:bg-white"
+                >
+                  <Share2 className="h-5 w-5" />
+                </button>
+              </div>
+
+              <Link
+                href={`/play/${puzzle.slug}`}
+                className="absolute bottom-4 right-4 inline-flex items-center gap-2 rounded-full border border-white/25 bg-slate-950/70 px-4 py-2 text-xs font-semibold text-white shadow-xl backdrop-blur-md transition-colors hover:bg-slate-950/85 sm:bottom-6 sm:right-6"
+              >
+                <Eye className="h-4 w-4" />
+                Preview
+              </Link>
             </div>
 
-            {/* Puzzle Info */}
-            <Card className="border-0 shadow-lg bg-white/50 dark:bg-[#121218]/50 backdrop-blur-sm border-border/50 dark:border-white/10">
-              <CardHeader>
-                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                  <div>
-                    <CardTitle className="text-3xl md:text-4xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70 dark:from-white dark:to-white/70">
-                      {puzzle.title}
-                    </CardTitle>
-                    <CardDescription className="text-base leading-relaxed">
-                      {puzzle.description}
-                    </CardDescription>
-                  </div>
-                  <div className="flex items-center gap-2 bg-secondary/50 dark:bg-white/5 px-4 py-2 rounded-xl border border-border/50 dark:border-white/5 backdrop-blur-sm">
-                    <div className="flex gap-0.5">
-                      {renderStars(puzzle.rating)}
-                    </div>
-                    <span className="font-bold text-foreground dark:text-white ml-2 text-lg">{puzzle.rating.toFixed(1)}</span>
-                  </div>
-                </div>
-              </CardHeader>
-              
-              <CardContent className="space-y-8">
-                {/* Quick Stats Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="p-4 rounded-2xl bg-secondary/30 dark:bg-white/5 border border-border/50 dark:border-white/5 text-center group hover:bg-secondary/50 dark:hover:bg-white/10 transition-colors">
-                    <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <Puzzle className="h-6 w-6 text-primary" />
-                    </div>
-                    <div className="text-2xl font-bold text-foreground dark:text-white mb-1">{puzzle.piece_count}</div>
-                    <div className="text-xs font-medium text-muted-foreground">Pieces</div>
-                  </div>
-                  
-                  <div className="p-4 rounded-2xl bg-secondary/30 dark:bg-white/5 border border-border/50 dark:border-white/5 text-center group hover:bg-secondary/50 dark:hover:bg-white/10 transition-colors">
-                    <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-green-500/10 dark:bg-green-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <Users className="h-6 w-6 text-green-600 dark:text-green-400" />
-                    </div>
-                    <div className="text-2xl font-bold text-foreground dark:text-white mb-1">{gameStats.total_plays.toLocaleString()}</div>
-                    <div className="text-xs font-medium text-muted-foreground">Total Plays</div>
-                  </div>
-                  
-                  <div className="p-4 rounded-2xl bg-secondary/30 dark:bg-white/5 border border-border/50 dark:border-white/5 text-center group hover:bg-secondary/50 dark:hover:bg-white/10 transition-colors">
-                    <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-orange-500/10 dark:bg-orange-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <TrendingUp className="h-6 w-6 text-orange-600 dark:text-orange-400" />
-                    </div>
-                    <div className="text-2xl font-bold text-foreground dark:text-white mb-1">{gameStats.completion_rate}%</div>
-                    <div className="text-xs font-medium text-muted-foreground">Completion Rate</div>
-                  </div>
-                  
-                  <div className="p-4 rounded-2xl bg-secondary/30 dark:bg-white/5 border border-border/50 dark:border-white/5 text-center group hover:bg-secondary/50 dark:hover:bg-white/10 transition-colors">
-                    <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-blue-500/10 dark:bg-blue-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <Clock className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <div className="text-2xl font-bold text-foreground dark:text-white mb-1">{formatTime(gameStats.average_completion_time)}</div>
-                    <div className="text-xs font-medium text-muted-foreground">Avg. Time</div>
-                  </div>
-                </div>
-
-                {/* Additional Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-6 border-t border-border/50 dark:border-white/10">
-                  <div className="flex items-center justify-between p-4 rounded-xl bg-secondary/20 dark:bg-white/5 border border-border/50 dark:border-white/5">
-                    <span className="text-muted-foreground flex items-center font-medium">
-                      <Trophy className="w-4 h-4 mr-2 text-yellow-500" />
-                      Best Time
-                    </span>
-                    <span className="font-bold text-foreground dark:text-white font-mono">{formatTime(gameStats.best_time)}</span>
-                  </div>
-                  <div className="flex items-center justify-between p-4 rounded-xl bg-secondary/20 dark:bg-white/5 border border-border/50 dark:border-white/5">
-                    <span className="text-muted-foreground flex items-center font-medium">
-                      <Calendar className="w-4 h-4 mr-2 text-primary" />
-                      Added
-                    </span>
-                    <span className="font-bold text-foreground dark:text-white">{new Date(puzzle.created_at).toLocaleDateString()}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6 animate-fade-in" style={{ animationDelay: '100ms' }}>
-            {/* Play Card */}
-            <Card className="border-0 shadow-lg overflow-hidden dark:bg-[#121218] dark:border dark:border-white/10 relative group">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="relative bg-gradient-to-br from-primary to-primary/80 p-8 text-primary-foreground">
-                <div className="absolute top-0 right-0 p-32 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-                <h3 className="text-2xl font-bold mb-2 relative z-10">Ready to play?</h3>
-                <p className="text-primary-foreground/90 text-sm mb-8 relative z-10 font-medium">
-                  Challenge yourself with this {puzzle.piece_count}-piece puzzle
+            <div className="flex flex-col justify-center p-6 sm:p-8 lg:p-9 xl:p-10">
+              <div className="mb-6">
+                <h1 className="mb-3 text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl lg:text-[2.55rem] lg:leading-[1.08]">
+                  {puzzle.title}
+                </h1>
+                <p className="text-sm leading-6 text-muted-foreground sm:text-base">
+                  {puzzle.description ||
+                    `A beautiful ${puzzle.category.toLowerCase()} puzzle made for a relaxing challenge.`}
                 </p>
-                <Link href={`/play/${puzzle.id}`}>
-                  <Button size="lg" className="w-full bg-white text-primary hover:bg-white/90 shadow-lg hover:shadow-xl hover:scale-105 transition-all font-bold h-12">
-                    <Play className="w-5 h-5 mr-2 fill-current" />
-                    Start Puzzle
-                  </Button>
-                </Link>
-              </div>
-              <CardContent className="p-6 bg-card dark:bg-[#121218] relative z-10">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground font-medium">Difficulty Level</span>
-                  <span className={cn(
-                    "px-3 py-1 rounded-full text-xs font-bold border",
-                    getDifficultyStyle(puzzle.difficulty)
-                  )}>
-                    {puzzle.difficulty}
+                <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
+                  <span className="inline-flex items-center gap-1.5 font-semibold text-foreground">
+                    <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                    {puzzle.rating.toFixed(1)}
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+                    <Users className="h-4 w-4" />
+                    {gameStats.totalPlays.toLocaleString()} players
                   </span>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
 
-            {/* Leaderboard */}
-            <Card className="border-0 shadow-lg dark:bg-[#121218]/80 dark:border dark:border-white/10 backdrop-blur-sm">
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center text-lg">
-                  <Trophy className="h-5 w-5 mr-2 text-yellow-500" />
-                  Leaderboard
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="divide-y divide-border/50 dark:divide-white/5">
-                  {leaderboard.length > 0 ? leaderboard.map((entry) => (
-                    <div key={entry.id} className="px-6 py-4 hover:bg-secondary/30 dark:hover:bg-white/5 transition-colors group">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <div className={cn(
-                            "w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold border shadow-sm transition-transform group-hover:scale-110",
-                            getRankStyle(entry.rank)
-                          )}>
-                            {entry.rank <= 3 ? entry.avatar : entry.rank}
-                          </div>
-                          <div>
-                            <div className="font-bold text-foreground dark:text-white text-sm">{entry.username}</div>
-                            <div className="text-xs text-muted-foreground">
-                              {new Date(entry.completed_at).toLocaleDateString()}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="font-bold text-foreground dark:text-white text-sm font-mono">{formatTime(entry.completion_time)}</div>
-                          <div className="text-xs text-muted-foreground">completed</div>
-                        </div>
-                      </div>
-                    </div>
-                  )) : (
-                    <div className="px-6 py-8 text-center text-sm text-muted-foreground">
-                      No completion records yet. Be the first to finish this puzzle.
-                    </div>
-                  )}
-                </div>
-                <div className="p-4 border-t border-border/50 dark:border-white/5">
-                  <Button variant="ghost" className="w-full text-sm font-medium hover:bg-secondary dark:hover:bg-white/5">
-                    View Full Leaderboard
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+              <div className="mb-5 grid grid-cols-3 gap-2.5 sm:gap-3">
+                <HeroStat
+                  icon={<Puzzle className="h-5 w-5 text-blue-500" />}
+                  value={puzzle.piece_count.toString()}
+                  label="Pieces"
+                  iconClassName="bg-blue-50 dark:bg-blue-500/10"
+                />
+                <HeroStat
+                  icon={<BarChart3 className="h-5 w-5 text-orange-500" />}
+                  value={puzzle.difficulty}
+                  label="Difficulty"
+                  iconClassName="bg-orange-50 dark:bg-orange-500/10"
+                />
+                <HeroStat
+                  icon={<Clock3 className="h-5 w-5 text-indigo-500" />}
+                  value={formatApproximateTime(gameStats.averageCompletionTime)}
+                  label="Avg. Time"
+                  iconClassName="bg-indigo-50 dark:bg-indigo-500/10"
+                />
+              </div>
+
+              <Link
+                href={`/play/${puzzle.slug}`}
+                className="btn-shine inline-flex h-13 items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 px-6 font-semibold text-white shadow-lg shadow-blue-500/20 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-blue-500/25"
+              >
+                <Play className="h-5 w-5 fill-current" />
+                Start Puzzle
+              </Link>
+
+              <div className="mt-5 grid grid-cols-2 gap-2 text-xs font-medium text-muted-foreground sm:text-sm">
+                <button
+                  type="button"
+                  onClick={() => setIsLiked((liked) => !liked)}
+                  className="inline-flex items-center justify-center gap-2 rounded-lg py-2 transition-colors hover:bg-muted hover:text-foreground"
+                >
+                  <Heart className={cn('h-4 w-4', isLiked && 'fill-rose-500 text-rose-500')} />
+                  {isLiked ? 'Saved' : 'Save to Favorites'}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleShare}
+                  className="inline-flex items-center justify-center gap-2 rounded-lg py-2 transition-colors hover:bg-muted hover:text-foreground"
+                >
+                  {shareCopied ? <CheckCircle2 className="h-4 w-4 text-emerald-500" /> : <Share2 className="h-4 w-4" />}
+                  {shareCopied ? 'Link Copied' : 'Share Puzzle'}
+                </button>
+              </div>
+            </div>
           </div>
+        </section>
+
+        <section className="mt-6 grid grid-cols-3 divide-x divide-border/80 rounded-2xl border border-border/80 bg-card px-2 py-5 shadow-sm dark:border-white/10 sm:px-6 sm:py-6">
+          <OverviewStat
+            icon={<Users className="h-6 w-6 text-blue-500" />}
+            value={gameStats.totalPlays.toLocaleString()}
+            label="Players"
+          />
+          <OverviewStat
+            icon={<CheckCircle2 className="h-6 w-6 text-emerald-500" />}
+            value={`${gameStats.completionRate}%`}
+            label="Completed"
+          />
+          <OverviewStat
+            icon={<Star className="h-6 w-6 text-amber-400" />}
+            value={puzzle.rating.toFixed(1)}
+            label="Rating"
+          />
+        </section>
+
+        <div className="mt-6 grid gap-6 lg:grid-cols-2">
+          <section className="rounded-2xl border border-border/80 bg-card p-6 shadow-sm dark:border-white/10 sm:p-7">
+            <h2 className="mb-4 text-lg font-bold">About This Puzzle</h2>
+            <p className="mb-6 text-sm leading-6 text-muted-foreground">
+              {puzzle.description ||
+                `Immerse yourself in this ${puzzle.category.toLowerCase()} puzzle. Take your time, focus on the details, and enjoy putting every piece into place.`}
+            </p>
+
+            <dl className="grid gap-4 text-sm">
+              <DetailRow
+                icon={<Tag className="h-4 w-4" />}
+                label="Category"
+                value={puzzle.category}
+              />
+              <DetailRow
+                icon={<CalendarDays className="h-4 w-4" />}
+                label="Added"
+                value={addedDate}
+              />
+              <DetailRow
+                icon={<Puzzle className="h-4 w-4" />}
+                label="Pieces"
+                value={puzzle.piece_count.toString()}
+              />
+              <DetailRow
+                icon={<BarChart3 className="h-4 w-4" />}
+                label="Difficulty"
+                value={
+                  <span
+                    className={cn(
+                      'rounded-full px-2.5 py-1 text-xs font-semibold',
+                      difficultyClass(puzzle.difficulty)
+                    )}
+                  >
+                    {puzzle.difficulty}
+                  </span>
+                }
+              />
+            </dl>
+          </section>
+
+          <section className="overflow-hidden rounded-2xl border border-border/80 bg-card shadow-sm dark:border-white/10">
+            <div className="flex items-center justify-between border-b border-border/70 px-6 py-5 sm:px-7">
+              <h2 className="flex items-center gap-2 text-lg font-bold">
+                <Trophy className="h-5 w-5 text-amber-400" />
+                Leaderboard
+              </h2>
+              <Link
+                href="/leaderboard"
+                className="inline-flex items-center gap-1 text-xs font-semibold text-primary transition-colors hover:text-primary/80"
+              >
+                View Full Leaderboard
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+
+            <div className="flex min-h-[235px] flex-col items-center justify-center px-6 py-8 text-center">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 text-amber-500 dark:bg-amber-500/10">
+                <Crown className="h-6 w-6" />
+              </div>
+              <h3 className="mb-1 font-semibold">Be the first to set the best time!</h3>
+              <p className="max-w-xs text-sm leading-5 text-muted-foreground">
+                Finish this puzzle and claim the number one spot on the leaderboard.
+              </p>
+              <Link
+                href={`/play/${puzzle.slug}`}
+                className="mt-5 inline-flex items-center gap-2 rounded-lg bg-primary-subtle px-4 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary/15"
+              >
+                <Play className="h-4 w-4 fill-current" />
+                Play now
+              </Link>
+            </div>
+          </section>
         </div>
+
+        {relatedPuzzles.length > 0 && (
+          <section className="mt-6 rounded-2xl border border-border/80 bg-card p-5 shadow-sm dark:border-white/10 sm:p-7">
+            <div className="mb-5 flex items-center justify-between gap-4">
+              <h2 className="text-lg font-bold">More Like This</h2>
+              <Link
+                href={`/category/${puzzle.category_slug}`}
+                className="inline-flex items-center gap-1 whitespace-nowrap text-xs font-semibold text-primary transition-colors hover:text-primary/80 sm:text-sm"
+              >
+                View All {puzzle.category} Puzzles
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {relatedPuzzles.map((item) => (
+                <RelatedPuzzleCard key={item.id} puzzle={item} />
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     </div>
   )
 }
 
+function HeroStat({
+  icon,
+  value,
+  label,
+  iconClassName,
+}: {
+  icon: React.ReactNode
+  value: string
+  label: string
+  iconClassName: string
+}) {
+  return (
+    <div className="flex min-w-0 flex-col items-center rounded-xl border border-border/80 px-1.5 py-4 text-center dark:border-white/10 sm:px-2">
+      <div className={cn('mb-2 flex h-8 w-8 items-center justify-center rounded-full', iconClassName)}>
+        {icon}
+      </div>
+      <strong className="max-w-full truncate text-sm font-bold text-foreground sm:text-base">
+        {value}
+      </strong>
+      <span className="mt-0.5 text-[10px] text-muted-foreground sm:text-xs">{label}</span>
+    </div>
+  )
+}
+
+function OverviewStat({
+  icon,
+  value,
+  label,
+}: {
+  icon: React.ReactNode
+  value: string
+  label: string
+}) {
+  return (
+    <div className="flex items-center justify-center gap-2 px-2 sm:gap-4 sm:px-6">
+      <div className="hidden sm:block">{icon}</div>
+      <div>
+        <div className="text-sm font-bold text-foreground sm:text-base">{value}</div>
+        <div className="mt-0.5 text-[10px] text-muted-foreground sm:text-xs">{label}</div>
+      </div>
+    </div>
+  )
+}
+
+function DetailRow({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode
+  label: string
+  value: React.ReactNode
+}) {
+  return (
+    <div className="grid grid-cols-[1fr_auto] items-center gap-4">
+      <dt className="flex items-center gap-3 text-muted-foreground">
+        <span className="text-slate-400">{icon}</span>
+        {label}
+      </dt>
+      <dd className="font-medium text-foreground">{value}</dd>
+    </div>
+  )
+}
+
+function RelatedPuzzleCard({ puzzle }: { puzzle: PublicPuzzle }) {
+  return (
+    <Link
+      href={`/puzzle/${puzzle.slug}`}
+      className="group overflow-hidden rounded-xl border border-border/80 bg-background transition-all hover:-translate-y-1 hover:border-primary/30 hover:shadow-lg dark:border-white/10"
+    >
+      <div className="relative aspect-[4/3] overflow-hidden">
+        <Image
+          src={puzzle.image_url}
+          alt={puzzle.title}
+          fill
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+          className="object-cover transition-transform duration-500 group-hover:scale-105"
+        />
+        <span className="absolute bottom-2 left-2 rounded-full bg-indigo-500 px-2 py-1 text-[10px] font-bold uppercase text-white shadow-md">
+          {puzzle.category}
+        </span>
+      </div>
+      <div className="p-3.5">
+        <h3 className="truncate text-sm font-bold transition-colors group-hover:text-primary">
+          {puzzle.title}
+        </h3>
+        <div className="mt-2 flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
+          <span>{puzzle.piece_count} Pieces</span>
+          <span className="inline-flex items-center gap-1">
+            <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+            {puzzle.rating.toFixed(1)}
+          </span>
+          <span>{formatApproximateTime(Math.max(300, puzzle.piece_count * 18))}</span>
+        </div>
+      </div>
+    </Link>
+  )
+}
+
 export default function PuzzleDetailPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent" />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex min-h-[70vh] items-center justify-center bg-background">
+          <div className="h-11 w-11 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        </div>
+      }
+    >
       <PuzzleDetailContent />
     </Suspense>
   )
