@@ -188,7 +188,7 @@ function PuzzleDetailContent() {
           <span className="truncate font-semibold text-foreground">{puzzle.title}</span>
         </nav>
 
-        <section className="grid items-center gap-9 lg:grid-cols-[1.22fr_0.88fr] lg:gap-14 xl:gap-[68px]">
+        <section className="grid items-start gap-9 lg:grid-cols-[1.22fr_0.88fr] lg:gap-14 xl:gap-[68px]">
           <div className="relative">
             <div className="group relative aspect-[1.055/1] min-h-[320px] overflow-hidden rounded-[28px] bg-muted shadow-[0_24px_60px_-30px_rgba(65,33,40,0.34)] sm:min-h-[500px] lg:min-h-0 lg:rounded-[40px]">
               <Image
@@ -243,19 +243,10 @@ function PuzzleDetailContent() {
                 Preview
               </Link>
             </div>
-
-            <Puzzle
-              aria-hidden="true"
-              className="absolute -left-9 top-[18%] hidden h-[76px] w-[76px] -rotate-12 fill-[#ff694f] text-[#ff694f] drop-shadow-[0_10px_14px_rgba(255,92,69,0.24)] xl:block"
-            />
-            <Puzzle
-              aria-hidden="true"
-              className="absolute -bottom-8 -right-5 hidden h-[78px] w-[78px] rotate-12 fill-[#e95adb] text-[#e95adb] drop-shadow-[0_10px_14px_rgba(211,73,198,0.24)] xl:block"
-            />
           </div>
 
-          <div className="py-1 lg:py-4">
-            <h1 className="max-w-[570px] text-4xl font-black leading-[1.04] tracking-[-0.035em] text-[#111936] dark:text-white sm:text-5xl xl:text-[56px]">
+          <div className="py-1 lg:py-0">
+            <h1 className="max-w-[570px] text-3xl font-black leading-[1.08] tracking-[-0.03em] text-[#111936] dark:text-white sm:text-4xl lg:text-[44px] xl:text-[48px]">
               {puzzle.title}
             </h1>
             <p className="mt-4 max-w-[520px] text-sm leading-6 text-slate-500 dark:text-slate-400 sm:text-base sm:leading-7">
@@ -328,7 +319,7 @@ function PuzzleDetailContent() {
           </div>
         </section>
 
-        <section className="mt-10 grid grid-cols-3 divide-x divide-slate-200/80 border-y border-slate-200/70 bg-white/55 px-1 py-7 shadow-[0_14px_55px_-40px_rgba(15,23,42,0.3)] backdrop-blur-sm dark:divide-white/10 dark:border-white/10 dark:bg-white/[0.025] sm:px-8 sm:py-8">
+        <section className="mt-10 grid grid-cols-3 divide-x divide-slate-200/80 overflow-hidden rounded-2xl border border-slate-200/75 bg-white/70 px-1 py-7 shadow-[0_12px_36px_-26px_rgba(15,23,42,0.35)] backdrop-blur-sm dark:divide-white/10 dark:border-white/10 dark:bg-white/[0.035] sm:px-8 sm:py-8">
           <OverviewStat
             icon={<Users className="h-8 w-8 text-[#286cff]" />}
             value={gameStats.totalPlays.toLocaleString()}
