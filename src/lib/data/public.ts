@@ -31,6 +31,13 @@ export interface PublicPuzzle {
   category_slug: string
 }
 
+export interface PublicPuzzleLeaderboardEntry {
+  rank: number
+  userId: string
+  username: string
+  timeSeconds: number
+}
+
 export interface DailyPuzzle extends PublicPuzzle {
   challenge_date: string
   challenge_title: string
@@ -61,6 +68,13 @@ interface DailyChallengeRow {
   title: string | null
   description: string | null
   puzzles?: PuzzleRow | PuzzleRow[] | null
+}
+
+interface PuzzleLeaderboardRow {
+  rank: number | string
+  user_id: string
+  username: string | null
+  score_value: number | string
 }
 
 const PUZZLE_SELECT = `
@@ -223,6 +237,32 @@ export async function fetchPuzzleBySlug(slug: string): Promise<PublicPuzzle | nu
   }
 
   return data ? mapPuzzle(data as PuzzleRow) : null
+}
+
+export async function fetchPuzzleLeaderboard(
+  puzzleId: string,
+  pieceCount: number,
+  limit = 5
+): Promise<PublicPuzzleLeaderboardEntry[]> {
+  const { data, error } = await supabase
+    .from('v_leaderboard_time')
+    .select('rank, user_id, username, score_value')
+    .eq('puzzle_id', puzzleId)
+    .eq('piece_count', pieceCount)
+    .order('rank', { ascending: true })
+    .limit(limit)
+
+  if (error) {
+    console.error('Failed to fetch puzzle leaderboard:', error.message)
+    return []
+  }
+
+  return ((data ?? []) as PuzzleLeaderboardRow[]).map((entry) => ({
+    rank: Number(entry.rank),
+    userId: entry.user_id,
+    username: entry.username?.trim() || `Player ${entry.user_id.slice(0, 8)}`,
+    timeSeconds: Number(entry.score_value),
+  }))
 }
 
 export async function fetchDailyPuzzle(): Promise<DailyPuzzle | null> {

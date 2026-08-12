@@ -26,8 +26,10 @@ import {
 } from 'lucide-react'
 import {
   fetchPuzzleBySlug,
+  fetchPuzzleLeaderboard,
   fetchPuzzles,
   type PublicPuzzle,
+  type PublicPuzzleLeaderboardEntry,
 } from '@/lib/data/public'
 import { cn } from '@/lib/utils'
 
@@ -37,17 +39,15 @@ interface GameStats {
   completionRate: number
 }
 
-const leaderboardPreview = [
-  { rank: 1, name: 'Alex', time: '18:42', initials: 'AL', color: 'from-sky-400 to-blue-600' },
-  { rank: 2, name: 'Mike', time: '20:13', initials: 'MI', color: 'from-orange-400 to-red-500' },
-  { rank: 3, name: 'Emma', time: '21:05', initials: 'EM', color: 'from-pink-400 to-rose-600' },
-  { rank: 4, name: 'John', time: '22:14', initials: 'JO', color: 'from-amber-400 to-orange-600' },
-  { rank: 5, name: 'David', time: '23:01', initials: 'DA', color: 'from-indigo-400 to-violet-600' },
-]
-
 function formatApproximateTime(seconds: number) {
   const minutes = Math.max(1, Math.round(seconds / 60))
   return `~${minutes} min`
+}
+
+function formatLeaderboardTime(seconds: number) {
+  const minutes = Math.floor(seconds / 60)
+  const remainingSeconds = seconds % 60
+  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
 }
 
 function getDifficultyClass(difficulty: PublicPuzzle['difficulty']) {
@@ -61,6 +61,7 @@ function PuzzleDetailContent() {
   const slug = params?.slug as string
   const [puzzle, setPuzzle] = useState<PublicPuzzle | null>(null)
   const [relatedPuzzles, setRelatedPuzzles] = useState<PublicPuzzle[]>([])
+  const [leaderboard, setLeaderboard] = useState<PublicPuzzleLeaderboardEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [isLiked, setIsLiked] = useState(false)
   const [shareCopied, setShareCopied] = useState(false)
@@ -70,22 +71,28 @@ function PuzzleDetailContent() {
 
     async function loadPuzzle() {
       setLoading(true)
+      setRelatedPuzzles([])
+      setLeaderboard([])
       const item = await fetchPuzzleBySlug(slug)
 
       if (cancelled) return
       setPuzzle(item)
 
       if (item) {
-        const related = await fetchPuzzles({
-          categorySlug: item.category_slug,
-          limit: 5,
-          orderBy: 'rating',
-        })
+        const [related, leaderboardEntries] = await Promise.all([
+          fetchPuzzles({
+            categorySlug: item.category_slug,
+            limit: 5,
+            orderBy: 'rating',
+          }),
+          fetchPuzzleLeaderboard(item.uuid, item.piece_count),
+        ])
 
         if (cancelled) return
         setRelatedPuzzles(
           related.filter((candidate) => candidate.slug !== item.slug).slice(0, 4)
         )
+        setLeaderboard(leaderboardEntries)
       }
 
       setLoading(false)
@@ -404,11 +411,23 @@ function PuzzleDetailContent() {
             </div>
 
             <div className="px-6 pb-6 sm:px-8">
-              <ol className="border-t border-slate-200/60 pt-1 dark:border-white/[0.07]">
-                {leaderboardPreview.map((entry) => (
-                  <LeaderboardRow key={entry.rank} {...entry} />
-                ))}
-              </ol>
+              {leaderboard.length > 0 ? (
+                <ol className="border-t border-slate-200/60 pt-1 dark:border-white/[0.07]">
+                  {leaderboard.map((entry) => (
+                    <LeaderboardRow key={entry.userId} entry={entry} />
+                  ))}
+                </ol>
+              ) : (
+                <div className="flex min-h-[226px] flex-col items-center justify-center border-t border-slate-200/60 text-center dark:border-white/[0.07]">
+                  <Trophy className="mb-3 h-9 w-9 text-slate-300 dark:text-slate-600" />
+                  <p className="text-sm font-bold text-[#28304c] dark:text-slate-100">
+                    No completion times yet
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    Complete this puzzle to enter the leaderboard.
+                  </p>
+                </div>
+              )}
               <div className="mt-2 flex items-center justify-between rounded-xl border border-violet-100 bg-gradient-to-r from-violet-50/80 to-rose-50/60 px-4 py-3 dark:border-violet-400/10 dark:from-violet-500/10 dark:to-rose-500/10">
                 <div>
                   <p className="text-xs font-extrabold text-[#222a48] dark:text-slate-100 sm:text-sm">
@@ -543,24 +562,26 @@ function DetailRow({
   )
 }
 
-function LeaderboardRow({
-  rank,
-  name,
-  time,
-  initials,
-  color,
-}: {
-  rank: number
-  name: string
-  time: string
-  initials: string
-  color: string
-}) {
+function LeaderboardRow({ entry }: { entry: PublicPuzzleLeaderboardEntry }) {
+  const { rank, username, timeSeconds } = entry
   const medalClass = {
     1: 'bg-amber-400 text-white',
     2: 'bg-slate-300 text-white',
     3: 'bg-orange-500 text-white',
   }[rank]
+  const avatarColors = [
+    'from-sky-400 to-blue-600',
+    'from-orange-400 to-red-500',
+    'from-pink-400 to-rose-600',
+    'from-amber-400 to-orange-600',
+    'from-indigo-400 to-violet-600',
+  ]
+  const initials = username
+    .split(/\s+/)
+    .map((part) => part[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
 
   return (
     <li className="flex h-[45px] items-center gap-3 text-sm">
@@ -575,13 +596,17 @@ function LeaderboardRow({
       <span
         className={cn(
           'flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br text-[8px] font-black text-white',
-          color
+          avatarColors[(rank - 1) % avatarColors.length]
         )}
       >
         {initials}
       </span>
-      <span className="flex-1 font-bold text-[#28304c] dark:text-slate-100">{name}</span>
-      <time className="font-extrabold text-[#28304c] dark:text-slate-100">{time}</time>
+      <span className="flex-1 truncate font-bold text-[#28304c] dark:text-slate-100">
+        {username}
+      </span>
+      <time className="font-extrabold text-[#28304c] dark:text-slate-100">
+        {formatLeaderboardTime(timeSeconds)}
+      </time>
     </li>
   )
 }
