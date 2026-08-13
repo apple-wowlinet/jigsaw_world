@@ -12,7 +12,7 @@ INSERT INTO public.categories (
   ('Food', 'food', 'Colorful desserts, fruits, drinks, and cozy meals.', 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=1200&h=900&fit=crop', 'utensils', 74, 40, true),
   ('Cities', 'cities', 'Skylines, streets, landmarks, and city lights.', 'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=1200&h=900&fit=crop', 'building-2', 64, 50, true),
   ('Ocean', 'ocean', 'Rolling waves, blue water, and underwater worlds.', 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&h=900&fit=crop', 'waves', 58, 60, true),
-  ('Fantasy', 'fantasy', 'Dreamlike castles, magic, and imaginative worlds.', 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=1200&h=900&fit=crop', 'sparkles', 52, 70, true),
+  ('Fantasy', 'fantasy', 'Dreamlike castles, magic, and imaginative worlds.', 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=1200&h=900&fit=crop', 'sparkles', 52, 70, true),
   ('Art', 'art', 'Paintings, patterns, colors, and creative expression.', 'https://images.unsplash.com/photo-1547891654-e66ed7ebb968?w=1200&h=900&fit=crop', 'palette', 48, 80, true),
   ('Flowers', 'flowers', 'Colorful blooms and peaceful gardens.', 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=1200&h=900&fit=crop', 'flower-2', 42, 100, true),
   ('Mountains', 'mountains', 'Majestic peaks, valleys, and alpine lakes.', 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=1200&h=900&fit=crop', 'mountain', 38, 110, true),

@@ -122,7 +122,7 @@ export default function CategoriesPage() {
   const [categories, setCategories] = useState(() => mergeCategoryCatalogue([]))
   const [query, setQuery] = useState('')
   const [activeGroup, setActiveGroup] = useState<'All' | CategoryGroup>('All')
-  const [sortOrder, setSortOrder] = useState<'catalogue' | 'az' | 'za'>('catalogue')
+  const [sortOrder, setSortOrder] = useState<'catalogue' | 'popular' | 'za'>('catalogue')
   const [visibleCount, setVisibleCount] = useState(INITIAL_CATEGORY_COUNT)
 
   useEffect(() => {
@@ -149,7 +149,7 @@ export default function CategoriesPage() {
         || category.description.toLocaleLowerCase().includes(normalizedQuery)
     })
 
-    if (sortOrder === 'az') return [...matches].sort((a, b) => a.name.localeCompare(b.name))
+    if (sortOrder === 'popular') return [...matches].sort((a, b) => b.puzzle_count - a.puzzle_count)
     if (sortOrder === 'za') return [...matches].sort((a, b) => b.name.localeCompare(a.name))
     return matches
   }, [activeGroup, categories, query, sortOrder])
@@ -256,6 +256,17 @@ export default function CategoriesPage() {
                   {group}
                 </button>
               ))}
+              <button
+                type="button"
+                onClick={() => {
+                  selectGroup('All')
+                  setVisibleCount(categories.length)
+                }}
+                className="inline-flex h-8 shrink-0 items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-4 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-white dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10"
+              >
+                More
+                <ChevronDown className="h-3 w-3" />
+              </button>
             </div>
 
             <label className="relative ml-auto shrink-0">
@@ -265,8 +276,8 @@ export default function CategoriesPage() {
                 onChange={(event) => setSortOrder(event.target.value as typeof sortOrder)}
                 className="h-8 appearance-none rounded-lg border border-slate-200 bg-white py-0 pl-3 pr-8 text-xs font-semibold text-slate-600 shadow-sm outline-none focus:border-amber-400 dark:border-white/10 dark:bg-white/5 dark:text-slate-200"
               >
-                <option value="catalogue">Featured</option>
-                <option value="az">A–Z</option>
+                <option value="catalogue">A–Z</option>
+                <option value="popular">Most popular</option>
                 <option value="za">Z–A</option>
               </select>
               <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#eaa018]" />
