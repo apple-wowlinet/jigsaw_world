@@ -27,6 +27,10 @@ interface PuzzleMeta {
   difficulty: 'easy' | 'medium' | 'hard'
 }
 
+type PuzzleImageSource =
+  | { type: 'stored'; key: string }
+  | { type: 'remote'; url: string }
+
 function PlayPuzzleContent() {
   const params = useParams()
   const router = useRouter()
@@ -102,6 +106,14 @@ function PlayPuzzleContent() {
     return remotePuzzle
   }, [isCustom, idbKey, remotePuzzle])
 
+  // 上传拼图与目录拼图只在图片来源上有区别；后续构建及玩法完全共用。
+  const imageSource = useMemo<PuzzleImageSource | null>(() => {
+    if (!puzzle) return null
+    return isCustom
+      ? { type: 'stored', key: idbKey }
+      : { type: 'remote', url: puzzle.image_url }
+  }, [puzzle, isCustom, idbKey])
+
   const pieceCount = choice?.nop ?? 0
 
   /* ---------------- 计时 ---------------- */
@@ -169,13 +181,14 @@ function PlayPuzzleContent() {
   /* ---------------- 图片加载 + 构建 ---------------- */
 
   const loadSource = useCallback(async (): Promise<HTMLImageElement | ImageBitmap> => {
-    if (isCustom) {
-      const rec = await getImage(idbKey)
+    if (!imageSource) throw new Error('missing-image')
+    if (imageSource.type === 'stored') {
+      const rec = await getImage(imageSource.key)
       if (!rec) throw new Error('missing-image')
       return createImageBitmap(rec.blob, { imageOrientation: 'from-image' })
     }
-    return Utils.loadImage(puzzle!.image_url)
-  }, [isCustom, idbKey, puzzle])
+    return Utils.loadImage(imageSource.url)
+  }, [imageSource])
 
   /** 针对档位生成最优 subject（块尺寸 × 初始缩放 最大化）并应用 */
   const applyChoice = useCallback((c: PieceChoice) => {
@@ -450,9 +463,7 @@ function PlayPuzzleContent() {
               </Button>
             </Link>
             <div>
-              {!isCustom && (
-                <h1 className="text-lg font-bold text-foreground">{puzzle.title}</h1>
-              )}
+              <h1 className="text-lg font-bold text-foreground">{puzzle.title}</h1>
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
                 <select
                   value={selectedNop}
@@ -635,7 +646,7 @@ function PlayPuzzleContent() {
       </header>
 
       {/* Game Area */}
-      <div className={cn("flex-1 min-h-0 overflow-hidden", isCustom ? "p-0" : "p-4 sm:p-6")}>
+      <div className="flex-1 min-h-0 overflow-hidden">
         <div
           ref={canvasWrapRef}
           className="relative w-full h-full min-h-[500px] bg-card dark:bg-[#13131a] rounded-2xl shadow-lg overflow-hidden"
