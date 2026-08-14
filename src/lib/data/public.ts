@@ -50,6 +50,19 @@ interface CategoryRelation {
   slug?: string | null
 }
 
+interface PublicCategoryRow {
+  id: string
+  name: string
+  slug: string
+  description: string | null
+  image_url: string | null
+  icon: string | null
+  color: string | null
+  dark_color: string | null
+  puzzle_count: number | null
+  parent_id?: string | null
+}
+
 interface PuzzleRow {
   id: string
   title: string
@@ -159,7 +172,7 @@ export async function fetchCategories(limit?: number): Promise<PublicCategory[]>
     return []
   }
 
-  const rows = data ?? []
+  const rows = (data ?? []) as unknown as PublicCategoryRow[]
   const slugById = new Map(rows.map((category) => [category.id, category.slug]))
 
   return rows.map((category) => {

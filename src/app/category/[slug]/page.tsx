@@ -184,7 +184,7 @@ function CategoryContent() {
     }
   }, [slug])
 
-  const filteredPuzzles = useMemo(() => {
+  const filteredPuzzles = (() => {
     if (!category) return []
 
     let result = sourceSlug === category.slug
@@ -215,7 +215,7 @@ function CategoryContent() {
     })
 
     return result
-  }, [category, difficulty, pieceFilter, puzzles, sortOrder, sourceSlug])
+  })()
 
   const requestedPage = Number.parseInt(searchParams.get('page') ?? '1', 10)
   const totalPages = Math.max(
