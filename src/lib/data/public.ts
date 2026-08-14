@@ -12,6 +12,8 @@ export interface PublicCategory {
   color: string
   dark_color: string
   puzzle_count: number
+  parent_id?: string | null
+  parent_slug?: string | null
 }
 
 export interface PublicPuzzle {
@@ -46,6 +48,19 @@ export interface DailyPuzzle extends PublicPuzzle {
 interface CategoryRelation {
   name?: string | null
   slug?: string | null
+}
+
+interface PublicCategoryRow {
+  id: string
+  name: string
+  slug: string
+  description: string | null
+  image_url: string | null
+  icon: string | null
+  color: string | null
+  dark_color: string | null
+  puzzle_count: number | null
+  parent_id?: string | null
 }
 
 interface PuzzleRow {
@@ -128,39 +143,63 @@ export function mapPuzzle(row: PuzzleRow): PublicPuzzle {
 }
 
 export async function fetchCategories(limit?: number): Promise<PublicCategory[]> {
-  let query = supabase
-    .from('categories')
-    .select('id, name, slug, description, image_url, icon, color, dark_color, puzzle_count')
-    .eq('is_active', true)
-    .order('sort_order', { ascending: true })
+  const selectCategories = (includeParent: boolean) => {
+    let query = supabase
+      .from('categories')
+      .select(`id, name, slug, description, image_url, icon, color, dark_color, puzzle_count${includeParent ? ', parent_id' : ''}`)
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true })
 
-  if (limit) {
-    query = query.limit(limit)
+    if (limit) {
+      query = query.limit(limit)
+    }
+
+    return query
   }
 
-  const { data, error } = await query
+  let { data, error } = await selectCategories(true)
+
+  // Keep the frontend compatible with databases that have not applied the
+  // optional category-hierarchy migration yet.
+  if (error?.message.toLowerCase().includes('parent_id')) {
+    const fallback = await selectCategories(false)
+    data = fallback.data
+    error = fallback.error
+  }
 
   if (error) {
     console.error('Failed to fetch categories:', error.message)
     return []
   }
 
-  return (data ?? []).map((category) => ({
-    id: category.id,
-    name: category.name,
-    slug: category.slug,
-    description: category.description ?? '',
-    image_url: category.image_url ?? '',
-    icon: category.icon ?? 'grid',
-    color: category.color ?? '#3b82f6',
-    dark_color: category.dark_color ?? category.color ?? '#60a5fa',
-    puzzle_count: category.puzzle_count ?? 0,
-  }))
+  const rows = (data ?? []) as unknown as PublicCategoryRow[]
+  const slugById = new Map(rows.map((category) => [category.id, category.slug]))
+
+  return rows.map((category) => {
+    const parentId = 'parent_id' in category
+      ? (category.parent_id as string | null)
+      : null
+
+    return {
+      id: category.id,
+      name: category.name,
+      slug: category.slug,
+      description: category.description ?? '',
+      image_url: category.image_url ?? '',
+      icon: category.icon ?? 'grid',
+      color: category.color ?? '#3b82f6',
+      dark_color: category.dark_color ?? category.color ?? '#60a5fa',
+      puzzle_count: category.puzzle_count ?? 0,
+      parent_id: parentId,
+      parent_slug: parentId ? slugById.get(parentId) ?? null : null,
+    }
+  })
 }
 
 export async function fetchPuzzles(options: {
   limit?: number
   categorySlug?: string
+  categorySlugs?: string[]
   search?: string
   orderBy?: 'featured' | 'plays' | 'rating' | 'recent' | 'editor'
 } = {}): Promise<PublicPuzzle[]> {
@@ -169,19 +208,24 @@ export async function fetchPuzzles(options: {
     .select(PUZZLE_SELECT)
     .eq('is_active', true)
 
-  if (options.categorySlug) {
-    const { data: category, error: categoryError } = await supabase
+  const requestedCategorySlugs = options.categorySlugs?.length
+    ? [...new Set(options.categorySlugs)]
+    : options.categorySlug
+      ? [options.categorySlug]
+      : []
+
+  if (requestedCategorySlugs.length) {
+    const { data: categories, error: categoryError } = await supabase
       .from('categories')
       .select('id')
-      .eq('slug', options.categorySlug)
-      .maybeSingle()
+      .in('slug', requestedCategorySlugs)
 
-    if (categoryError || !category) {
+    if (categoryError || !categories?.length) {
       if (categoryError) console.error('Failed to fetch category:', categoryError.message)
       return []
     }
 
-    query = query.eq('category_id', category.id)
+    query = query.in('category_id', categories.map((category) => category.id))
   }
 
   const search = options.search?.trim()
