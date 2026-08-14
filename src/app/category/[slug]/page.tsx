@@ -123,6 +123,7 @@ function CategoryContent() {
   const [difficulty, setDifficulty] = useState<'All' | DisplayDifficulty>('All')
   const [pieceFilter, setPieceFilter] = useState<PieceFilter>('any')
   const [sortOrder, setSortOrder] = useState<SortOrder>('popular')
+  const [moreCategoriesOpen, setMoreCategoriesOpen] = useState(false)
 
   const taxonomy = useMemo(
     () => buildCategoryTaxonomy(categories),
@@ -350,23 +351,41 @@ function CategoryContent() {
               </Link>
             ))}
             {overflowChildren.length > 0 && (
-              <details className="group relative shrink-0">
-                <summary className="flex h-8 cursor-pointer list-none items-center gap-1 rounded-md border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-600 transition hover:border-[#4b925f]/40 dark:border-white/10 dark:bg-white/5 dark:text-slate-300">
+              <div className="relative shrink-0">
+                <button
+                  type="button"
+                  aria-expanded={moreCategoriesOpen}
+                  aria-haspopup="menu"
+                  onClick={() => setMoreCategoriesOpen((open) => !open)}
+                  className="flex h-8 items-center gap-1 rounded-md border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-600 transition hover:border-[#4b925f]/40 dark:border-white/10 dark:bg-white/5 dark:text-slate-300"
+                >
                   More
-                  <ChevronDown className="h-3.5 w-3.5 transition group-open:rotate-180" />
-                </summary>
-                <div className="absolute left-0 top-10 z-30 min-w-40 overflow-hidden rounded-lg border border-slate-200 bg-white p-1.5 shadow-xl dark:border-white/10 dark:bg-[#17171e]">
-                  {overflowChildren.map((child) => (
-                    <Link
-                      key={child.slug}
-                      href={`/category/${child.slug}`}
-                      className="block rounded-md px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-[#377249] dark:text-slate-300 dark:hover:bg-white/5"
-                    >
-                      {child.name}
-                    </Link>
-                  ))}
-                </div>
-              </details>
+                  <ChevronDown
+                    className={cn(
+                      'h-3.5 w-3.5 transition',
+                      moreCategoriesOpen && 'rotate-180'
+                    )}
+                  />
+                </button>
+                {moreCategoriesOpen && (
+                  <div
+                    role="menu"
+                    className="absolute left-0 top-10 z-30 min-w-40 overflow-hidden rounded-lg border border-slate-200 bg-white p-1.5 shadow-xl dark:border-white/10 dark:bg-[#17171e]"
+                  >
+                    {overflowChildren.map((child) => (
+                      <Link
+                        key={child.slug}
+                        href={`/category/${child.slug}`}
+                        role="menuitem"
+                        onClick={() => setMoreCategoriesOpen(false)}
+                        className="block rounded-md px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-[#377249] dark:text-slate-300 dark:hover:bg-white/5"
+                      >
+                        {child.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
           </div>
 
