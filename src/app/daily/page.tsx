@@ -197,7 +197,8 @@ export default function DailyPage() {
   const { user, loading: authLoading } = useAuth()
   const [dailyPuzzle, setDailyPuzzle] = useState(FALLBACK_TODAY)
   const [historyPuzzles, setHistoryPuzzles] = useState(FALLBACK_HISTORY)
-  const [progress, setProgress] = useState(FALLBACK_PROGRESS)
+  const [remoteProgress, setRemoteProgress] =
+    useState<DailyChallengeProgress | null>(null)
   const [usingFallbackData, setUsingFallbackData] = useState(true)
   const [loading, setLoading] = useState(true)
   const [selectedPieces, setSelectedPieces] = useState(
@@ -233,16 +234,7 @@ export default function DailyPage() {
 
   useEffect(() => {
     if (authLoading || loading) return
-
-    if (usingFallbackData) {
-      setProgress(FALLBACK_PROGRESS)
-      return
-    }
-
-    if (!user) {
-      setProgress(EMPTY_PROGRESS)
-      return
-    }
+    if (usingFallbackData || !user) return
 
     let cancelled = false
     const challengeDate = parseChallengeDate(dailyPuzzle.challenge_date)
@@ -251,7 +243,7 @@ export default function DailyPage() {
     ).padStart(2, '0')}-01`
 
     fetchDailyChallengeProgress(user.id, monthStart).then((nextProgress) => {
-      if (!cancelled) setProgress(nextProgress)
+      if (!cancelled) setRemoteProgress(nextProgress)
     })
 
     return () => {
@@ -264,6 +256,10 @@ export default function DailyPage() {
     user,
     usingFallbackData,
   ])
+
+  const progress = usingFallbackData
+    ? FALLBACK_PROGRESS
+    : remoteProgress ?? EMPTY_PROGRESS
 
   const calendarDays = useMemo(() => {
     const current = parseChallengeDate(dailyPuzzle.challenge_date)
