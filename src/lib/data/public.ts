@@ -41,8 +41,24 @@ export interface PublicPuzzleLeaderboardEntry {
 }
 
 export interface DailyPuzzle extends PublicPuzzle {
+  challenge_id: string
   challenge_date: string
   challenge_title: string
+}
+
+export interface DailyChallengeParticipation {
+  challengeId: string
+  challengeDate: string
+  isCompleted: boolean
+  progressPercent: number
+  completionTime: number | null
+}
+
+export interface DailyChallengeProgress {
+  currentStreak: number
+  maxStreak: number
+  completedThisMonth: number
+  participations: Record<string, DailyChallengeParticipation>
 }
 
 interface CategoryRelation {
@@ -79,10 +95,23 @@ interface PuzzleRow {
 }
 
 interface DailyChallengeRow {
+  id: string
   challenge_date: string
   title: string | null
   description: string | null
   puzzles?: PuzzleRow | PuzzleRow[] | null
+}
+
+interface DailyParticipationRow {
+  daily_challenge_id: string
+  completion_time: number | null
+  is_completed: boolean
+  progress_percent?: number | null
+  daily_challenges?: {
+    challenge_date?: string | null
+  } | Array<{
+    challenge_date?: string | null
+  }> | null
 }
 
 interface PuzzleLeaderboardRow {
@@ -313,7 +342,7 @@ export async function fetchDailyPuzzle(): Promise<DailyPuzzle | null> {
   const today = new Date().toISOString().slice(0, 10)
   let { data, error } = await supabase
     .from('daily_challenges')
-    .select(`challenge_date, title, description, puzzles(${PUZZLE_SELECT})`)
+    .select(`id, challenge_date, title, description, puzzles(${PUZZLE_SELECT})`)
     .lte('challenge_date', today)
     .order('challenge_date', { ascending: false })
     .limit(1)
@@ -322,7 +351,7 @@ export async function fetchDailyPuzzle(): Promise<DailyPuzzle | null> {
   if (!data && !error) {
     const fallback = await supabase
       .from('daily_challenges')
-      .select(`challenge_date, title, description, puzzles(${PUZZLE_SELECT})`)
+      .select(`id, challenge_date, title, description, puzzles(${PUZZLE_SELECT})`)
       .order('challenge_date', { ascending: false })
       .limit(1)
       .maybeSingle()
@@ -341,6 +370,7 @@ export async function fetchDailyPuzzle(): Promise<DailyPuzzle | null> {
 
   return {
     ...mapPuzzle(puzzle),
+    challenge_id: row.id,
     challenge_date: row.challenge_date,
     challenge_title: row.title ?? puzzle.title,
     description: row.description ?? puzzle.description ?? '',
@@ -350,7 +380,7 @@ export async function fetchDailyPuzzle(): Promise<DailyPuzzle | null> {
 export async function fetchDailyHistory(limit = 12): Promise<DailyPuzzle[]> {
   const { data, error } = await supabase
     .from('daily_challenges')
-    .select(`challenge_date, title, description, puzzles(${PUZZLE_SELECT})`)
+    .select(`id, challenge_date, title, description, puzzles(${PUZZLE_SELECT})`)
     .order('challenge_date', { ascending: false })
     .limit(limit)
 
@@ -366,6 +396,7 @@ export async function fetchDailyHistory(limit = 12): Promise<DailyPuzzle[]> {
 
       return {
         ...mapPuzzle(puzzle),
+        challenge_id: row.id,
         challenge_date: row.challenge_date,
         challenge_title: row.title ?? puzzle.title,
         description: row.description ?? puzzle.description ?? '',
@@ -373,4 +404,88 @@ export async function fetchDailyHistory(limit = 12): Promise<DailyPuzzle[]> {
       }
     })
     .filter((puzzle): puzzle is DailyPuzzle => puzzle !== null)
+}
+
+export async function fetchDailyChallengeProgress(
+  userId: string,
+  monthStart: string
+): Promise<DailyChallengeProgress> {
+  const emptyProgress: DailyChallengeProgress = {
+    currentStreak: 0,
+    maxStreak: 0,
+    completedThisMonth: 0,
+    participations: {},
+  }
+
+  const selectParticipations = (includeProgress: boolean) =>
+    supabase
+      .from('daily_challenge_participations')
+      .select(`
+        daily_challenge_id,
+        completion_time,
+        is_completed,
+        ${includeProgress ? 'progress_percent,' : ''}
+        daily_challenges!inner(challenge_date)
+      `)
+      .eq('user_id', userId)
+      .gte('daily_challenges.challenge_date', monthStart)
+      .order('participated_at', { ascending: false })
+
+  const [statsResult, initialParticipationsResult] = await Promise.all([
+    supabase
+      .from('user_stats')
+      .select('daily_current_streak, daily_max_streak')
+      .eq('user_id', userId)
+      .maybeSingle(),
+    selectParticipations(true),
+  ])
+
+  let participationsData = initialParticipationsResult.data
+  let participationsError = initialParticipationsResult.error
+
+  if (participationsError?.message.toLowerCase().includes('progress_percent')) {
+    const fallback = await selectParticipations(false)
+    participationsData = fallback.data
+    participationsError = fallback.error
+  }
+
+  if (participationsError) {
+    console.error(
+      'Failed to fetch daily challenge progress:',
+      participationsError.message
+    )
+    return emptyProgress
+  }
+
+  if (statsResult.error) {
+    console.error('Failed to fetch daily streak:', statsResult.error.message)
+  }
+
+  const participations = (
+    (participationsData ?? []) as unknown as DailyParticipationRow[]
+  ).reduce<Record<string, DailyChallengeParticipation>>((result, row) => {
+    const challenge = getFirst(row.daily_challenges)
+    const challengeDate = challenge?.challenge_date ?? ''
+    const progressPercent = row.is_completed
+      ? 100
+      : Math.min(99, Math.max(0, row.progress_percent ?? 0))
+
+    result[row.daily_challenge_id] = {
+      challengeId: row.daily_challenge_id,
+      challengeDate,
+      isCompleted: row.is_completed,
+      progressPercent,
+      completionTime: row.completion_time,
+    }
+    return result
+  }, {})
+
+  return {
+    currentStreak: statsResult.data?.daily_current_streak ?? 0,
+    maxStreak: statsResult.data?.daily_max_streak ?? 0,
+    completedThisMonth: Object.values(participations).filter(
+      (participation) => participation.isCompleted
+    ).length,
+    participations,
+  }
 }
