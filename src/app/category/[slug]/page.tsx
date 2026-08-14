@@ -334,22 +334,24 @@ function CategoryContent() {
           aria-label="Category and puzzle filters"
           className="mt-6 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between"
         >
-          <div className="-mx-1 flex min-w-0 items-center gap-1 overflow-x-auto px-1 py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <Link
-              href={`/category/${category.slug}`}
-              className="inline-flex h-8 shrink-0 items-center rounded-full bg-[#4b925f] px-4 text-xs font-bold text-white shadow-sm"
-            >
-              All
-            </Link>
-            {primaryChildren.map((child) => (
+          <div className="flex min-w-0 items-center gap-1">
+            <div className="-mx-1 flex min-w-0 items-center gap-1 overflow-x-auto px-1 py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <Link
-                key={child.slug}
-                href={`/category/${child.slug}`}
-                className="inline-flex h-8 shrink-0 items-center rounded-md border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-600 transition hover:border-[#4b925f]/40 hover:text-[#377249] dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:text-emerald-400"
+                href={`/category/${category.slug}`}
+                className="inline-flex h-8 shrink-0 items-center rounded-full bg-[#4b925f] px-4 text-xs font-bold text-white shadow-sm"
               >
-                {child.name}
+                All
               </Link>
-            ))}
+              {primaryChildren.map((child) => (
+                <Link
+                  key={child.slug}
+                  href={`/category/${child.slug}`}
+                  className="inline-flex h-8 shrink-0 items-center rounded-md border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-600 transition hover:border-[#4b925f]/40 hover:text-[#377249] dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:text-emerald-400"
+                >
+                  {child.name}
+                </Link>
+              ))}
+            </div>
             {overflowChildren.length > 0 && (
               <div className="relative shrink-0">
                 <button
