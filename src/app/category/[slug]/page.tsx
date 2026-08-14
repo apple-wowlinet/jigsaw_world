@@ -561,9 +561,9 @@ function PuzzleCard({ puzzle }: { puzzle: PublicPuzzle }) {
           {puzzle.difficulty}
         </span>
         <div className="absolute inset-x-0 bottom-0 px-3 pb-2.5 text-white">
-          <h2 className="truncate text-[13px] font-extrabold leading-tight drop-shadow-sm sm:text-sm">
+          <p className="truncate text-[13px] font-extrabold leading-tight text-white drop-shadow-[0_2px_3px_rgba(0,0,0,0.95)] sm:text-sm">
             {puzzle.title}
-          </h2>
+          </p>
           <div className="mt-1.5 flex items-center justify-between gap-2 text-[10px] font-medium">
             <span className="flex min-w-0 items-center gap-1">
               <Puzzle className="h-3.5 w-3.5 shrink-0" />
