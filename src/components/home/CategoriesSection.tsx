@@ -3,155 +3,146 @@
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Mountain, Waves, Building, TreePine, Palette, Camera, ArrowRight, Grid3X3, PawPrint, Sparkles, Utensils, Map } from 'lucide-react'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import {
+  ArrowRight,
+  Building2,
+  Check,
+  Flame,
+  Palette,
+  PawPrint,
+  Puzzle,
+  Sparkles,
+  Trees,
+  Utensils,
+} from 'lucide-react'
 import { fetchCategories, type PublicCategory } from '@/lib/data/public'
-import { cn } from '@/lib/utils'
+
+const category = (
+  slug: string,
+  name: string,
+  image_url: string,
+  icon: string,
+  puzzle_count: number
+): PublicCategory => ({
+  id: slug,
+  slug,
+  name,
+  image_url,
+  icon,
+  puzzle_count,
+  description: '',
+  color: '#4f46e5',
+  dark_color: '#818cf8',
+})
+
+const FALLBACK_CATEGORIES: PublicCategory[] = [
+  category('nature', 'Nature', 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=700&h=500&fit=crop', 'trees', 328),
+  category('animals', 'Animals', 'https://images.unsplash.com/photo-1573865526739-10659fec78a5?w=700&h=500&fit=crop', 'paw-print', 276),
+  category('cities', 'Cities', 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=700&h=500&fit=crop', 'building-2', 198),
+  category('food', 'Food', 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=700&h=500&fit=crop', 'utensils', 142),
+  category('fantasy', 'Fantasy', 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=700&h=500&fit=crop', 'sparkles', 116),
+  category('art', 'Art & Culture', 'https://images.unsplash.com/photo-1547891654-e66ed7ebb968?w=700&h=500&fit=crop', 'palette', 98),
+]
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  trees: TreePine,
-  waves: Waves,
+  trees: Trees,
   'paw-print': PawPrint,
-  'building-2': Building,
-  sparkles: Sparkles,
+  'building-2': Building2,
   utensils: Utensils,
-  map: Map,
+  sparkles: Sparkles,
   palette: Palette,
-  camera: Camera,
 }
 
-const gradientMap: Record<string, string> = {
-  nature: 'from-green-500 to-emerald-600',
-  ocean: 'from-blue-500 to-cyan-600',
-  animals: 'from-orange-500 to-red-600',
-  cities: 'from-purple-500 to-indigo-600',
-  fantasy: 'from-fuchsia-500 to-pink-600',
-  food: 'from-amber-500 to-orange-600',
-  travel: 'from-sky-500 to-blue-600',
-  art: 'from-pink-500 to-rose-600',
-}
+const themes = [
+  ['🌸', 'Flowers', 'flowers'],
+  ['🐱', 'Cats', 'cats'],
+  ['🏰', 'Castles', 'fantasy'],
+  ['🌅', 'Sunset', 'ocean'],
+  ['🎄', 'Christmas', 'christmas'],
+  ['🍂', 'Autumn', 'nature'],
+  ['🚂', 'Trains', 'trains'],
+  ['🏖️', 'Beaches', 'beaches'],
+]
 
 export function CategoriesSection() {
-  const [categories, setCategories] = useState<PublicCategory[]>([])
+  const [categories, setCategories] = useState<PublicCategory[]>(FALLBACK_CATEGORIES)
 
   useEffect(() => {
     let cancelled = false
 
     fetchCategories(6).then((items) => {
-      if (!cancelled) setCategories(items)
+      if (!cancelled && items.length) setCategories(items)
     })
 
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   return (
-    <section className="py-24 relative overflow-hidden bg-background dark:bg-[#08080c]">
-      {/* Ambient Background Glow */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] mix-blend-screen" />
-        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-[100px] mix-blend-screen" />
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-20">
-          <div>
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground dark:text-white mb-4 tracking-tight">
-              Browse by Category
-            </h2>
-            <p className="text-lg md:text-xl text-muted-foreground dark:text-gray-400 max-w-2xl leading-relaxed">
-              Explore our curated collections featuring stunning photography and art.
-            </p>
-          </div>
-          <Link 
-            href="/categories"
-            className={cn(
-              "inline-flex items-center px-8 py-4 rounded-full cursor-pointer",
-              "bg-secondary/80 dark:bg-white/5 backdrop-blur-sm",
-              "border border-transparent dark:border-white/10",
-              "text-secondary-foreground dark:text-white font-medium",
-              "hover:bg-secondary dark:hover:bg-white/10 dark:hover:border-white/20",
-              "transition-all duration-300 shadow-sm hover:shadow-md hover:scale-105"
-            )}
-          >
-            <Grid3X3 className="w-5 h-5 mr-3" />
-            View All Categories
-            <ArrowRight className="w-4 h-4 ml-2 opacity-70" />
+    <section className="px-4 pb-10 pt-7 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1380px]">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-xl font-black tracking-tight text-slate-900 dark:text-white">Browse by Category</h2>
+          <Link href="/categories" className="group flex items-center gap-2 text-sm font-bold text-indigo-600 dark:text-indigo-300">
+            View all categories <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
           </Link>
         </div>
 
-        {/* Categories Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {categories.map((category, index) => {
-            const IconComponent = iconMap[category.icon] ?? Mountain
-            const gradient = gradientMap[category.slug] ?? 'from-primary to-accent'
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          {categories.slice(0, 6).map((item) => {
+            const Icon = iconMap[item.icon] ?? Puzzle
             return (
-              <Link key={category.id} href={`/category/${category.slug}`} className="block h-full">
-                <Card 
-                  className={cn(
-                    "group h-full overflow-hidden border-0 shadow-lg cursor-pointer relative",
-                    "bg-white dark:bg-white/5",
-                    "backdrop-blur-md",
-                    "border border-border/50 dark:border-white/10",
-                    "transition-all duration-500 ease-out",
-                    "hover:shadow-xl dark:hover:shadow-2xl dark:hover:shadow-black/50",
-                    "hover:-translate-y-2 hover:border-primary/20 dark:hover:border-white/20",
-                    "animate-fade-in"
-                  )}
-                  style={{ animationDelay: `${index * 100}ms` }}
-                >
-                  <CardHeader className="p-0 relative aspect-[16/10] overflow-hidden">
-                    <Image
-                      src={category.image_url}
-                      alt={category.name}
-                      fill
-                      className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    />
-                    
-                    {/* Gradient Overlay */}
-                    <div className={cn(
-                      "absolute inset-0 bg-gradient-to-t opacity-60 transition-opacity duration-500 group-hover:opacity-75",
-                      gradient,
-                      "dark:opacity-70 dark:group-hover:opacity-85"
-                    )} />
-                    
-                    {/* Glass Content Container */}
-                    <div className="absolute inset-0 p-8 flex flex-col justify-end">
-                      <div className="flex items-center justify-between items-end transform translate-y-2 group-hover:translate-y-0 transition-transform duration-500">
-                        <div>
-                          <div className="w-14 h-14 rounded-2xl bg-white/20 dark:bg-black/20 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-inner mb-4 group-hover:scale-110 transition-transform duration-500">
-                            <IconComponent className="h-7 w-7 text-white" />
-                          </div>
-                          <h3 className="text-3xl font-bold text-white mb-2 drop-shadow-md tracking-tight">
-                            {category.name}
-                          </h3>
-                          <p className="text-white/90 text-sm font-medium flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                            {category.puzzle_count} puzzles
-                          </p>
-                        </div>
-                        
-                        {/* Hover Action Button */}
-                        <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md border border-white/20 flex items-center justify-center opacity-0 translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-500 delay-100">
-                          <ArrowRight className="w-5 h-5 text-white" />
-                        </div>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  
-                  <CardContent className="p-8 relative">
-                    {/* Subtle shine effect on hover */}
-                    <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/5 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
-                    
-                    <p className="text-muted-foreground dark:text-gray-400 leading-relaxed text-base relative z-10">
-                      {category.description}
-                    </p>
-                  </CardContent>
-                </Card>
+              <Link key={item.id} href={`/category/${item.slug}`} className="group relative aspect-[1.45] overflow-hidden rounded-xl shadow-md">
+                <Image src={item.image_url} alt={item.name} fill sizes="(max-width: 640px) 50vw, 17vw" className="object-cover transition duration-500 group-hover:scale-110" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/15 to-transparent" />
+                <div className="absolute inset-x-0 bottom-0 flex items-end gap-2 p-3 text-white">
+                  <Icon className="mb-0.5 h-5 w-5 shrink-0" />
+                  <div className="min-w-0">
+                    <h3 className="truncate text-sm font-black">{item.name}</h3>
+                    <p className="text-[11px] text-white/80">{item.puzzle_count} puzzles</p>
+                  </div>
+                </div>
               </Link>
             )
           })}
+        </div>
+
+        <h2 className="mb-3 mt-6 text-lg font-black tracking-tight text-slate-900 dark:text-white">Popular Themes</h2>
+        <div className="flex flex-wrap gap-2.5">
+          {themes.map(([emoji, label, slug]) => (
+            <Link key={label} href={`/category/${slug}`} className="inline-flex h-9 items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-200 hover:text-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-200">
+              <span aria-hidden="true">{emoji}</span>{label}
+            </Link>
+          ))}
+          <Link href="/categories" aria-label="View all themes" className="grid h-9 w-9 place-items-center rounded-full border border-slate-200 bg-white text-indigo-600 shadow-sm hover:border-indigo-200 dark:border-white/10 dark:bg-white/5 dark:text-indigo-300">
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+
+        <div className="mt-6 grid items-center gap-5 rounded-2xl border border-slate-200/80 bg-white px-5 py-4 shadow-[0_8px_24px_rgba(30,41,59,.06)] md:grid-cols-[240px_1fr_auto] md:px-7 dark:border-white/10 dark:bg-slate-900">
+          <div>
+            <strong className="block text-sm font-black text-slate-900 dark:text-white">Keep the Streak!</strong>
+            <span className="text-xs text-slate-500 dark:text-slate-400">Puzzle every day to build your streak and earn rewards.</span>
+          </div>
+          <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-center">
+            <strong className="flex items-center gap-2 whitespace-nowrap text-base font-black text-rose-500">
+              <Flame className="h-7 w-7 fill-orange-500 text-orange-500" />4 Day Streak
+            </strong>
+            <div className="flex items-end gap-3 sm:ml-4">
+              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => (
+                <div key={day} className="text-center">
+                  <span className="mb-1 block text-[9px] font-semibold text-slate-400">{day}</span>
+                  <span className={`grid h-5 w-5 place-items-center rounded-full border text-white ${index < 4 ? 'border-indigo-600 bg-indigo-600' : 'border-slate-200 bg-white dark:border-white/10 dark:bg-slate-800'}`}>
+                    {index < 4 && <Check className="h-3 w-3" strokeWidth={3} />}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <Link href="/daily" className="inline-flex h-11 items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-7 text-sm font-bold text-white shadow-lg shadow-indigo-500/20 transition hover:-translate-y-0.5">
+            Play Today&apos;s Puzzle
+          </Link>
         </div>
       </div>
     </section>
