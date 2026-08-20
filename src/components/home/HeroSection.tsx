@@ -1,155 +1,239 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Play, Sparkles, ArrowRight } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
+import {
+  CalendarDays,
+  Clock3,
+  Play,
+  Puzzle,
+  ShieldCheck,
+  Sparkles,
+} from 'lucide-react'
 import { fetchDailyPuzzle, type DailyPuzzle } from '@/lib/data/public'
-import { cn } from '@/lib/utils'
+
+const FALLBACK_DAILY: DailyPuzzle = {
+  id: 'rainbow-glass-texture',
+  uuid: 'rainbow-glass-texture',
+  title: 'Rainbow Glass Texture',
+  slug: 'rainbow-glass-texture',
+  image_url: 'https://images.unsplash.com/photo-1492447166138-50c3889fccb1?w=1200&h=900&fit=crop',
+  description: 'A rainbow glass texture with reflections and gradients.',
+  piece_count: 100,
+  difficulty: 'Medium',
+  plays_count: 3800,
+  completions_count: 2100,
+  rating: 4.9,
+  created_at: '2026-08-20T00:00:00.000Z',
+  category: 'Art',
+  category_slug: 'art',
+  challenge_id: 'daily-rainbow-glass',
+  challenge_date: '2026-08-20',
+  challenge_title: 'Rainbow Glass Texture',
+}
+
+const AVATARS = [
+  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop',
+  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop',
+  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop',
+  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop',
+]
+
+const features = [
+  { icon: ShieldCheck, title: 'No signup', detail: 'Just play' },
+  { icon: CalendarDays, title: 'New puzzles', detail: 'Added daily' },
+  { icon: Puzzle, title: '20 – 1000 pieces', detail: 'All levels' },
+]
 
 export function HeroSection() {
-  const [dailyPuzzle, setDailyPuzzle] = useState<DailyPuzzle | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [imageLoaded, setImageLoaded] = useState(false)
+  const [dailyPuzzle, setDailyPuzzle] = useState<DailyPuzzle>(FALLBACK_DAILY)
 
   useEffect(() => {
     let cancelled = false
 
     fetchDailyPuzzle().then((puzzle) => {
-      if (!cancelled) {
-        setDailyPuzzle(puzzle)
-        setLoading(false)
-      }
+      if (!cancelled && puzzle) setDailyPuzzle(puzzle)
     })
 
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [])
 
-  if (loading) {
-    return (
-      <section className="relative overflow-hidden bg-gradient-hero py-20 lg:py-28">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div className="animate-pulse space-y-6">
-              <div className="h-6 bg-secondary rounded-full w-32" />
-              <div className="h-12 bg-secondary rounded w-3/4" />
-              <div className="space-y-3">
-                <div className="h-4 bg-secondary rounded w-full" />
-                <div className="h-4 bg-secondary rounded w-5/6" />
-              </div>
-              <div className="h-12 bg-secondary rounded w-40" />
-            </div>
-            <div className="animate-pulse">
-              <div className="bg-secondary rounded-2xl aspect-[4/3] w-full" />
-            </div>
-          </div>
-        </div>
-      </section>
-    )
-  }
-
-  if (!dailyPuzzle) {
-    return null
-  }
+  const displayDate = new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+  }).format(new Date())
 
   return (
-    <section className="relative overflow-hidden">
-      {/* Background with gradient */}
-      <div className="absolute inset-0 bg-gradient-hero" />
-      
-      {/* Decorative elements */}
-      <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 dark:bg-primary/20 rounded-full blur-3xl" />
-      <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/10 dark:bg-accent/20 rounded-full blur-3xl" />
-      
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-          {/* Left Content */}
-          <div className="space-y-8 animate-fade-in">
-            {/* Slogan */}
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.1] tracking-tight">
-              <span className="text-foreground dark:text-white dark:drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">Piece Together</span>
+    <section className="relative overflow-hidden px-4 pt-7 sm:px-6 lg:px-8 lg:pt-11">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -left-32 -top-44 h-[520px] w-[520px] rounded-full bg-sky-100/70 blur-3xl dark:bg-sky-900/20" />
+        <div className="absolute left-[38%] top-0 h-[440px] w-[440px] rounded-full bg-pink-100/60 blur-3xl dark:bg-fuchsia-900/15" />
+        <div className="absolute right-0 top-16 h-[420px] w-[420px] rounded-full bg-violet-100/50 blur-3xl dark:bg-violet-900/15" />
+      </div>
+
+      <div className="relative mx-auto max-w-[1380px]">
+        <div className="grid items-center gap-12 lg:grid-cols-[1.02fr_.98fr] lg:gap-16">
+          <div className="max-w-[660px]">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/80 px-3.5 py-2 text-sm font-semibold text-slate-700 shadow-[0_8px_30px_rgba(79,70,229,.08)] backdrop-blur dark:border-white/10 dark:bg-white/5 dark:text-slate-200">
+              <Sparkles className="h-4 w-4 fill-amber-300 text-amber-500" />
+              Thousands of beautiful puzzles
+            </div>
+
+            <h1 className="text-[2.7rem] font-black leading-[1.04] tracking-[-0.045em] text-slate-950 sm:text-6xl lg:text-[4.65rem] dark:text-white">
+              Beautiful Jigsaw
               <br />
-              <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent drop-shadow-sm dark:from-blue-400 dark:via-orange-400 dark:to-blue-400">
-                Moments of Joy
+              Puzzles,
+              <br />
+              <span className="bg-gradient-to-r from-fuchsia-600 via-violet-600 to-blue-600 bg-clip-text text-transparent">
+                Ready to Play
+              </span>
+              <span className="ml-3 inline-flex align-top text-blue-600" aria-hidden="true">
+                <span className="h-3 w-1 rotate-[-30deg] rounded-full bg-current" />
+                <span className="ml-3 mt-4 h-1 w-3 rotate-[-12deg] rounded-full bg-current" />
               </span>
             </h1>
 
-            {/* Description */}
-            <p className="text-lg text-muted-foreground dark:text-slate-300 leading-relaxed max-w-xl">
-              Discover thousands of beautiful jigsaw puzzles, challenge your mind, and relax with every piece you place. Your next masterpiece awaits.
+            <p className="mt-7 max-w-[580px] text-base leading-7 text-slate-600 dark:text-slate-300">
+              Play thousands of free online jigsaw puzzles.
+              <br className="hidden sm:block" />
+              Choose your picture, difficulty, and start puzzling instantly.
             </p>
-            
-            {/* CTA Buttons */}
-            <div className="flex flex-wrap gap-4 pt-2">
-              <Link href={`/play/${dailyPuzzle.id}`} className="cursor-pointer group/btn">
-                <Button size="lg" className="cursor-pointer btn-shine text-base px-8 h-12 shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 hover:-translate-y-0.5 transition-all duration-300">
-                  <Play className="w-5 h-5 mr-2 fill-current" />
-                  Play Now
-                </Button>
+
+            <div className="mt-7 grid max-w-[620px] grid-cols-1 gap-3 sm:grid-cols-3">
+              {features.map(({ icon: Icon, title, detail }) => (
+                <div key={title} className="flex items-center gap-3">
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-indigo-100 bg-white text-indigo-600 shadow-sm dark:border-indigo-400/20 dark:bg-white/5 dark:text-indigo-300">
+                    <Icon className="h-5 w-5" />
+                  </span>
+                  <span>
+                    <strong className="block whitespace-nowrap text-sm text-slate-900 dark:text-white">{title}</strong>
+                    <span className="block text-xs text-slate-500 dark:text-slate-400">{detail}</span>
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Link
+                href={`/play/${dailyPuzzle.slug}`}
+                className="inline-flex h-14 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-8 text-sm font-bold text-white shadow-[0_12px_28px_rgba(59,82,246,.3)] transition hover:-translate-y-0.5 hover:shadow-[0_16px_34px_rgba(59,82,246,.38)]"
+              >
+                <Play className="h-4 w-4 fill-current" />
+                Play Today&apos;s Puzzle
               </Link>
-              <Link href="/explore/weekly" className="cursor-pointer group/btn">
-                <Button size="lg" variant="outline" className="cursor-pointer text-base px-8 h-12 group bg-card dark:bg-transparent dark:text-white dark:border-white/20 dark:hover:bg-white/10 dark:hover:border-white/40 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300">
-                  View What&apos;s Hot
-                  <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover/btn:translate-x-1" />
-                </Button>
+              <Link
+                href="/categories"
+                className="inline-flex h-14 items-center justify-center rounded-xl border border-slate-200 bg-white/90 px-9 text-sm font-bold text-slate-800 shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-200 hover:text-indigo-600 dark:border-white/10 dark:bg-white/5 dark:text-white"
+              >
+                Browse Puzzles
               </Link>
+            </div>
+
+            <div className="mt-7 flex flex-wrap items-center gap-x-4 gap-y-2">
+              <div className="flex -space-x-3">
+                {AVATARS.map((src) => (
+                  <Image
+                    key={src}
+                    src={src}
+                    alt=""
+                    width={36}
+                    height={36}
+                    className="h-9 w-9 rounded-full border-2 border-white object-cover dark:border-slate-900"
+                  />
+                ))}
+              </div>
+              <div className="text-xs leading-5 text-slate-500 dark:text-slate-400">
+                <span className="font-semibold text-slate-700 dark:text-slate-200">Join 250K+ puzzlers worldwide</span>
+                <div className="flex items-center gap-2">
+                  <span className="tracking-wider text-amber-400">★★★★★</span>
+                  <span>4.8 average rating</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Right Image */}
-          <div className="relative lg:pl-8">
-            <div className="relative">
-              {/* Decorative glow */}
-              <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 to-accent/20 rounded-3xl blur-2xl opacity-60 dark:opacity-40" />
-              
-              <Card className="relative overflow-hidden shadow-2xl border-0 dark:hero-card">
-                <CardContent className="p-0">
-                  <div className="relative aspect-[4/3]">
-                    <Image
-                      src={dailyPuzzle.image_url}
-                      alt={dailyPuzzle.title}
-                      fill
-                      className={cn(
-                        "object-cover transition-all duration-700",
-                        imageLoaded ? "scale-100 opacity-100" : "scale-110 opacity-0"
-                      )}
-                      priority
-                      onLoad={() => setImageLoaded(true)}
-                    />
-                    
-                    {/* Title area with localized overlay */}
-                    <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent">
-                      <h2 className="text-2xl md:text-3xl font-bold" style={{ color: '#ffffff', textShadow: '0 2px 8px rgba(0,0,0,1), 0 1px 3px rgba(0,0,0,1)' }}>
-                        {dailyPuzzle.title}
-                      </h2>
-                    </div>
-                    
-                    {/* Hover play button */}
-                    <Link href={`/play/${dailyPuzzle.id}`} className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-all duration-300 bg-black/50 backdrop-blur-sm group/start cursor-pointer">
-                      <div className="flex items-center justify-center w-20 h-20 rounded-full bg-white/95 dark:bg-white/90 shadow-2xl scale-75 group-hover/start:scale-100 transition-transform duration-300">
-                        <span className="absolute inset-0 rounded-full bg-white/40 animate-ping" />
-                        <Play className="relative w-8 h-8 text-primary fill-primary ml-1" />
-                      </div>
-                      <span className="absolute bottom-24 text-white font-semibold text-lg drop-shadow-lg">
-                        Start Puzzle
-                      </span>
-                    </Link>
-                    
-                    {/* Daily Challenge badge */}
-                    <div className="absolute top-4 left-4">
-                      <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-white/95 dark:bg-white/10 dark:backdrop-blur-md border border-white/20 text-foreground dark:text-white shadow-lg">
-                        <Sparkles className="w-4 h-4 mr-2 text-accent" />
-                        Daily Challenge
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+          <article className="relative mx-auto w-full max-w-[620px] rounded-[24px] border border-white/90 bg-white/90 p-6 shadow-[0_24px_70px_rgba(30,41,59,.16)] backdrop-blur dark:border-white/10 dark:bg-slate-900/85">
+            <div className="mb-5 flex items-center justify-between">
+              <h2 className="flex items-center gap-2 text-sm font-black tracking-wide text-slate-900 dark:text-white">
+                <span className="text-2xl">🔥</span>
+                DAILY PUZZLE
+              </h2>
+              <span className="text-sm font-black uppercase text-slate-700 dark:text-slate-300">{displayDate}</span>
+            </div>
+
+            <div className="relative aspect-[16/9] overflow-hidden rounded-xl bg-slate-100">
+              <Image
+                src={dailyPuzzle.image_url}
+                alt={dailyPuzzle.title}
+                fill
+                priority
+                sizes="(max-width: 1024px) 100vw, 620px"
+                className="object-cover"
+              />
+              <div className="puzzle-grid absolute inset-0 opacity-35" aria-hidden="true" />
+              <div className="absolute bottom-[17%] left-[17%] h-[25%] w-[20%] rounded-[18%] bg-white shadow-[0_0_0_2px_rgba(255,255,255,.9)] dark:bg-slate-900" aria-hidden="true" />
+            </div>
+
+            <h3 className="mt-5 text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+              {dailyPuzzle.title}
+            </h3>
+            <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-medium text-slate-600 dark:text-slate-300">
+              <span className="flex items-center gap-2"><Puzzle className="h-4 w-4 fill-blue-600 text-blue-600" />{dailyPuzzle.piece_count} pieces</span>
+              <span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-amber-400" />{dailyPuzzle.difficulty}</span>
+              <span className="flex items-center gap-2"><Clock3 className="h-4 w-4" />~{Math.max(10, Math.round(dailyPuzzle.piece_count / 10))} min</span>
+            </div>
+
+            <div className="mt-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+              <div className="flex items-center">
+                <div className="flex -space-x-2">
+                  {AVATARS.map((src) => (
+                    <Image key={src} src={src} alt="" width={30} height={30} className="h-8 w-8 rounded-full border-2 border-white object-cover dark:border-slate-900" />
+                  ))}
+                </div>
+                <span className="ml-3 text-xs text-slate-500 dark:text-slate-400">
+                  {Math.max(3800, dailyPuzzle.plays_count).toLocaleString()} players today
+                </span>
+              </div>
+              <Link
+                href={`/play/${dailyPuzzle.slug}`}
+                className="inline-flex h-12 items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-7 text-sm font-bold text-white shadow-lg shadow-blue-500/20 transition hover:-translate-y-0.5"
+              >
+                Play Daily Puzzle
+              </Link>
+            </div>
+
+            <div className="absolute -bottom-5 -right-4 hidden h-20 w-20 rotate-12 overflow-hidden rounded-[22%] border-[6px] border-white shadow-xl sm:block dark:border-slate-900" aria-hidden="true">
+              <Image src={dailyPuzzle.image_url} alt="" fill className="object-cover" />
+            </div>
+          </article>
+        </div>
+
+        <div className="mt-12 grid items-center gap-5 rounded-2xl border border-emerald-100 bg-gradient-to-r from-emerald-50 via-white to-emerald-50 px-5 py-4 shadow-sm sm:grid-cols-[220px_1fr_auto] sm:px-7 dark:border-emerald-400/10 dark:from-emerald-950/30 dark:via-slate-900 dark:to-emerald-950/30">
+          <div className="flex items-center gap-4">
+            <span className="grid h-11 w-11 place-items-center rounded-xl bg-white text-emerald-600 shadow-sm dark:bg-white/10 dark:text-emerald-300"><Puzzle className="h-6 w-6 fill-current" /></span>
+            <strong className="text-lg leading-5 text-slate-900 dark:text-white">Continue<br />Your Puzzle</strong>
+          </div>
+          <div className="flex min-w-0 items-center gap-4">
+            <div className="relative h-[72px] w-32 shrink-0 overflow-hidden rounded-xl">
+              <Image src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=500&h=300&fit=crop" alt="Mountain Lake Escape" fill className="object-cover" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <strong className="block truncate text-sm text-slate-900 dark:text-white">Mountain Lake Escape</strong>
+              <div className="mt-3 flex items-center gap-3">
+                <div className="h-2 flex-1 overflow-hidden rounded-full bg-emerald-100 dark:bg-emerald-950"><div className="h-full w-[78%] rounded-full bg-emerald-500" /></div>
+                <span className="text-xs font-bold text-slate-600 dark:text-slate-300">78%</span>
+              </div>
+              <span className="mt-1 block text-xs text-slate-500 dark:text-slate-400">82 / 100 pieces</span>
             </div>
           </div>
+          <Link href="/play/alpine-lake-reflection" className="inline-flex h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-6 text-sm font-bold text-slate-700 shadow-sm hover:border-emerald-300 hover:text-emerald-700 dark:border-white/10 dark:bg-white/5 dark:text-white">
+            Continue Puzzle
+          </Link>
         </div>
+
       </div>
     </section>
   )

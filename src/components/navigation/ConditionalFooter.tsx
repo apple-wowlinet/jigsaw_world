@@ -10,7 +10,8 @@ import { Footer } from './Footer'
  */
 export function ConditionalFooter() {
   const pathname = usePathname()
-  // Hide footer on the puzzle play page to maximize game space
-  if (pathname?.startsWith('/play')) return null
+  // The home page is a self-contained game lobby, while play pages need
+  // every available pixel for the puzzle board.
+  if (pathname === '/' || pathname?.startsWith('/play')) return null
   return <Footer />
 }

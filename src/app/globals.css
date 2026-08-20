@@ -189,6 +189,15 @@ html {
   animation: float 3s ease-in-out infinite;
 }
 
+/* Fine grid used to give the daily image a finished jigsaw-board texture. */
+.puzzle-grid {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.9) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.9) 1px, transparent 1px);
+  background-size: 12.5% 25%;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.75);
+}
+
 /* ===== Gradient Backgrounds ===== */
 .bg-gradient-hero {
   background: linear-gradient(135deg, 
