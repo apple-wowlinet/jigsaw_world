@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Search, Menu, X, Puzzle, Sparkles, ImagePlus, Trophy, LogOut, UserCircle } from 'lucide-react'
+import { Search, Menu, X, Puzzle, Sparkles, ImagePlus, Trophy, LogOut, UserCircle, type LucideIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useAuth } from '@/components/auth/AuthProvider'
@@ -26,19 +26,12 @@ export function Header() {
     }
   }
 
-  const navLinks = [
+  const navLinks: Array<{ href: string; label: string; icon?: LucideIcon }> = [
     { href: '/create', label: 'Create', icon: ImagePlus },
     { href: '/daily', label: 'Daily Puzzle', icon: Sparkles },
     { href: '/leaderboard', label: 'Leaderboard', icon: Trophy },
     { href: '/categories', label: 'Categories' },
-    { 
-      label: 'Explore', 
-      children: [
-        { href: '/explore/weekly', label: 'Most Played This Week' },
-        { href: '/explore/all-time', label: 'Most Played All Time' },
-        { href: '/explore/trending', label: 'Trending Searches' },
-      ]
-    },
+    { href: '/explore/weekly', label: 'Explore' },
   ]
 
   const handleSignOut = async () => {
@@ -64,38 +57,14 @@ export function Header() {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-1">
             {navLinks.map((link) => (
-              link.children ? (
-                <div key={link.label} className="relative group">
-                  <button className="flex items-center px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-secondary dark:hover:bg-secondary/50">
-                    {link.label}
-                    <svg className="ml-1 h-4 w-4 transition-transform duration-200 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-                  <div className="absolute top-full left-0 mt-1 w-56 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                    <div className="bg-popover dark:bg-card border border-border dark:border-white/10 rounded-xl shadow-lg overflow-hidden">
-                      {link.children.map((child) => (
-                        <Link
-                          key={child.href}
-                          href={child.href}
-                          className="block px-4 py-3 text-sm text-popover-foreground dark:text-foreground hover:bg-accent/10 dark:hover:bg-white/5 transition-colors"
-                        >
-                          {child.label}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <Link
-                  key={link.href}
-                  href={link.href!}
-                  className="flex items-center px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-secondary dark:hover:bg-secondary/50"
-                >
-                  {link.icon && <link.icon className="w-4 h-4 mr-2" />}
-                  {link.label}
-                </Link>
-              )
+              <Link
+                key={link.href}
+                href={link.href}
+                className="flex items-center px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-secondary dark:hover:bg-secondary/50"
+              >
+                {link.icon ? <link.icon className="w-4 h-4 mr-2" /> : null}
+                {link.label}
+              </Link>
             ))}
           </nav>
 
@@ -222,32 +191,13 @@ export function Header() {
               >
                 Categories
               </Link>
-              <div className="px-3 py-2">
-                <span className="text-sm font-medium text-muted-foreground">Explore</span>
-                <div className="mt-2 space-y-1 pl-4">
-                  <Link 
-                    href="/explore/weekly" 
-                    className="block py-1 text-sm text-foreground/80 hover:text-foreground"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Most Played This Week
-                  </Link>
-                  <Link 
-                    href="/explore/all-time" 
-                    className="block py-1 text-sm text-foreground/80 hover:text-foreground"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Most Played All Time
-                  </Link>
-                  <Link 
-                    href="/explore/trending" 
-                    className="block py-1 text-sm text-foreground/80 hover:text-foreground"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Trending Searches
-                  </Link>
-                </div>
-              </div>
+              <Link
+                href="/explore/weekly"
+                className="flex items-center px-3 py-2 rounded-lg text-base font-medium text-foreground hover:bg-secondary dark:hover:bg-secondary/50 transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Explore
+              </Link>
 
               <div className="border-t border-border dark:border-white/10 pt-3 mt-3">
                 {loading ? (
