@@ -342,7 +342,7 @@ export function ExploreListPage({ mode }: { mode: ExploreMode }) {
           </p>
         </header>
 
-        <div className="mb-4 flex flex-wrap items-center gap-2">
+        <div className="mb-6 flex flex-wrap items-center gap-2">
           {TIME_TABS.map((tab) => {
             const active = tab.mode === mode
             const Icon = tab.icon
@@ -364,9 +364,15 @@ export function ExploreListPage({ mode }: { mode: ExploreMode }) {
           })}
         </div>
 
+        {featured.length > 0 && (
+          <div className="mb-8">
+            <Podium puzzles={featured} />
+          </div>
+        )}
+
         <div
           ref={toolbarRef}
-          className="mb-8 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between"
+          className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between"
         >
           <div className="-mx-1 flex min-w-0 items-center gap-2 overflow-x-auto px-1 py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {CATEGORY_CHIPS.map((chip) => {
@@ -443,24 +449,14 @@ export function ExploreListPage({ mode }: { mode: ExploreMode }) {
               Try another category, difficulty, or piece count.
             </p>
           </div>
-        ) : (
-          <>
-            {featured.length > 0 && (
-              <Podium puzzles={featured} />
-            )}
-
-            {gridPuzzles.length > 0 && (
-              <section
-                className={cn('grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4', featured.length > 0 && 'mt-8')}
-              >
-                {gridPuzzles.map((puzzle, index) => {
-                  const rank = (safePage - 1) * ITEMS_PER_PAGE + featured.length + index + 1
-                  return <GridCard key={puzzle.uuid} puzzle={puzzle} rank={rank} />
-                })}
-              </section>
-            )}
-          </>
-        )}
+        ) : gridPuzzles.length > 0 ? (
+          <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {gridPuzzles.map((puzzle, index) => {
+              const rank = (safePage - 1) * ITEMS_PER_PAGE + featured.length + index + 1
+              return <GridCard key={puzzle.uuid} puzzle={puzzle} rank={rank} />
+            })}
+          </section>
+        ) : null}
 
         <nav
           aria-label="Puzzle pages"
