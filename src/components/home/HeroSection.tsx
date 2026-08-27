@@ -23,6 +23,7 @@ const FALLBACK_DAILY: DailyPuzzle = {
   piece_count: 100,
   difficulty: 'Medium',
   plays_count: 3800,
+  weekly_plays_count: 980,
   completions_count: 2100,
   rating: 4.9,
   created_at: '2026-08-20T00:00:00.000Z',

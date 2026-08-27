@@ -119,6 +119,29 @@ ON CONFLICT (slug) DO UPDATE SET
   editor_score = EXCLUDED.editor_score,
   updated_at = now();
 
+-- Distinct from all-time plays so weekly / all-time ranks can differ.
+-- Requires migration 006_explore_weekly_plays.sql.
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'puzzles'
+      AND column_name = 'weekly_plays_count'
+  ) THEN
+    UPDATE public.puzzles
+    SET weekly_plays_count = GREATEST(
+      24,
+      LEAST(
+        plays_count,
+        (plays_count * 28 / 100)::bigint + (abs(hashtext(slug)) % 90)
+      )
+    )
+    WHERE is_active = true;
+  END IF;
+END $$;
+
 -- 3. Events ----------------------------------------------------------------
 INSERT INTO public.events (slug, name, description, banner_url, starts_at, ends_at, is_active)
 VALUES

@@ -24,6 +24,7 @@ const puzzle = (
   piece_count,
   difficulty,
   plays_count,
+  weekly_plays_count: Math.round(plays_count * 0.3),
   rating,
   description: '',
   completions_count: Math.round(plays_count * 0.6),
