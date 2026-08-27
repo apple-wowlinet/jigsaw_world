@@ -34,71 +34,6 @@ type OpenMenu = 'sort' | 'difficulty' | 'pieces' | null
 const ITEMS_PER_PAGE = 15
 const FETCH_LIMIT = 60
 
-function fallbackPuzzle(
-  slug: string,
-  title: string,
-  image_url: string,
-  piece_count: number,
-  difficulty: DisplayDifficulty,
-  plays_count: number,
-  rating: number,
-  category: string,
-  category_slug: string,
-  created_at: string
-): PublicPuzzle {
-  return {
-    id: slug,
-    uuid: slug,
-    slug,
-    title,
-    image_url,
-    piece_count,
-    difficulty,
-    plays_count,
-    rating,
-    description: '',
-    completions_count: Math.round(plays_count * 0.6),
-    created_at,
-    category,
-    category_slug,
-  }
-}
-
-const FALLBACK_PUZZLES: PublicPuzzle[] = [
-  fallbackPuzzle('tropical-island-escape', 'Tropical Island Escape', 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=900&h=1200&fit=crop', 100, 'Easy', 2460, 4.9, 'Travel', 'travel', '2026-08-18T00:00:00.000Z'),
-  fallbackPuzzle('mountain-morning-glow', 'Mountain Morning Glow', 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=900&h=1200&fit=crop', 200, 'Medium', 2310, 4.8, 'Nature', 'nature', '2026-08-17T00:00:00.000Z'),
-  fallbackPuzzle('kyoto-lantern-festival', 'Kyoto Lantern Festival', 'https://images.unsplash.com/photo-1493780474015-ba834fd0ce2f?w=900&h=1200&fit=crop', 500, 'Hard', 2180, 4.9, 'Cities', 'cities', '2026-08-12T00:00:00.000Z'),
-  fallbackPuzzle('golden-retriever-smile', 'Golden Retriever Smile', 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=800&h=600&fit=crop', 150, 'Easy', 1980, 4.8, 'Animals', 'animals', '2026-08-16T00:00:00.000Z'),
-  fallbackPuzzle('cozy-cottage', 'Cozy Cottage', 'https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?w=800&h=600&fit=crop', 100, 'Easy', 1870, 4.7, 'Architecture', 'architecture', '2026-08-15T00:00:00.000Z'),
-  fallbackPuzzle('japanese-garden', 'Japanese Garden', 'https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=800&h=600&fit=crop', 100, 'Easy', 1760, 4.8, 'Nature', 'nature', '2026-08-14T00:00:00.000Z'),
-  fallbackPuzzle('sunset-beach', 'Sunset Beach', 'https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=800&h=600&fit=crop', 200, 'Medium', 1640, 4.6, 'Travel', 'travel', '2026-08-13T00:00:00.000Z'),
-  fallbackPuzzle('city-lights', 'City Lights', 'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=800&h=600&fit=crop', 300, 'Hard', 1520, 4.7, 'Cities', 'cities', '2026-08-11T00:00:00.000Z'),
-  fallbackPuzzle('oil-painting-bloom', 'Oil Painting Bloom', 'https://images.unsplash.com/photo-1547891654-e66ed7ebb968?w=800&h=600&fit=crop', 250, 'Medium', 1410, 4.8, 'Art', 'art', '2026-08-10T00:00:00.000Z'),
-  fallbackPuzzle('grand-arcade', 'Grand Arcade', 'https://images.unsplash.com/photo-1544984243-ec57ea16fe25?w=800&h=600&fit=crop', 400, 'Hard', 1330, 4.5, 'Architecture', 'architecture', '2026-08-09T00:00:00.000Z'),
-  fallbackPuzzle('berry-tart', 'Berry Tart', 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&h=600&fit=crop', 80, 'Easy', 1280, 4.6, 'Food', 'food', '2026-08-08T00:00:00.000Z'),
-  fallbackPuzzle('forest-canopy', 'Forest Canopy', 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&h=600&fit=crop', 120, 'Easy', 1190, 4.7, 'Nature', 'nature', '2026-08-07T00:00:00.000Z'),
-  fallbackPuzzle('safari-lion', 'Safari Lion', 'https://images.unsplash.com/photo-1474511320723-9a56873867b5?w=800&h=600&fit=crop', 180, 'Medium', 1120, 4.8, 'Animals', 'animals', '2026-08-06T00:00:00.000Z'),
-  fallbackPuzzle('alpine-lake', 'Alpine Lake', 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=800&h=600&fit=crop', 220, 'Medium', 1040, 4.9, 'Travel', 'travel', '2026-08-05T00:00:00.000Z'),
-  fallbackPuzzle('night-market', 'Night Market', 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800&h=600&fit=crop', 160, 'Medium', 980, 4.4, 'Food', 'food', '2026-08-04T00:00:00.000Z'),
-  fallbackPuzzle('wildflower-meadow', 'Wildflower Meadow', 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=800&h=600&fit=crop', 90, 'Easy', 910, 4.6, 'Nature', 'nature', '2026-08-03T00:00:00.000Z'),
-  fallbackPuzzle('harbor-dawn', 'Harbor Dawn', 'https://images.unsplash.com/photo-1439066615861-d1af74d74000?w=800&h=600&fit=crop', 140, 'Easy', 870, 4.5, 'Travel', 'travel', '2026-08-02T00:00:00.000Z'),
-  fallbackPuzzle('cathedral-spires', 'Cathedral Spires', 'https://images.unsplash.com/photo-1529260830199-42c24126f198?w=800&h=600&fit=crop', 500, 'Hard', 820, 4.8, 'Architecture', 'architecture', '2026-08-01T00:00:00.000Z'),
-  fallbackPuzzle('kittens-play', 'Kittens at Play', 'https://images.unsplash.com/photo-1573865526739-10659fec78a5?w=800&h=600&fit=crop', 70, 'Easy', 760, 4.7, 'Animals', 'animals', '2026-07-30T00:00:00.000Z'),
-  fallbackPuzzle('abstract-canvas', 'Abstract Canvas', 'https://images.unsplash.com/photo-1577083552431-6e5fd01aa342?w=800&h=600&fit=crop', 300, 'Hard', 710, 4.3, 'Art', 'art', '2026-07-28T00:00:00.000Z'),
-  fallbackPuzzle('old-town-street', 'Old Town Street', 'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=700&h=500&fit=crop', 200, 'Medium', 680, 4.4, 'Cities', 'cities', '2026-07-26T00:00:00.000Z'),
-  fallbackPuzzle('ocean-cliff', 'Ocean Cliff', 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=700&h=500&fit=crop', 180, 'Medium', 640, 4.6, 'Nature', 'nature', '2026-07-24T00:00:00.000Z'),
-  fallbackPuzzle('pastry-display', 'Pastry Display', 'https://images.unsplash.com/photo-1551024506-0bccd828d307?w=800&h=600&fit=crop', 60, 'Easy', 590, 4.5, 'Food', 'food', '2026-07-22T00:00:00.000Z'),
-  fallbackPuzzle('desert-dunes', 'Desert Dunes', 'https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=800&h=600&fit=crop', 250, 'Medium', 540, 4.7, 'Travel', 'travel', '2026-07-20T00:00:00.000Z'),
-  fallbackPuzzle('wildlife-crossing', 'Wildlife Crossing', 'https://images.unsplash.com/photo-1557050543-4d5f4e07ef46?w=800&h=600&fit=crop', 160, 'Easy', 510, 4.4, 'Animals', 'animals', '2026-07-18T00:00:00.000Z'),
-  fallbackPuzzle('bridge-at-dusk', 'Bridge at Dusk', 'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=640&h=480&fit=crop', 320, 'Hard', 470, 4.6, 'Cities', 'cities', '2026-07-16T00:00:00.000Z'),
-  fallbackPuzzle('spring-blossoms', 'Spring Blossoms', 'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=800&h=600&fit=crop', 110, 'Easy', 430, 4.8, 'Nature', 'nature', '2026-07-14T00:00:00.000Z'),
-  fallbackPuzzle('gallery-wall', 'Gallery Wall', 'https://images.unsplash.com/photo-1547891654-e66ed7ebb968?w=700&h=500&fit=crop', 280, 'Medium', 390, 4.2, 'Art', 'art', '2026-07-12T00:00:00.000Z'),
-  fallbackPuzzle('stone-courtyard', 'Stone Courtyard', 'https://images.unsplash.com/photo-1544984243-ec57ea16fe25?w=700&h=500&fit=crop', 200, 'Medium', 350, 4.3, 'Architecture', 'architecture', '2026-07-10T00:00:00.000Z'),
-  fallbackPuzzle('market-fruit', 'Market Fruit', 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=700&h=500&fit=crop', 50, 'Easy', 320, 4.1, 'Food', 'food', '2026-07-08T00:00:00.000Z'),
-  fallbackPuzzle('snowy-peak', 'Snowy Peak', 'https://images.unsplash.com/photo-1483664852095-d6cc6870702d?w=800&h=600&fit=crop', 400, 'Hard', 280, 4.9, 'Nature', 'nature', '2026-07-06T00:00:00.000Z'),
-  fallbackPuzzle('canal-houses', 'Canal Houses', 'https://images.unsplash.com/photo-1529260830199-42c24126f198?w=700&h=500&fit=crop', 150, 'Easy', 240, 4.5, 'Cities', 'cities', '2026-07-04T00:00:00.000Z'),
-]
-
 const CATEGORY_CHIPS = [
   { slug: 'all', name: 'All' },
   { slug: 'nature', name: 'Nature' },
@@ -118,21 +53,21 @@ const TIME_TABS = [
 
 const MODE_COPY: Record<
   ExploreMode,
-  { crumb: string; title: string; subtitle: string; orderBy: 'plays' | 'rating' | 'editor'; defaultSort: SortOrder }
+  { crumb: string; title: string; subtitle: string; orderBy: 'plays' | 'rating' | 'editor' | 'weekly'; defaultSort: SortOrder }
 > = {
   weekly: {
     crumb: 'Popular',
     title: 'Weekly Top Puzzles',
     subtitle: 'The most-played puzzles from the last 7 days.\nRankings update daily.',
-    orderBy: 'plays',
+    orderBy: 'weekly',
     defaultSort: 'plays',
   },
   'all-time': {
     crumb: 'All Time',
     title: 'All-Time Top Puzzles',
     subtitle: 'The most popular puzzles ever played.\nRankings update daily.',
-    orderBy: 'rating',
-    defaultSort: 'rating',
+    orderBy: 'plays',
+    defaultSort: 'plays',
   },
   trending: {
     crumb: 'Trending',
@@ -220,7 +155,8 @@ function getPaginationItems(totalPages: number, currentPage: number) {
 
 export function ExploreListPage({ mode }: { mode: ExploreMode }) {
   const copy = MODE_COPY[mode]
-  const [puzzles, setPuzzles] = useState<PublicPuzzle[]>(FALLBACK_PUZZLES)
+  const [puzzles, setPuzzles] = useState<PublicPuzzle[]>([])
+  const [loading, setLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
   const [categorySlug, setCategorySlug] = useState('all')
   const [sortOrder, setSortOrder] = useState<SortOrder>(copy.defaultSort)
@@ -231,15 +167,18 @@ export function ExploreListPage({ mode }: { mode: ExploreMode }) {
 
   useEffect(() => {
     let cancelled = false
+    setLoading(true)
 
     fetchPuzzles({ limit: FETCH_LIMIT, orderBy: copy.orderBy })
       .then((items) => {
         if (cancelled) return
-        setPuzzles(items.length ? items : FALLBACK_PUZZLES)
+        setPuzzles(items)
+        setLoading(false)
       })
       .catch(() => {
         if (cancelled) return
-        setPuzzles(FALLBACK_PUZZLES)
+        setPuzzles([])
+        setLoading(false)
       })
 
     return () => {
@@ -300,11 +239,12 @@ export function ExploreListPage({ mode }: { mode: ExploreMode }) {
       if (sortOrder === 'newest') {
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       }
+      if (mode === 'weekly') return b.weekly_plays_count - a.weekly_plays_count
       return b.plays_count - a.plays_count
     })
 
     return result
-  }, [puzzles, categorySlug, difficulty, pieceFilter, sortOrder])
+  }, [puzzles, categorySlug, difficulty, pieceFilter, sortOrder, mode])
 
   const totalPages = Math.max(1, Math.ceil(filteredPuzzles.length / ITEMS_PER_PAGE))
   const safePage = Math.min(currentPage, totalPages)
@@ -317,6 +257,10 @@ export function ExploreListPage({ mode }: { mode: ExploreMode }) {
   const paginationItems = getPaginationItems(totalPages, safePage)
 
   const resetToFirstPage = () => setCurrentPage(1)
+  const playsCountFor = (puzzle: PublicPuzzle) =>
+    mode === 'weekly' ? puzzle.weekly_plays_count : puzzle.plays_count
+
+  if (loading) return <ExploreListSkeleton />
 
   return (
     <div className="min-h-screen bg-background">
@@ -342,7 +286,7 @@ export function ExploreListPage({ mode }: { mode: ExploreMode }) {
           </p>
         </header>
 
-        <div className="mb-4 flex flex-wrap items-center gap-2">
+        <div className="mb-6 flex flex-wrap items-center gap-2">
           {TIME_TABS.map((tab) => {
             const active = tab.mode === mode
             const Icon = tab.icon
@@ -364,9 +308,15 @@ export function ExploreListPage({ mode }: { mode: ExploreMode }) {
           })}
         </div>
 
+        {featured.length > 0 && (
+          <div className="mb-8">
+            <Podium puzzles={featured} playsCountFor={playsCountFor} />
+          </div>
+        )}
+
         <div
           ref={toolbarRef}
-          className="mb-8 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between"
+          className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between"
         >
           <div className="-mx-1 flex min-w-0 items-center gap-2 overflow-x-auto px-1 py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {CATEGORY_CHIPS.map((chip) => {
@@ -443,24 +393,21 @@ export function ExploreListPage({ mode }: { mode: ExploreMode }) {
               Try another category, difficulty, or piece count.
             </p>
           </div>
-        ) : (
-          <>
-            {featured.length > 0 && (
-              <Podium puzzles={featured} />
-            )}
-
-            {gridPuzzles.length > 0 && (
-              <section
-                className={cn('grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4', featured.length > 0 && 'mt-8')}
-              >
-                {gridPuzzles.map((puzzle, index) => {
-                  const rank = (safePage - 1) * ITEMS_PER_PAGE + featured.length + index + 1
-                  return <GridCard key={puzzle.uuid} puzzle={puzzle} rank={rank} />
-                })}
-              </section>
-            )}
-          </>
-        )}
+        ) : gridPuzzles.length > 0 ? (
+          <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {gridPuzzles.map((puzzle, index) => {
+              const rank = (safePage - 1) * ITEMS_PER_PAGE + featured.length + index + 1
+              return (
+                <GridCard
+                  key={puzzle.uuid}
+                  puzzle={puzzle}
+                  rank={rank}
+                  playsCount={playsCountFor(puzzle)}
+                />
+              )
+            })}
+          </section>
+        ) : null}
 
         <nav
           aria-label="Puzzle pages"
@@ -517,7 +464,13 @@ export function ExploreListPage({ mode }: { mode: ExploreMode }) {
   )
 }
 
-function Podium({ puzzles }: { puzzles: PublicPuzzle[] }) {
+function Podium({
+  puzzles,
+  playsCountFor,
+}: {
+  puzzles: PublicPuzzle[]
+  playsCountFor: (puzzle: PublicPuzzle) => number
+}) {
   const first = puzzles[0]
   const second = puzzles[1]
   const third = puzzles[2]
@@ -526,17 +479,17 @@ function Podium({ puzzles }: { puzzles: PublicPuzzle[] }) {
     <section className="flex flex-col gap-4 md:flex-row md:items-end md:justify-center md:gap-5">
       {second && (
         <div className="order-2 w-full md:order-1 md:w-[30%] md:max-w-[300px]">
-          <HeroCard puzzle={second} rank={2} />
+          <HeroCard puzzle={second} rank={2} playsCount={playsCountFor(second)} />
         </div>
       )}
       {first && (
         <div className="order-1 w-full md:order-2 md:w-[38%] md:max-w-[360px]">
-          <HeroCard puzzle={first} rank={1} featured />
+          <HeroCard puzzle={first} rank={1} featured playsCount={playsCountFor(first)} />
         </div>
       )}
       {third && (
         <div className="order-3 w-full md:order-3 md:w-[30%] md:max-w-[300px]">
-          <HeroCard puzzle={third} rank={3} />
+          <HeroCard puzzle={third} rank={3} playsCount={playsCountFor(third)} />
         </div>
       )}
     </section>
@@ -547,10 +500,12 @@ function HeroCard({
   puzzle,
   rank,
   featured = false,
+  playsCount,
 }: {
   puzzle: PublicPuzzle
   rank: number
   featured?: boolean
+  playsCount: number
 }) {
   return (
     <Link
@@ -571,7 +526,7 @@ function HeroCard({
           className="object-cover transition-transform duration-700 group-hover:scale-105"
           priority={rank <= 3}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent" />
 
         <div
           className={cn(
@@ -592,21 +547,21 @@ function HeroCard({
           {puzzle.difficulty}
         </span>
 
-        <div className="absolute inset-x-0 bottom-0 p-4 text-white">
-          <h2 className="line-clamp-2 text-lg font-extrabold leading-tight drop-shadow-md sm:text-xl">
+        <div className="absolute inset-x-0 bottom-0 p-4">
+          <p className="line-clamp-2 text-lg font-extrabold leading-tight text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)] sm:text-xl">
             {puzzle.title}
-          </h2>
-          <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-medium text-white/90">
-            <span className="inline-flex items-center gap-1">
-              <User className="h-3.5 w-3.5" />
-              {formatPlays(puzzle.plays_count)} plays
+          </p>
+          <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-medium text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]">
+            <span className="inline-flex items-center gap-1 text-white">
+              <User className="h-3.5 w-3.5 text-white" />
+              {formatPlays(playsCount)} plays
             </span>
-            <span className="inline-flex items-center gap-1">
+            <span className="inline-flex items-center gap-1 text-white">
               <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
               {puzzle.rating.toFixed(1)}
             </span>
-            <span className="inline-flex items-center gap-1">
-              <Puzzle className="h-3.5 w-3.5" />
+            <span className="inline-flex items-center gap-1 text-white">
+              <Puzzle className="h-3.5 w-3.5 text-white" />
               {puzzle.piece_count} pieces
             </span>
           </div>
@@ -616,7 +571,15 @@ function HeroCard({
   )
 }
 
-function GridCard({ puzzle, rank }: { puzzle: PublicPuzzle; rank: number }) {
+function GridCard({
+  puzzle,
+  rank,
+  playsCount,
+}: {
+  puzzle: PublicPuzzle
+  rank: number
+  playsCount: number
+}) {
   return (
     <Link
       href={`/puzzle/${puzzle.slug}`}
@@ -654,7 +617,7 @@ function GridCard({ puzzle, rank }: { puzzle: PublicPuzzle; rank: number }) {
         <div className="mt-2 flex items-center gap-3 text-[11px] font-medium text-muted-foreground">
           <span className="inline-flex items-center gap-1">
             <User className="h-3.5 w-3.5" />
-            {formatPlays(puzzle.plays_count)}
+            {formatPlays(playsCount)}
           </span>
           <span className="inline-flex items-center gap-1">
             <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />

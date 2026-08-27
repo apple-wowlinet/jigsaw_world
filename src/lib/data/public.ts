@@ -26,6 +26,7 @@ export interface PublicPuzzle {
   piece_count: number
   difficulty: DisplayDifficulty
   plays_count: number
+  weekly_plays_count: number
   completions_count: number
   rating: number
   created_at: string
@@ -88,6 +89,7 @@ interface PuzzleRow {
   piece_count: number | null
   difficulty: string | null
   plays_count: number | null
+  weekly_plays_count?: number | null
   completions_count: number | null
   rating: number | string | null
   created_at: string | null
@@ -130,6 +132,22 @@ const PUZZLE_SELECT = `
   piece_count,
   difficulty,
   plays_count,
+  weekly_plays_count,
+  completions_count,
+  rating,
+  created_at,
+  categories(name, slug)
+`
+
+const PUZZLE_SELECT_WITHOUT_WEEKLY = `
+  id,
+  title,
+  slug,
+  image_url,
+  description,
+  piece_count,
+  difficulty,
+  plays_count,
   completions_count,
   rating,
   created_at,
@@ -163,6 +181,7 @@ export function mapPuzzle(row: PuzzleRow): PublicPuzzle {
     piece_count: row.piece_count ?? 100,
     difficulty: toDisplayDifficulty(row.difficulty),
     plays_count: row.plays_count ?? 0,
+    weekly_plays_count: row.weekly_plays_count ?? row.plays_count ?? 0,
     completions_count: row.completions_count ?? 0,
     rating: Number(row.rating ?? 0),
     created_at: row.created_at ?? new Date(0).toISOString(),
@@ -230,12 +249,50 @@ export async function fetchPuzzles(options: {
   categorySlug?: string
   categorySlugs?: string[]
   search?: string
-  orderBy?: 'featured' | 'plays' | 'rating' | 'recent' | 'editor'
+  orderBy?: 'featured' | 'plays' | 'rating' | 'recent' | 'editor' | 'weekly'
 } = {}): Promise<PublicPuzzle[]> {
-  let query = supabase
-    .from('puzzles')
-    .select(PUZZLE_SELECT)
-    .eq('is_active', true)
+  const runQuery = (select: string, orderBy = options.orderBy) => {
+    let query = supabase
+      .from('puzzles')
+      .select(select)
+      .eq('is_active', true)
+
+    if (requestedCategorySlugs.length) {
+      query = query.in('category_id', categoryIds)
+    }
+
+    if (search) {
+      query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`)
+    }
+
+    switch (orderBy) {
+      case 'featured':
+        query = query.order('is_featured', { ascending: false }).order('editor_score', { ascending: false })
+        break
+      case 'rating':
+        query = query.order('rating', { ascending: false }).order('plays_count', { ascending: false })
+        break
+      case 'recent':
+        query = query.order('publish_at', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false })
+        break
+      case 'editor':
+        query = query.order('editor_score', { ascending: false }).order('rating', { ascending: false })
+        break
+      case 'weekly':
+        query = query.order('weekly_plays_count', { ascending: false }).order('plays_count', { ascending: false })
+        break
+      case 'plays':
+      default:
+        query = query.order('plays_count', { ascending: false }).order('rating', { ascending: false })
+        break
+    }
+
+    if (options.limit) {
+      query = query.limit(options.limit)
+    }
+
+    return query
+  }
 
   const requestedCategorySlugs = options.categorySlugs?.length
     ? [...new Set(options.categorySlugs)]
@@ -243,6 +300,7 @@ export async function fetchPuzzles(options: {
       ? [options.categorySlug]
       : []
 
+  let categoryIds: string[] = []
   if (requestedCategorySlugs.length) {
     const { data: categories, error: categoryError } = await supabase
       .from('categories')
@@ -254,62 +312,55 @@ export async function fetchPuzzles(options: {
       return []
     }
 
-    query = query.in('category_id', categories.map((category) => category.id))
+    categoryIds = categories.map((category) => category.id)
   }
 
-  const search = options.search?.trim()
-  if (search) {
-    const safeSearch = search.replaceAll('%', '\\%').replaceAll('_', '\\_')
-    query = query.or(`title.ilike.%${safeSearch}%,description.ilike.%${safeSearch}%`)
-  }
+  const search = options.search?.trim().replaceAll('%', '\\%').replaceAll('_', '\\_')
 
-  switch (options.orderBy) {
-    case 'featured':
-      query = query.order('is_featured', { ascending: false }).order('editor_score', { ascending: false })
-      break
-    case 'rating':
-      query = query.order('rating', { ascending: false }).order('plays_count', { ascending: false })
-      break
-    case 'recent':
-      query = query.order('publish_at', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false })
-      break
-    case 'editor':
-      query = query.order('editor_score', { ascending: false }).order('rating', { ascending: false })
-      break
-    case 'plays':
-    default:
-      query = query.order('plays_count', { ascending: false }).order('rating', { ascending: false })
-      break
-  }
+  let { data, error } = await runQuery(PUZZLE_SELECT)
 
-  if (options.limit) {
-    query = query.limit(options.limit)
+  if (error?.message.toLowerCase().includes('weekly_plays_count')) {
+    const fallback = await runQuery(
+      PUZZLE_SELECT_WITHOUT_WEEKLY,
+      options.orderBy === 'weekly' ? 'plays' : options.orderBy
+    )
+    data = fallback.data
+    error = fallback.error
   }
-
-  const { data, error } = await query
 
   if (error) {
     console.error('Failed to fetch puzzles:', error.message)
     return []
   }
 
-  return ((data ?? []) as PuzzleRow[]).map(mapPuzzle)
+  return ((data ?? []) as unknown as PuzzleRow[]).map(mapPuzzle)
 }
 
 export async function fetchPuzzleBySlug(slug: string): Promise<PublicPuzzle | null> {
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from('puzzles')
     .select(PUZZLE_SELECT)
     .eq('slug', slug)
     .eq('is_active', true)
     .maybeSingle()
 
+  if (error?.message.toLowerCase().includes('weekly_plays_count')) {
+    const fallback = await supabase
+      .from('puzzles')
+      .select(PUZZLE_SELECT_WITHOUT_WEEKLY)
+      .eq('slug', slug)
+      .eq('is_active', true)
+      .maybeSingle()
+    data = fallback.data as typeof data
+    error = fallback.error
+  }
+
   if (error) {
     console.error('Failed to fetch puzzle:', error.message)
     return null
   }
 
-  return data ? mapPuzzle(data as PuzzleRow) : null
+  return data ? mapPuzzle(data as unknown as PuzzleRow) : null
 }
 
 export async function fetchPuzzleLeaderboard(
@@ -342,7 +393,7 @@ export async function fetchDailyPuzzle(): Promise<DailyPuzzle | null> {
   const today = new Date().toISOString().slice(0, 10)
   let { data, error } = await supabase
     .from('daily_challenges')
-    .select(`id, challenge_date, title, description, puzzles(${PUZZLE_SELECT})`)
+    .select(`id, challenge_date, title, description, puzzles(${PUZZLE_SELECT_WITHOUT_WEEKLY})`)
     .lte('challenge_date', today)
     .order('challenge_date', { ascending: false })
     .limit(1)
@@ -351,7 +402,7 @@ export async function fetchDailyPuzzle(): Promise<DailyPuzzle | null> {
   if (!data && !error) {
     const fallback = await supabase
       .from('daily_challenges')
-      .select(`id, challenge_date, title, description, puzzles(${PUZZLE_SELECT})`)
+      .select(`id, challenge_date, title, description, puzzles(${PUZZLE_SELECT_WITHOUT_WEEKLY})`)
       .order('challenge_date', { ascending: false })
       .limit(1)
       .maybeSingle()
@@ -380,7 +431,7 @@ export async function fetchDailyPuzzle(): Promise<DailyPuzzle | null> {
 export async function fetchDailyHistory(limit = 12): Promise<DailyPuzzle[]> {
   const { data, error } = await supabase
     .from('daily_challenges')
-    .select(`id, challenge_date, title, description, puzzles(${PUZZLE_SELECT})`)
+    .select(`id, challenge_date, title, description, puzzles(${PUZZLE_SELECT_WITHOUT_WEEKLY})`)
     .order('challenge_date', { ascending: false })
     .limit(limit)
 
