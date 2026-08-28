@@ -189,6 +189,78 @@ html {
   animation: float 3s ease-in-out infinite;
 }
 
+/* ===== Hero entrance choreography ===== */
+@keyframes heroRise {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.hero-rise {
+  opacity: 0;
+  animation: heroRise 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.hero-d-1 { animation-delay: 0.08s; }
+.hero-d-2 { animation-delay: 0.16s; }
+.hero-d-3 { animation-delay: 0.26s; }
+.hero-d-4 { animation-delay: 0.36s; }
+.hero-d-5 { animation-delay: 0.46s; }
+.hero-d-6 { animation-delay: 0.56s; }
+
+/* Hand-drawn squiggle underline for the hero accent */
+@keyframes squiggleDraw {
+  from { stroke-dashoffset: 230; }
+  to { stroke-dashoffset: 0; }
+}
+
+.squiggle-path {
+  stroke-dasharray: 230;
+  animation: squiggleDraw 0.9s ease-out 1s forwards;
+}
+
+/* Slow pan across the gradient accent text */
+@keyframes gradientPan {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.animate-gradient-pan {
+  background-size: 200% 100%;
+  animation: gradientPan 7s ease-in-out infinite;
+}
+
+/* Subtle dot texture used behind the hero */
+.bg-dots {
+  background-image: radial-gradient(rgba(15, 23, 42, 0.09) 1px, transparent 1.2px);
+  background-size: 22px 22px;
+}
+
+.dark .bg-dots {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1.2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-rise {
+    animation: none;
+    opacity: 1;
+  }
+  .squiggle-path {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+  .animate-gradient-pan {
+    animation: none;
+  }
+}
+
 /* Fine grid used to give the daily image a finished jigsaw-board texture. */
 .puzzle-grid {
   background-image:
