@@ -140,7 +140,7 @@ export function CategoriesSection() {
               ))}
             </div>
           </div>
-          <Link href="/daily" className="inline-flex h-11 items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-7 text-sm font-bold text-white shadow-lg shadow-indigo-500/20 transition hover:-translate-y-0.5">
+          <Link href="/daily" className="btn btn-primary">
             Play Today&apos;s Puzzle
           </Link>
         </div>

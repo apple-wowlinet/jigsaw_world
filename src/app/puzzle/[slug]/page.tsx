@@ -428,7 +428,7 @@ function PuzzleDetailContent() {
                   </p>
                 </div>
               )}
-              <div className="mt-2 flex items-center justify-between rounded-xl border border-violet-100 bg-gradient-to-r from-violet-50/80 to-rose-50/60 px-4 py-3 dark:border-violet-400/10 dark:from-violet-500/10 dark:to-rose-500/10">
+              <div className="mt-2 flex items-center justify-between rounded-xl border border-amber-100 bg-gradient-to-r from-amber-50/80 to-rose-50/60 px-4 py-3 dark:border-amber-400/10 dark:from-amber-500/10 dark:to-rose-500/10">
                 <div>
                   <p className="text-xs font-extrabold text-[#222a48] dark:text-slate-100 sm:text-sm">
                     Be the first to set the best time!
@@ -574,7 +574,7 @@ function LeaderboardRow({ entry }: { entry: PublicPuzzleLeaderboardEntry }) {
     'from-orange-400 to-red-500',
     'from-pink-400 to-rose-600',
     'from-amber-400 to-orange-600',
-    'from-indigo-400 to-violet-600',
+    'from-teal-400 to-emerald-600',
   ]
   const initials = username
     .split(/\s+/)

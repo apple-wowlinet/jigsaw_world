@@ -125,7 +125,7 @@ export function RecommendationsSection() {
                 className={cn(
                   'rounded-full px-4 py-2 text-xs font-bold transition',
                   activeFilter === filter
-                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-indigo-500/20'
+                    ? 'bg-blue-600 text-white shadow-md shadow-blue-600/25'
                     : 'bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-800 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10'
                 )}
               >

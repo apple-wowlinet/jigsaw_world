@@ -108,7 +108,7 @@ function SearchContent() {
 
             <form onSubmit={handleSearch} className="max-w-3xl mx-auto relative z-20">
               <div className="relative group">
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-primary via-purple-500 to-accent rounded-full blur opacity-30 group-hover:opacity-75 transition duration-500" />
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-primary via-sky-500 to-teal-400 rounded-full blur opacity-30 group-hover:opacity-75 transition duration-500" />
                 <div className="relative flex items-center bg-background/80 dark:bg-[#121218]/90 backdrop-blur-xl rounded-full border border-border/50 dark:border-white/10 shadow-2xl transition-all duration-300 group-hover:shadow-primary/10 group-hover:border-primary/20">
                   <div className="pl-6 flex items-center pointer-events-none">
                     <Search className="h-6 w-6 text-muted-foreground group-focus-within:text-primary transition-colors duration-300" />
