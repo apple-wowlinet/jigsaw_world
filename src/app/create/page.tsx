@@ -70,7 +70,7 @@ export default function CreatePuzzlePage() {
         return p
       })
     } catch {
-      setError('无法读取这张图片，请换一张试试。')
+      setError("Couldn't read this image. Please try another one.")
     } finally {
       setBusy(false)
     }
@@ -95,7 +95,7 @@ export default function CreatePuzzlePage() {
       await acceptBlob(blob, url.split('/').pop() || 'image')
     } catch {
       setError(
-        '无法从该 URL 加载图片（可能是跨域限制）。可以先把图片保存到本地再上传。'
+        'Could not load the image from this URL (it may be blocked by CORS). Try saving the image locally and uploading it instead.'
       )
       setBusy(false)
     }
@@ -108,7 +108,7 @@ export default function CreatePuzzlePage() {
       const key = await putImage(preview.blob, preview.name, preview.w, preview.h)
       router.push(`/play/custom?img=${encodeURIComponent(key)}`)
     } catch {
-      setError('保存图片失败（浏览器存储可能已满）。')
+      setError('Failed to save the image (browser storage may be full).')
       setBusy(false)
     }
   }, [preview, router])
@@ -117,9 +117,9 @@ export default function CreatePuzzlePage() {
     <div className="min-h-screen bg-muted dark:bg-[#08080c] py-10 px-4">
       <div className="max-w-2xl mx-auto space-y-6">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-foreground mb-2">创建拼图</h1>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Create Puzzle</h1>
           <p className="text-muted-foreground">
-            上传一张图片或输入图片链接，立即开始拼图
+            Upload an image or paste an image URL to start puzzling instantly
           </p>
         </div>
 
@@ -153,10 +153,10 @@ export default function CreatePuzzlePage() {
                 )}
                 <div className="text-center">
                   <p className="font-medium text-foreground">
-                    拖拽图片到这里，或点击选择文件
+                    Drag an image here, or click to choose a file
                   </p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    支持 JPG / PNG / WebP，最大边自动压缩到 2048px
+                    Supports JPG / PNG / WebP — the long edge is auto-resized to 2048px
                   </p>
                 </div>
                 <input
@@ -179,7 +179,7 @@ export default function CreatePuzzlePage() {
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={preview.url}
-                    alt="预览"
+                    alt="Preview"
                     className="w-full max-h-[420px] object-contain"
                   />
                   <button
@@ -188,7 +188,7 @@ export default function CreatePuzzlePage() {
                       setPreview(null)
                     }}
                     className="absolute top-2 right-2 p-1.5 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors cursor-pointer"
-                    aria-label="移除图片"
+                    aria-label="Remove image"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -210,7 +210,7 @@ export default function CreatePuzzlePage() {
                   ) : (
                     <Play className="w-5 h-5 mr-2" />
                   )}
-                  开始拼图
+                  Start Puzzle
                 </Button>
               </div>
             )}
@@ -220,7 +220,7 @@ export default function CreatePuzzlePage() {
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                   <Link2 className="w-4 h-4" />
-                  或从图片 URL 导入
+                  Or import from an image URL
                 </div>
                 <div className="flex gap-2">
                   <Input
@@ -256,13 +256,13 @@ export default function CreatePuzzlePage() {
 
         <Card className="dark:bg-[#13131a] dark:border-white/10">
           <CardHeader>
-            <CardTitle className="text-base">小提示</CardTitle>
+            <CardTitle className="text-base">Tips</CardTitle>
           </CardHeader>
           <CardContent className="text-sm text-muted-foreground space-y-1.5">
-            <p>· 图片仅保存在你的浏览器本地（IndexedDB），不会上传到服务器</p>
-            <p>· 进度自动保存，关掉页面后可以继续拼</p>
-            <p>· 开启旋转模式后：R 键 / 右键 / 双击 旋转拼块</p>
-            <p>· 滚轮 / 双指捏合缩放画布，拖动空白处平移</p>
+            <p>· Images are stored only in your browser (IndexedDB) and never uploaded to a server</p>
+            <p>· Progress is saved automatically — close the page and pick up where you left off</p>
+            <p>· With rotation mode on: press R / right-click / double-click to rotate pieces</p>
+            <p>· Scroll or pinch to zoom the canvas, drag empty space to pan</p>
           </CardContent>
         </Card>
       </div>

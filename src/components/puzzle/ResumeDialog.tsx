@@ -24,19 +24,19 @@ export function ResumeDialog({ elapsed, moves, nop, onResume, onRestart }: Resum
           <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center">
             <History className="w-8 h-8 text-primary" />
           </div>
-          <CardTitle className="text-xl">发现未完成的拼图</CardTitle>
+          <CardTitle className="text-xl">Unfinished Puzzle Found</CardTitle>
         </CardHeader>
         <CardContent className="text-center space-y-5">
           <p className="text-sm text-muted-foreground">
-            {nop} 块 · 已用时 {Utils.fmtTime(elapsed)} · {moves} 步
+            {nop} pieces · {Utils.fmtTime(elapsed)} elapsed · {moves} moves
           </p>
           <div className="flex gap-3">
             <Button onClick={onRestart} variant="outline" className="flex-1 dark:bg-transparent">
               <RotateCcw className="w-4 h-4 mr-2" />
-              重新开始
+              Restart
             </Button>
             <Button onClick={onResume} className="flex-1">
-              继续拼图
+              Resume
             </Button>
           </div>
         </CardContent>

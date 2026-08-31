@@ -4,7 +4,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { useState, useEffect, useRef, Suspense, useCallback, useMemo } from 'react'
 import {
   Play, Pause, RotateCcw, Clock, Home, Shuffle, Eye, EyeOff,
-  ChevronLeft, ChevronRight, Trophy, Star, X, Volume2, VolumeX, RefreshCw, Bug,
+  ChevronLeft, ChevronRight, Trophy, Star, X, Volume2, VolumeX, RefreshCw,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -12,7 +12,7 @@ import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { Utils } from '@/lib/puzzle/core/utils'
 import { Subject, computeChoices, optimizeSubjectSize, type SubjectData } from '@/lib/puzzle/core/subject'
-import type { PieceChoice, PuzzleDebugInfo, SaveGameV6 } from '@/lib/puzzle/core/types'
+import type { PieceChoice, SaveGameV6 } from '@/lib/puzzle/core/types'
 import { PuzzleCanvas, type PuzzleCanvasHandle } from '@/components/puzzle/PuzzleCanvas'
 import { ResumeDialog } from '@/components/puzzle/ResumeDialog'
 import { loadSave, storeSave, clearSave, getRotationPref, setRotationPref } from '@/lib/puzzle/storage/save-store'
@@ -53,7 +53,6 @@ function PlayPuzzleContent() {
   const [rotationOn, setRotationOn] = useState(false)
   const [choices, setChoices] = useState<PieceChoice[]>([])
   const [selectedNop, setSelectedNop] = useState(0)
-  const [debugInfo, setDebugInfo] = useState<PuzzleDebugInfo | null>(null)
   const [remotePuzzle, setRemotePuzzle] = useState<PuzzleMeta | null>(null)
   const [puzzleLoading, setPuzzleLoading] = useState(!isCustom)
 
@@ -100,7 +99,7 @@ function PlayPuzzleContent() {
   const puzzle = useMemo<PuzzleMeta | null>(() => {
     if (isCustom) {
       return idbKey
-        ? { id: 'custom', title: '我的拼图', image_url: '', difficulty: 'medium' }
+        ? { id: 'custom', title: 'My Puzzle', image_url: '', difficulty: 'medium' }
         : null
     }
     return remotePuzzle
@@ -248,8 +247,8 @@ function PlayPuzzleContent() {
         if (cancelled) return
         setLoadError(
           err instanceof Error && err.message === 'missing-image'
-            ? '找不到这张图片（可能已被清理），请重新上传。'
-            : '图片加载失败，请稍后重试。'
+            ? "We couldn't find this image (it may have been cleared). Please upload it again."
+            : 'Failed to load the image. Please try again later.'
         )
       }
     })()
@@ -358,39 +357,11 @@ function PlayPuzzleContent() {
     setMuted(next)
   }, [])
 
-  const runDebug = useCallback(() => {
-    const info = gameRef.current?.getDebugInfo() ?? null
-    setDebugInfo(info)
-    if (info) {
-      // 同步打印到控制台，便于复制
-      console.group('%c[Jigsaw Debug]', 'color:#60a5fa;font-weight:bold')
-      console.log('图片原始尺寸:', `${info.image.naturalWidth} × ${info.image.naturalHeight}`)
-      console.log(
-        '参考图逻辑尺寸:',
-        `${info.image.subjectWidth} × ${info.image.subjectHeight}`,
-        `(物理画布 ${info.image.subjectCanvasWidth} × ${info.image.subjectCanvasHeight})`
-      )
-      console.log('世界(散布区)尺寸:', `${info.board.worldWidth} × ${info.board.worldHeight}`)
-      console.log('画布(屏幕)尺寸:', `${info.board.screenWidth} × ${info.board.screenHeight}`)
-      console.log('视图缩放:', info.board.viewScale, ' DPR:', info.board.devicePixelRatio)
-      console.log('图集:', `${info.atlas.pages} 页, bakeDpr=${info.atlas.bakeDpr}`)
-      console.log('碎片数量:', info.pieceCount, ' 进度:', info.percent + '%', ' 步数:', info.moves)
-      console.table(info.pieces)
-      if (info.overlapCount > 0) {
-        console.warn(`⚠ 检测到 ${info.overlapCount} 对实体重叠:`)
-        console.table(info.overlaps)
-      } else {
-        console.log('%c✓ 无实体重叠', 'color:#22c55e')
-      }
-      console.groupEnd()
-    }
-  }, [])
-
   const toggleRotation = useCallback(() => {
     const next = !rotationOn
     // 中途切换旋转模式会重建拼图（存档依赖角度语义）
     if (isReady && progress > 0) {
-      const ok = window.confirm('切换旋转模式将重新开始本局，确定吗？')
+      const ok = window.confirm('Switching rotation mode will restart this puzzle. Are you sure?')
       if (!ok) return
     }
     setRotationPref(next)
@@ -438,7 +409,7 @@ function PlayPuzzleContent() {
           {loadError ? (
             <>
               <p className="text-foreground font-medium mb-4">{loadError}</p>
-              <Button onClick={() => router.push('/create')}>去创建拼图</Button>
+              <Button onClick={() => router.push('/create')}>Create a puzzle</Button>
             </>
           ) : (
             <>
@@ -533,7 +504,7 @@ function PlayPuzzleContent() {
                 size="icon"
                 onClick={toggleMute}
                 className="bg-secondary/60 text-foreground border border-border/60 dark:bg-white/[0.06] dark:text-white dark:border-white/10 hover:bg-secondary dark:hover:bg-white/10 transition-all"
-                title={muted ? '取消静音' : '静音'}
+                title={muted ? 'Unmute' : 'Mute'}
               >
                 {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
               </Button>
@@ -548,7 +519,7 @@ function PlayPuzzleContent() {
                     ? 'bg-primary/10 text-primary border-primary/30 dark:bg-primary/20 dark:text-primary dark:border-primary/40 hover:bg-primary/20 dark:hover:bg-primary/30'
                     : 'bg-secondary/60 text-foreground border-border/60 dark:bg-white/[0.06] dark:text-white dark:border-white/10 hover:bg-secondary dark:hover:bg-white/10'
                 )}
-                title={rotationOn ? '关闭旋转模式' : '开启旋转模式（R 键/右键/双击旋转）'}
+                title={rotationOn ? 'Turn off rotation mode' : 'Turn on rotation mode (R key / right-click / double-click to rotate)'}
               >
                 <RefreshCw className="h-4 w-4" />
               </Button>
@@ -576,22 +547,6 @@ function PlayPuzzleContent() {
                 title="Scatter unsolved pieces"
               >
                 <Shuffle className="h-4 w-4" />
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={runDebug}
-                disabled={!isReady}
-                className={cn(
-                  'border border-transparent transition-all',
-                  debugInfo
-                    ? 'bg-primary/10 text-primary border-primary/30 dark:bg-primary/20 dark:text-primary dark:border-primary/40 hover:bg-primary/20 dark:hover:bg-primary/30'
-                    : 'bg-secondary/60 text-foreground border-border/60 dark:bg-white/[0.06] dark:text-white dark:border-white/10 hover:bg-secondary dark:hover:bg-white/10'
-                )}
-                title="调试信息（图片/画布尺寸、碎片位置、重叠检测）"
-              >
-                <Bug className="h-4 w-4" />
               </Button>
 
               {!isPlaying ? (
@@ -677,118 +632,8 @@ function PlayPuzzleContent() {
                 <span className="w-20 h-20 rounded-full bg-white/10 border border-white/20 flex items-center justify-center">
                   <Play className="w-9 h-9 ml-1" />
                 </span>
-                <span className="text-sm font-medium">已暂停 · 点击继续</span>
+                <span className="text-sm font-medium">Paused · Click to resume</span>
               </button>
-            </div>
-          )}
-
-          {/* 调试面板 */}
-          {debugInfo && (
-            <div className="absolute top-3 left-3 z-[1400] w-[340px] max-w-[calc(100%-24px)] max-h-[calc(100%-24px)] flex flex-col rounded-xl border border-border/60 dark:border-white/15 bg-card/95 dark:bg-[#0f172a]/95 backdrop-blur-md shadow-2xl text-xs">
-              <div className="flex items-center justify-between px-3 py-2 border-b border-border/60 dark:border-white/10">
-                <div className="flex items-center gap-1.5 font-bold text-foreground">
-                  <Bug className="w-4 h-4 text-primary" />
-                  调试信息
-                </div>
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={runDebug}
-                    className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-secondary/60 dark:hover:bg-white/10 transition-colors cursor-pointer"
-                    title="刷新"
-                  >
-                    <RefreshCw className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    onClick={() => setDebugInfo(null)}
-                    className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-secondary/60 dark:hover:bg-white/10 transition-colors cursor-pointer"
-                    aria-label="关闭"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-              <div className="overflow-y-auto p-3 space-y-2 font-mono text-[11px] leading-relaxed text-foreground">
-                <div className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5">
-                  <span className="text-muted-foreground">图片原始</span>
-                  <span>{debugInfo.image.naturalWidth} × {debugInfo.image.naturalHeight}</span>
-                  <span className="text-muted-foreground">参考图逻辑</span>
-                  <span>{debugInfo.image.subjectWidth} × {debugInfo.image.subjectHeight}</span>
-                  <span className="text-muted-foreground">参考图物理</span>
-                  <span>{debugInfo.image.subjectCanvasWidth} × {debugInfo.image.subjectCanvasHeight}</span>
-                  <span className="text-muted-foreground">世界(散布区)</span>
-                  <span>{debugInfo.board.worldWidth} × {debugInfo.board.worldHeight}</span>
-                  <span className="text-muted-foreground">画布(屏幕)</span>
-                  <span>{debugInfo.board.screenWidth} × {debugInfo.board.screenHeight}</span>
-                  <span className="text-muted-foreground">视图缩放</span>
-                  <span>{debugInfo.board.viewScale}× · DPR {debugInfo.board.devicePixelRatio}</span>
-                  <span className="text-muted-foreground">图集</span>
-                  <span>{debugInfo.atlas.pages} 页 · bakeDpr {debugInfo.atlas.bakeDpr}</span>
-                  <span className="text-muted-foreground">碎片数量</span>
-                  <span>
-                    {debugInfo.pieceCount}
-                    {debugInfo.choice && ` (${debugInfo.choice.rows}×${debugInfo.choice.cols}, size ${debugInfo.choice.size})`}
-                  </span>
-                  <span className="text-muted-foreground">进度 / 步数</span>
-                  <span>{debugInfo.percent}% · {debugInfo.moves} 步</span>
-                </div>
-
-                <div
-                  className={cn(
-                    'px-2 py-1.5 rounded font-sans font-semibold',
-                    debugInfo.overlapCount > 0
-                      ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                      : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                  )}
-                >
-                  {debugInfo.overlapCount > 0
-                    ? `⚠ ${debugInfo.overlapCount} 对碎片重叠`
-                    : '✓ 无碎片重叠'}
-                </div>
-
-                {debugInfo.overlapCount > 0 && (
-                  <div className="space-y-0.5">
-                    {debugInfo.overlaps.slice(0, 20).map((o, i) => (
-                      <div key={i} className="text-red-600 dark:text-red-400">
-                        #{o.a} ↔ #{o.b} · 深度 ({o.depthX}, {o.depthY})px
-                      </div>
-                    ))}
-                    {debugInfo.overlaps.length > 20 && (
-                      <div className="text-muted-foreground">…还有 {debugInfo.overlaps.length - 20} 对</div>
-                    )}
-                  </div>
-                )}
-
-                <details className="mt-1">
-                  <summary className="cursor-pointer text-muted-foreground font-sans select-none">
-                    碎片位置列表（{debugInfo.pieces.length}）
-                  </summary>
-                  <div className="mt-1 space-y-0.5 max-h-48 overflow-y-auto">
-                    <div className="grid grid-cols-[2rem_3.5rem_3.5rem_2.5rem_2rem] gap-x-1 text-muted-foreground border-b border-border/40 dark:border-white/10 pb-0.5">
-                      <span>id</span><span>x</span><span>y</span><span>ang</span><span>grp</span>
-                    </div>
-                    {debugInfo.pieces.map((p) => (
-                      <div
-                        key={p.id}
-                        className={cn(
-                          'grid grid-cols-[2rem_3.5rem_3.5rem_2.5rem_2rem] gap-x-1',
-                          debugInfo.overlaps.some((o) => o.a === p.id || o.b === p.id) &&
-                            'text-red-600 dark:text-red-400'
-                        )}
-                      >
-                        <span>{p.id}</span>
-                        <span>{Math.round(p.x)}</span>
-                        <span>{Math.round(p.y)}</span>
-                        <span>{p.angle}°</span>
-                        <span>{p.groupSize > 1 ? `g${p.group}` : '-'}</span>
-                      </div>
-                    ))}
-                  </div>
-                </details>
-
-                <p className="text-muted-foreground font-sans text-[10px] pt-1 border-t border-border/40 dark:border-white/10">
-                  完整数据已打印到浏览器控制台（含 console.table）
-                </p>
-              </div>
             </div>
           )}
 

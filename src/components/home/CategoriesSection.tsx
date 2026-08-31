@@ -140,7 +140,7 @@ export function CategoriesSection() {
               ))}
             </div>
           </div>
-          <Link href="/daily" className="btn btn-primary">
+          <Link href="/daily" className="btn btn-primary btn-md">
             Play Today&apos;s Puzzle
           </Link>
         </div>

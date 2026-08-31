@@ -31,7 +31,7 @@ export const Utils = {
       const img = new Image();
       img.crossOrigin = 'anonymous';
       img.onload = () => resolve(img);
-      img.onerror = () => reject(new Error('图片加载失败'));
+      img.onerror = () => reject(new Error('failed to load image'));
       img.src = src;
     });
   },

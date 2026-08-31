@@ -3,16 +3,9 @@
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Fraunces } from 'next/font/google'
 import { ArrowRight, CalendarDays, Clock3, Play, Puzzle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { fetchDailyPuzzle, type DailyPuzzle } from '@/lib/data/public'
-
-const display = Fraunces({
-  subsets: ['latin'],
-  style: ['italic'],
-  weight: ['400', '600'],
-})
 
 const FALLBACK_DAILY: DailyPuzzle = {
   id: 'rainbow-glass-texture',
@@ -73,15 +66,15 @@ function PuzzlePiece({
       <Image
         src={src}
         alt=""
-        fill
+        width={1200}
+        height={900}
         sizes="(max-width: 1024px) 50vw, 310px"
-        className="object-cover"
+        className="absolute max-w-none object-cover"
         style={{
           width: '400%',
           height: '300%',
           left: `${-col * 100}%`,
           top: `${-row * 100}%`,
-          maxWidth: 'none',
         }}
       />
     </span>
@@ -145,12 +138,7 @@ export function HeroSection() {
           {/* Left — why play */}
           <div className="max-w-[560px]">
             <h1 className="text-[2.6rem] font-black leading-[1.05] tracking-[-0.04em] text-slate-950 sm:text-6xl lg:text-[4.4rem] dark:text-white">
-              <span className="hero-rise hero-d-1 block">
-                <span className={cn(display.className, 'font-semibold italic tracking-normal')}>
-                  Free
-                </span>{' '}
-                Online
-              </span>
+              <span className="hero-rise hero-d-1 block">Free Online</span>
               <span className="hero-rise hero-d-2 relative inline-block">
                 Jigsaw Puzzles
                 <svg
@@ -301,7 +289,7 @@ export function HeroSection() {
                 </p>
                 <Link
                   href={`/play/${dailyPuzzle.slug}`}
-                  className="btn btn-primary btn-shine group shrink-0 px-6"
+                  className="btn btn-primary btn-md btn-shine group shrink-0"
                 >
                   Play
                   <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
@@ -329,7 +317,7 @@ export function HeroSection() {
               <span className="mt-1 block text-xs text-slate-500 dark:text-slate-400">82 / 100 pieces</span>
             </div>
           </div>
-          <Link href="/play/alpine-lake-reflection" className="btn btn-outline">
+          <Link href="/play/alpine-lake-reflection" className="btn btn-outline btn-md">
             Continue Puzzle
           </Link>
         </div>
