@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowRight, CalendarDays, Clock3, Play, Puzzle } from 'lucide-react'
+import { ArrowRight, Clock3, Play, Puzzle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { fetchDailyPuzzle, type DailyPuzzle } from '@/lib/data/public'
 
@@ -83,7 +83,6 @@ function PuzzlePiece({
 
 export function HeroSection() {
   const [dailyPuzzle, setDailyPuzzle] = useState<DailyPuzzle>(FALLBACK_DAILY)
-  const [countdown, setCountdown] = useState('')
 
   useEffect(() => {
     let cancelled = false
@@ -96,26 +95,6 @@ export function HeroSection() {
       cancelled = true
     }
   }, [])
-
-  useEffect(() => {
-    const tick = () => {
-      const now = new Date()
-      const nextMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1)
-      const diff = nextMidnight.getTime() - now.getTime()
-      setCountdown(
-        `${Math.floor(diff / 3_600_000)}h ${Math.floor((diff % 3_600_000) / 60_000)}m`
-      )
-    }
-
-    tick()
-    const id = setInterval(tick, 20_000)
-    return () => clearInterval(id)
-  }, [])
-
-  const displayDate = new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-  }).format(new Date())
 
   const difficultyDot =
     dailyPuzzle.difficulty === 'Easy'
@@ -211,33 +190,19 @@ export function HeroSection() {
 
           {/* Right — the product itself */}
           <article className="hero-rise hero-d-3 relative mx-auto w-full max-w-[680px]">
-            <div className="relative overflow-hidden rounded-[26px] border border-white/90 bg-white/90 p-5 shadow-[0_30px_80px_-24px_rgba(30,41,59,.28)] backdrop-blur-xl sm:p-6 dark:border-white/10 dark:bg-slate-900/90">
-              <div className="flex items-center justify-between gap-3">
-                <p className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
-                  <span className="relative flex h-2 w-2">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500" />
-                  </span>
-                  Today&apos;s Puzzle
-                </p>
-                <div className="text-right">
-                  <span
-                    suppressHydrationWarning
-                    className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300"
-                  >
-                    <CalendarDays className="h-3.5 w-3.5" />
-                    {displayDate}
-                  </span>
-                  <p className="mt-0.5 text-[11px] font-medium text-slate-400 dark:text-slate-500">
-                    {countdown ? `New puzzle in ${countdown}` : 'New puzzle daily'}
-                  </p>
-                </div>
-              </div>
+            <div className="relative overflow-hidden rounded-[26px] border border-white/90 bg-white/90 p-4 shadow-[0_30px_80px_-24px_rgba(30,41,59,.28)] backdrop-blur-xl sm:p-5 dark:border-white/10 dark:bg-slate-900/90">
+              <p className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500" />
+                </span>
+                Today&apos;s Puzzle
+              </p>
 
               <Link
                 href={`/play/${dailyPuzzle.slug}`}
                 aria-label={`Play ${dailyPuzzle.title}`}
-                className="group/img relative mt-4 block aspect-[16/10] cursor-pointer overflow-hidden rounded-2xl bg-slate-100 ring-1 ring-slate-900/5 dark:ring-white/10"
+                className="group/img relative mt-3 block aspect-[16/10] cursor-pointer overflow-hidden rounded-2xl bg-slate-100 ring-1 ring-slate-900/5 dark:ring-white/10"
               >
                 <Image
                   src={dailyPuzzle.image_url}
@@ -260,9 +225,18 @@ export function HeroSection() {
                 <PuzzlePiece src={dailyPuzzle.image_url} col={2} row={2} delayClass="piece-snap-delay-2" />
               </Link>
 
-              <h2 className="mt-5 text-[1.65rem] font-black leading-tight tracking-tight text-slate-900 dark:text-white">
-                {dailyPuzzle.title}
-              </h2>
+              <div className="mt-4 flex items-center justify-between gap-4">
+                <h2 className="min-w-0 text-[1.65rem] font-black leading-tight tracking-tight text-slate-900 dark:text-white">
+                  {dailyPuzzle.title}
+                </h2>
+                <Link
+                  href={`/play/${dailyPuzzle.slug}`}
+                  className="btn btn-primary btn-md btn-shine group shrink-0"
+                >
+                  Play
+                  <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
+                </Link>
+              </div>
               <p className="mt-2 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-sm font-semibold text-slate-600 dark:text-slate-300">
                 <span className="flex items-center gap-1.5">
                   <Puzzle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
@@ -279,22 +253,6 @@ export function HeroSection() {
                   {Math.max(10, Math.round(dailyPuzzle.piece_count / 10))} min
                 </span>
               </p>
-
-              <div className="mt-5 flex items-center justify-between gap-4 border-t border-slate-100 pt-4 dark:border-white/10">
-                <p className="text-sm text-slate-500 dark:text-slate-400">
-                  <strong className="font-bold text-slate-900 dark:text-white">
-                    {Math.max(3800, dailyPuzzle.plays_count).toLocaleString()}
-                  </strong>{' '}
-                  played today
-                </p>
-                <Link
-                  href={`/play/${dailyPuzzle.slug}`}
-                  className="btn btn-primary btn-md btn-shine group shrink-0"
-                >
-                  Play
-                  <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
-                </Link>
-              </div>
             </div>
           </article>
         </div>

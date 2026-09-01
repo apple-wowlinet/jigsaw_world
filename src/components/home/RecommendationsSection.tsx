@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowRight, Flame, Play, Puzzle, Star, Users } from 'lucide-react'
+import { ArrowRight, Flame, Puzzle } from 'lucide-react'
 import { fetchPuzzles, type DisplayDifficulty, type PublicPuzzle } from '@/lib/data/public'
 import { cn } from '@/lib/utils'
 
@@ -95,15 +95,14 @@ export function RecommendationsSection() {
         </div>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {puzzles.slice(0, 4).map((item, index) => (
+          {puzzles.slice(0, 4).map((item) => (
             <Link
-              key={`${item.slug}-${index}`}
-              href={`/play/${item.slug}`}
+              key={`${item.slug}-${item.title}`}
+              href={`/puzzle/${item.slug}`}
               className="group flex items-center gap-3 rounded-xl border border-slate-200/80 bg-white p-2.5 shadow-[0_6px_18px_rgba(30,41,59,.08)] transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-lg dark:border-white/10 dark:bg-slate-900"
             >
               <div className="relative h-[86px] w-[105px] shrink-0 overflow-hidden rounded-lg">
                 <Image src={item.image_url} alt={item.title} fill sizes="105px" className="object-cover transition duration-500 group-hover:scale-105" />
-                <span className="absolute left-1.5 top-1.5 grid h-6 w-6 place-items-center rounded-full bg-white text-xs font-black text-amber-600 shadow">{index + 1}</span>
               </div>
               <div className="min-w-0 py-1">
                 <h3 className="truncate text-sm font-bold text-slate-900 group-hover:text-indigo-600 dark:text-white">{item.title}</h3>
@@ -141,7 +140,7 @@ export function RecommendationsSection() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {recommended.slice(0, 4).map((item, index) => (
             <article key={`${item.slug}-recommended-${index}`} className="group overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_8px_24px_rgba(30,41,59,.08)] transition hover:-translate-y-1 hover:shadow-xl dark:border-white/10 dark:bg-slate-900">
-              <Link href={`/play/${item.slug}`} className="relative block aspect-[1.42] overflow-hidden">
+              <Link href={`/puzzle/${item.slug}`} className="relative block aspect-[1.42] overflow-hidden">
                 <Image src={item.image_url} alt={item.title} fill sizes="(max-width: 1024px) 50vw, 25vw" className="object-cover transition duration-500 group-hover:scale-105" />
                 <span className="absolute right-3 top-3 rounded-full bg-white px-2.5 py-1 text-xs font-black text-slate-800 shadow-md">{item.piece_count}</span>
               </Link>
@@ -151,13 +150,6 @@ export function RecommendationsSection() {
                   <span className="flex items-center gap-1"><Puzzle className="h-3.5 w-3.5 fill-blue-600 text-blue-600" />{item.piece_count} pieces</span>
                   <span className="flex items-center gap-1"><span className={cn('h-2 w-2 rounded-full', item.difficulty === 'Easy' ? 'bg-emerald-500' : item.difficulty === 'Medium' ? 'bg-amber-400' : 'bg-rose-500')} />{item.difficulty}</span>
                 </div>
-                <div className="mt-3 flex items-center gap-5 text-xs text-slate-500 dark:text-slate-400">
-                  <span className="flex items-center gap-1"><Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />{item.rating}</span>
-                  <span className="flex items-center gap-1"><Users className="h-3.5 w-3.5" />{formatPlays(item.plays_count)}</span>
-                </div>
-                <Link href={`/play/${item.slug}`} className="mt-4 flex h-9 items-center justify-center gap-2 rounded-lg border border-indigo-100 text-xs font-bold text-indigo-600 transition hover:bg-indigo-50 dark:border-indigo-400/20 dark:text-indigo-300 dark:hover:bg-indigo-400/10">
-                  <Play className="h-3 w-3 fill-current" /> Play Puzzle
-                </Link>
               </div>
             </article>
           ))}

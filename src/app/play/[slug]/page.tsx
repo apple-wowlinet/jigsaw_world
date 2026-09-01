@@ -241,7 +241,8 @@ function PlayPuzzleContent() {
         } else {
           setSeed((Math.random() * 1e9) | 0)
           setPendingSave(null)
-          applyChoice(cs[0])
+          const requested = Number(searchParams?.get('pieces') ?? 0)
+          applyChoice(cs.find((c) => c.nop === requested) ?? cs[0])
         }
       } catch (err) {
         if (cancelled) return

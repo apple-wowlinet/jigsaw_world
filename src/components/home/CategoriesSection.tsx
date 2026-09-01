@@ -3,18 +3,7 @@
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import {
-  ArrowRight,
-  Building2,
-  Check,
-  Flame,
-  Palette,
-  PawPrint,
-  Puzzle,
-  Sparkles,
-  Trees,
-  Utensils,
-} from 'lucide-react'
+import { ArrowRight, Check, Flame } from 'lucide-react'
 import { fetchCategories, type PublicCategory } from '@/lib/data/public'
 
 const category = (
@@ -43,15 +32,6 @@ const FALLBACK_CATEGORIES: PublicCategory[] = [
   category('fantasy', 'Fantasy', 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=700&h=500&fit=crop', 'sparkles', 116),
   category('art', 'Art & Culture', 'https://images.unsplash.com/photo-1547891654-e66ed7ebb968?w=700&h=500&fit=crop', 'palette', 98),
 ]
-
-const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  trees: Trees,
-  'paw-print': PawPrint,
-  'building-2': Building2,
-  utensils: Utensils,
-  sparkles: Sparkles,
-  palette: Palette,
-}
 
 const themes = [
   ['🌸', 'Flowers', 'flowers'],
@@ -90,22 +70,16 @@ export function CategoriesSection() {
         </div>
 
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-          {categories.slice(0, 6).map((item) => {
-            const Icon = iconMap[item.icon] ?? Puzzle
-            return (
-              <Link key={item.id} href={`/category/${item.slug}`} className="group relative aspect-[1.45] overflow-hidden rounded-xl shadow-md">
-                <Image src={item.image_url} alt={item.name} fill sizes="(max-width: 640px) 50vw, 17vw" className="object-cover transition duration-500 group-hover:scale-110" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/15 to-transparent" />
-                <div className="absolute inset-x-0 bottom-0 flex items-end gap-2 p-3 text-white">
-                  <Icon className="mb-0.5 h-5 w-5 shrink-0" />
-                  <div className="min-w-0">
-                    <h3 className="truncate text-sm font-black">{item.name}</h3>
-                    <p className="text-[11px] text-white/80">{item.puzzle_count} puzzles</p>
-                  </div>
-                </div>
-              </Link>
-            )
-          })}
+          {categories.slice(0, 6).map((item) => (
+            <Link key={item.id} href={`/category/${item.slug}`} className="group relative aspect-[1.45] overflow-hidden rounded-xl shadow-md">
+              <Image src={item.image_url} alt={item.name} fill sizes="(max-width: 640px) 50vw, 17vw" className="object-cover transition duration-500 group-hover:scale-110" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/15 to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 p-3 text-white">
+                <h3 className="truncate text-sm font-black text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.45)]">{item.name}</h3>
+                <p className="mt-0.5 text-[11px] font-medium text-white/85 drop-shadow-[0_1px_2px_rgba(0,0,0,0.45)]">{item.puzzle_count} puzzles</p>
+              </div>
+            </Link>
+          ))}
         </div>
 
         <h2 className="mb-3 mt-6 text-lg font-black tracking-tight text-slate-900 dark:text-white">Popular Themes</h2>
