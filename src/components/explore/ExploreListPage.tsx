@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState, type ComponentType, type ReactNode } from 'react'
-import Image from 'next/image'
+import { SafeImage } from '@/components/ui/SafeImage'
 import Link from 'next/link'
 import {
   ArrowUpDown,
@@ -125,10 +125,10 @@ function difficultyClass(difficulty: string) {
 }
 
 function rankCircleClass(rank: number) {
-  if (rank === 1) return 'bg-gradient-to-b from-amber-300 to-amber-500 text-white shadow-[0_4px_12px_rgba(245,158,11,0.45)]'
-  if (rank === 2) return 'bg-gradient-to-b from-slate-300 to-slate-500 text-white shadow-[0_4px_12px_rgba(100,116,139,0.35)]'
-  if (rank === 3) return 'bg-gradient-to-b from-orange-400 to-amber-700 text-white shadow-[0_4px_12px_rgba(217,119,6,0.4)]'
-  return 'bg-black/60 text-white backdrop-blur-sm'
+  if (rank === 1) return 'bg-gradient-to-b from-[#e8cf9a] to-[#b98a2f] text-white shadow-[0_4px_12px_rgba(185,138,47,0.45)]'
+  if (rank === 2) return 'bg-gradient-to-b from-[#ddd8c8] to-[#948f7d] text-white shadow-[0_4px_12px_rgba(148,143,125,0.35)]'
+  if (rank === 3) return 'bg-gradient-to-b from-[#cd7a45] to-[#9c4b2b] text-white shadow-[0_4px_12px_rgba(156,75,43,0.4)]'
+  return 'bg-[#2c322a]/70 text-white backdrop-blur-sm'
 }
 
 function getPaginationItems(totalPages: number, currentPage: number) {
@@ -264,12 +264,12 @@ export function ExploreListPage({ mode }: { mode: ExploreMode }) {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="mx-auto max-w-7xl px-4 pb-16 pt-6 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1380px] px-4 pb-16 pt-6 sm:px-6 lg:px-8">
         <nav
           aria-label="Breadcrumb"
           className="flex items-center text-xs font-medium text-muted-foreground sm:text-sm"
         >
-          <Link href="/" className="transition-colors hover:text-primary">
+          <Link href="/" className="transition-colors hover:text-accent">
             Home
           </Link>
           <ChevronRight className="mx-1.5 h-3.5 w-3.5 text-muted-foreground/60" />
@@ -277,7 +277,7 @@ export function ExploreListPage({ mode }: { mode: ExploreMode }) {
         </nav>
 
         <header className="mt-4 mb-6">
-          <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+          <h1 className="font-display text-[32px] font-semibold leading-tight tracking-[-0.01em] text-foreground sm:text-[38px]">
             {copy.title}{' '}
             <span aria-hidden="true">{mode === 'trending' ? '🔥' : '🏆'}</span>
           </h1>
@@ -511,14 +511,14 @@ function HeroCard({
     <Link
       href={`/puzzle/${puzzle.slug}`}
       className={cn(
-        'group relative block overflow-hidden rounded-xl shadow-[0_8px_24px_rgba(15,23,42,0.12)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_16px_32px_rgba(15,23,42,0.16)]',
+        'group relative block overflow-hidden rounded-xl shadow-[0_12px_30px_-18px_rgba(80,60,25,0.4)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_20px_40px_-22px_rgba(80,60,25,0.45)]',
         featured
-          ? 'ring-2 ring-amber-400 ring-offset-2 ring-offset-background'
-          : 'ring-1 ring-black/5 dark:ring-white/10'
+          ? 'ring-2 ring-[#d8b25e] ring-offset-2 ring-offset-background'
+          : 'ring-1 ring-[#e7decb] dark:ring-[#3b3327]'
       )}
     >
       <div className={cn('relative w-full', featured ? 'aspect-[3/4]' : 'aspect-[4/5]')}>
-        <Image
+        <SafeImage
           src={puzzle.image_url}
           alt={puzzle.title}
           fill
@@ -526,7 +526,7 @@ function HeroCard({
           className="object-cover transition-transform duration-700 group-hover:scale-105"
           priority={rank <= 3}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#241d10]/90 via-[#241d10]/30 to-transparent" />
 
         <div
           className={cn(
@@ -557,7 +557,7 @@ function HeroCard({
               {formatPlays(playsCount)} plays
             </span>
             <span className="inline-flex items-center gap-1 text-white">
-              <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+              <Star className="h-3.5 w-3.5 fill-[#e8cf9a] text-[#e8cf9a]" />
               {puzzle.rating.toFixed(1)}
             </span>
             <span className="inline-flex items-center gap-1 text-white">
@@ -583,10 +583,10 @@ function GridCard({
   return (
     <Link
       href={`/puzzle/${puzzle.slug}`}
-      className="group overflow-hidden rounded-xl border border-border bg-card shadow-[0_2px_8px_rgba(15,23,42,0.08)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_10px_24px_rgba(15,23,42,0.12)]"
+      className="group overflow-hidden rounded-lg border border-border bg-card shadow-[0_10px_30px_-22px_rgba(80,60,25,0.4)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_40px_-24px_rgba(80,60,25,0.5)]"
     >
       <div className="relative aspect-[16/10] overflow-hidden bg-muted">
-        <Image
+        <SafeImage
           src={puzzle.image_url}
           alt={puzzle.title}
           fill
@@ -620,7 +620,7 @@ function GridCard({
             {formatPlays(playsCount)}
           </span>
           <span className="inline-flex items-center gap-1">
-            <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+            <Star className="h-3.5 w-3.5 fill-[#dca93f] text-[#dca93f]" />
             {puzzle.rating.toFixed(1)}
           </span>
           <span className="inline-flex items-center gap-1">

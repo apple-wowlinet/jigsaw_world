@@ -7,7 +7,7 @@ import {
   useState,
   type ComponentType,
 } from 'react'
-import Image from 'next/image'
+import { SafeImage } from '@/components/ui/SafeImage'
 import Link from 'next/link'
 import {
   ChevronDown,
@@ -61,9 +61,9 @@ const iconMap: Record<string, ComponentType<{ className?: string }>> = {
 }
 
 const difficultyStyles: Record<DisplayDifficulty, string> = {
-  Easy: 'border-emerald-500 bg-white/95 text-emerald-600',
-  Medium: 'border-orange-400 bg-white/95 text-orange-500',
-  Hard: 'border-red-500 bg-white/95 text-red-500',
+  Easy: 'difficulty-easy',
+  Medium: 'difficulty-medium',
+  Hard: 'difficulty-hard',
 }
 
 function combineCategories(remoteCategories: PublicCategory[]) {
@@ -252,16 +252,16 @@ function CategoryContent() {
 
   if (!category) {
     return (
-      <div className="flex min-h-[65vh] items-center justify-center bg-white px-4 dark:bg-[#08080c]">
+      <div className="flex min-h-[65vh] items-center justify-center bg-background px-4">
         <div className="text-center">
-          <Puzzle className="mx-auto mb-4 h-12 w-12 text-slate-300" />
-          <h1 className="text-2xl font-extrabold">Category not found</h1>
-          <p className="mt-2 text-sm text-slate-500">
+          <Puzzle className="mx-auto mb-4 h-12 w-12 text-sand-dark" />
+          <h1 className="font-display text-2xl font-semibold">Category not found</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
             The category you&apos;re looking for doesn&apos;t exist.
           </p>
           <Link
             href="/categories"
-            className="mt-6 inline-flex rounded-lg bg-[#4b925f] px-5 py-2.5 text-sm font-bold text-white"
+            className="btn btn-primary btn-md mt-6"
           >
             Browse categories
           </Link>
@@ -276,55 +276,49 @@ function CategoryContent() {
   const paginationItems = getPaginationItems(totalPages, currentPage)
 
   return (
-    <div className="min-h-screen bg-white text-[#111827] dark:bg-[#08080c] dark:text-white">
-      <main className="mx-auto max-w-[1400px] px-4 pb-16 pt-5 sm:px-6 lg:px-9">
+    <div className="min-h-screen bg-background text-foreground">
+      <main className="mx-auto max-w-[1380px] px-4 pb-16 pt-5 sm:px-6 lg:px-8">
         <nav
           aria-label="Breadcrumb"
           className="flex min-w-0 items-center gap-2 overflow-x-auto whitespace-nowrap text-[11px] font-medium text-slate-500 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:text-xs"
         >
-          <Link href="/" className="transition hover:text-[#4b925f]">
+          <Link href="/" className="transition hover:text-accent">
             Home
           </Link>
-          <ChevronRight className="h-3 w-3 shrink-0 text-slate-300 dark:text-slate-600" />
-          <Link href="/categories" className="transition hover:text-[#4b925f]">
+          <ChevronRight className="h-3 w-3 shrink-0 text-sand-dark" />
+          <Link href="/categories" className="transition hover:text-accent">
             Categories
           </Link>
           {ancestors.map((ancestor) => (
             <span key={ancestor.slug} className="contents">
-              <ChevronRight className="h-3 w-3 shrink-0 text-slate-300 dark:text-slate-600" />
+              <ChevronRight className="h-3 w-3 shrink-0 text-sand-dark" />
               <Link
                 href={`/category/${ancestor.slug}`}
-                className="transition hover:text-[#4b925f]"
+                className="transition hover:text-accent"
               >
                 {ancestor.name}
               </Link>
             </span>
           ))}
-          <ChevronRight className="h-3 w-3 shrink-0 text-slate-300 dark:text-slate-600" />
+          <ChevronRight className="h-3 w-3 shrink-0 text-sand-dark" />
           <span className="font-semibold text-slate-600 dark:text-slate-300">
             {category.name}
           </span>
         </nav>
 
         <header className="mt-4 flex items-center gap-5">
-          <div
-            className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full shadow-sm sm:h-[72px] sm:w-[72px]"
-            style={{ backgroundColor: category.color }}
-          >
-            <CategoryIcon className="h-8 w-8 text-white sm:h-9 sm:w-9" />
+          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border border-border bg-primary-subtle shadow-sm sm:h-[72px] sm:w-[72px]">
+            <CategoryIcon className="h-8 w-8 text-primary sm:h-9 sm:w-9" />
           </div>
           <div className="min-w-0">
-            <h1 className="truncate text-[28px] font-black leading-tight tracking-[-0.035em] text-[#10172c] dark:text-white sm:text-[34px]">
+            <h1 className="font-display truncate text-[30px] font-semibold leading-tight tracking-[-0.01em] text-foreground sm:text-[36px]">
               {category.name} Puzzles
             </h1>
-            <p className="mt-0.5 truncate text-xs font-medium text-slate-500 dark:text-slate-400 sm:text-sm">
+            <p className="mt-0.5 truncate text-xs font-medium text-muted-foreground sm:text-sm">
               {category.description}
             </p>
-            <p className="mt-1.5 inline-flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300">
-              <Puzzle
-                className="h-4 w-4 fill-current"
-                style={{ color: category.color }}
-              />
+            <p className="mt-1.5 inline-flex items-center gap-2 text-xs font-bold text-muted-foreground">
+              <Puzzle className="h-4 w-4 fill-accent text-accent" />
               {category.puzzleCount.toLocaleString()} puzzles
             </p>
           </div>
@@ -338,7 +332,7 @@ function CategoryContent() {
             <div className="-mx-1 flex min-w-0 items-center gap-1 overflow-x-auto px-1 py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <Link
                 href={`/category/${category.slug}`}
-                className="inline-flex h-8 shrink-0 items-center rounded-full bg-[#4b925f] px-4 text-xs font-bold text-white shadow-sm"
+                className="inline-flex h-8 shrink-0 items-center rounded-md bg-primary px-4 text-xs font-bold text-primary-foreground shadow-sm"
               >
                 All
               </Link>
@@ -346,7 +340,7 @@ function CategoryContent() {
                 <Link
                   key={child.slug}
                   href={`/category/${child.slug}`}
-                  className="inline-flex h-8 shrink-0 items-center rounded-md border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-600 transition hover:border-[#4b925f]/40 hover:text-[#377249] dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:text-emerald-400"
+                  className="inline-flex h-8 shrink-0 items-center rounded-md border border-[#ddd2ba] bg-card px-4 text-xs font-semibold text-muted-foreground transition hover:border-accent/60 hover:text-accent dark:border-[#3b3327]"
                 >
                   {child.name}
                 </Link>
@@ -359,7 +353,7 @@ function CategoryContent() {
                   aria-expanded={moreCategoriesOpen}
                   aria-haspopup="menu"
                   onClick={() => setMoreCategoriesOpen((open) => !open)}
-                  className="flex h-8 items-center gap-1 rounded-md border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-600 transition hover:border-[#4b925f]/40 dark:border-white/10 dark:bg-white/5 dark:text-slate-300"
+                  className="flex h-8 items-center gap-1 rounded-md border border-[#ddd2ba] bg-card px-4 text-xs font-semibold text-muted-foreground transition hover:border-accent/60 dark:border-[#3b3327]"
                 >
                   More
                   <ChevronDown
@@ -372,7 +366,7 @@ function CategoryContent() {
                 {moreCategoriesOpen && (
                   <div
                     role="menu"
-                    className="absolute left-0 top-10 z-30 min-w-40 overflow-hidden rounded-lg border border-slate-200 bg-white p-1.5 shadow-xl dark:border-white/10 dark:bg-[#17171e]"
+                    className="absolute left-0 top-10 z-30 min-w-40 overflow-hidden rounded-lg border border-border bg-popover p-1.5 shadow-xl"
                   >
                     {overflowChildren.map((child) => (
                       <Link
@@ -380,7 +374,7 @@ function CategoryContent() {
                         href={`/category/${child.slug}`}
                         role="menuitem"
                         onClick={() => setMoreCategoriesOpen(false)}
-                        className="block rounded-md px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-[#377249] dark:text-slate-300 dark:hover:bg-white/5"
+                        className="block rounded-md px-3 py-2 text-xs font-semibold text-muted-foreground hover:bg-secondary hover:text-accent"
                       >
                         {child.name}
                       </Link>
@@ -445,10 +439,10 @@ function CategoryContent() {
               ))}
             </div>
           ) : (
-            <div className="flex min-h-56 flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50/50 px-6 text-center dark:border-white/10 dark:bg-white/[0.025]">
-              <Puzzle className="mb-3 h-9 w-9 text-slate-300 dark:text-slate-600" />
-              <h2 className="text-sm font-extrabold">No puzzles found</h2>
-              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            <div className="flex min-h-56 flex-col items-center justify-center rounded-lg border border-dashed border-border bg-muted/30 px-6 text-center">
+              <Puzzle className="mb-3 h-9 w-9 text-sand-dark" />
+              <h2 className="font-display text-sm font-semibold">No puzzles found</h2>
+              <p className="mt-1 text-xs text-muted-foreground">
                 Try another difficulty or piece count.
               </p>
             </div>
@@ -478,8 +472,8 @@ function CategoryContent() {
                   className={cn(
                     'flex h-8 min-w-8 items-center justify-center rounded-md border px-2 text-xs font-bold transition',
                     item === currentPage
-                      ? 'border-[#4b925f] bg-[#4b925f] text-white'
-                      : 'border-slate-200 bg-white text-slate-600 hover:border-[#4b925f]/50 hover:text-[#377249] dark:border-white/10 dark:bg-white/5 dark:text-slate-300'
+                      ? 'border-primary bg-primary text-primary-foreground'
+                      : 'border-[#ddd2ba] bg-card text-muted-foreground hover:border-accent/60 hover:text-accent dark:border-[#3b3327]'
                   )}
                 >
                   {item}
@@ -524,7 +518,7 @@ function FilterSelect({
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="h-8 w-full appearance-none rounded-md border border-slate-200 bg-white py-0 pl-2.5 pr-7 text-[11px] font-semibold text-slate-600 shadow-sm outline-none transition focus:border-[#4b925f] dark:border-white/10 dark:bg-white/5 dark:text-slate-200 sm:pl-3 sm:text-xs"
+        className="h-8 w-full appearance-none rounded-md border border-input bg-card py-0 pl-2.5 pr-7 text-[11px] font-semibold text-muted-foreground shadow-sm outline-none transition focus:border-accent sm:pl-3 sm:text-xs"
       >
         {options.map(([optionValue, optionLabel]) => (
           <option key={optionValue} value={optionValue}>
@@ -532,7 +526,7 @@ function FilterSelect({
           </option>
         ))}
       </select>
-      <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500" />
+      <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
     </label>
   )
 }
@@ -541,52 +535,44 @@ function PuzzleCard({ puzzle }: { puzzle: PublicPuzzle }) {
   return (
     <Link
       href={`/puzzle/${puzzle.slug}`}
-      className="group overflow-hidden rounded-lg border border-slate-200 bg-white shadow-[0_2px_7px_rgba(15,23,42,0.09)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_9px_22px_rgba(15,23,42,0.14)] dark:border-white/10 dark:bg-[#14141a]"
+      className="group overflow-hidden rounded-lg border border-[#e7decb] bg-card shadow-[0_10px_30px_-22px_rgba(80,60,25,0.4)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_40px_-24px_rgba(80,60,25,0.5)] dark:border-[#3b3327]"
     >
-      <div className="relative aspect-[1.55/1] overflow-hidden bg-slate-100">
-        <Image
+      <div className="relative aspect-[1.55/1] overflow-hidden bg-muted">
+        <SafeImage
           src={puzzle.image_url}
           alt={puzzle.title}
           fill
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
           className="object-cover transition-transform duration-500 group-hover:scale-105"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/15 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#241d10]/90 via-[#241d10]/15 to-transparent" />
         <span
           className={cn(
-            'absolute right-2.5 top-2 rounded-full border px-2.5 py-0.5 text-[10px] font-bold shadow-sm',
+            'absolute right-2.5 top-2 rounded-full px-2.5 py-0.5 text-[10px] font-bold shadow-sm',
             difficultyStyles[puzzle.difficulty]
           )}
         >
           {puzzle.difficulty}
         </span>
-        <div className="absolute inset-x-0 bottom-0 px-3 pb-2.5 text-white">
-          <p className="truncate text-[13px] font-extrabold leading-tight text-white drop-shadow-[0_2px_3px_rgba(0,0,0,0.95)] sm:text-sm">
+        <div className="absolute inset-x-0 bottom-0 px-3 pb-2.5">
+          <p className="truncate font-display text-[15px] font-semibold leading-tight text-white [text-shadow:0_1px_8px_rgba(20,14,4,0.7)] sm:text-base">
             {puzzle.title}
           </p>
           <div className="mt-1.5 flex items-center justify-between gap-2 text-[10px] font-medium">
-            <span className="flex min-w-0 items-center gap-1">
+            <span className="flex min-w-0 items-center gap-1 text-white/90">
               <Puzzle className="h-3.5 w-3.5 shrink-0" />
               {puzzle.piece_count} pieces
               <span className="text-white/50">•</span>
-              <span
-                className={cn(
-                  puzzle.difficulty === 'Easy' && 'text-emerald-300',
-                  puzzle.difficulty === 'Medium' && 'text-orange-300',
-                  puzzle.difficulty === 'Hard' && 'text-red-300'
-                )}
-              >
-                {puzzle.difficulty}
-              </span>
+              {puzzle.difficulty}
             </span>
-            <span className="flex shrink-0 items-center gap-1">
-              <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+            <span className="flex shrink-0 items-center gap-1 text-white/90">
+              <Star className="h-3.5 w-3.5 fill-[#dca93f] text-[#dca93f]" />
               {puzzle.rating.toFixed(1)}
             </span>
           </div>
         </div>
       </div>
-      <div className="flex h-8 items-center px-3 text-[10px] font-medium text-slate-500 dark:text-slate-400">
+      <div className="flex h-8 items-center px-3 text-[10px] font-medium text-muted-foreground">
         <Users className="mr-1.5 h-3.5 w-3.5" />
         {formatCount(puzzle.plays_count)} plays
       </div>
@@ -611,7 +597,7 @@ function PaginationButton({
       aria-label={label}
       disabled={disabled}
       onClick={onClick}
-      className="flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 transition hover:border-[#4b925f]/50 hover:text-[#377249] disabled:cursor-not-allowed disabled:opacity-35 dark:border-white/10 dark:bg-white/5 dark:text-slate-300"
+      className="flex h-8 w-8 items-center justify-center rounded-md border border-[#ddd2ba] bg-card text-muted-foreground transition hover:border-accent/60 hover:text-accent disabled:cursor-not-allowed disabled:opacity-35 dark:border-[#3b3327]"
     >
       {children}
     </button>
@@ -620,8 +606,8 @@ function PaginationButton({
 
 function CategorySkeleton() {
   return (
-    <div className="min-h-screen bg-white dark:bg-[#08080c]">
-      <div className="mx-auto max-w-[1400px] px-4 pb-16 pt-5 sm:px-6 lg:px-9">
+    <div className="min-h-screen bg-background">
+      <div className="mx-auto max-w-[1380px] px-4 pb-16 pt-5 sm:px-6 lg:px-8">
         <div className="h-3 w-52 rounded-full skeleton" />
         <div className="mt-4 flex items-center gap-5">
           <div className="h-[72px] w-[72px] rounded-full skeleton" />
@@ -634,7 +620,7 @@ function CategorySkeleton() {
         <div className="mt-6 h-8 rounded-lg skeleton" />
         <div className="mt-4 grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
           {Array.from({ length: 8 }, (_, index) => (
-            <div key={index} className="overflow-hidden rounded-lg border border-slate-100 dark:border-white/5">
+            <div key={index} className="overflow-hidden rounded-lg border border-border">
               <div className="aspect-[1.55/1] skeleton" />
               <div className="h-8 skeleton" />
             </div>

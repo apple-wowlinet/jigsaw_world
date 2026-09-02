@@ -3,18 +3,11 @@
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Fraunces } from 'next/font/google'
 import { AlertCircle, Loader2, LockKeyhole, Mail, Puzzle, User } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { getSafeRedirectPath } from '@/lib/auth'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
-
-const display = Fraunces({
-  subsets: ['latin'],
-  style: ['italic'],
-  weight: ['400', '600'],
-})
 
 type AuthMode = 'login' | 'register'
 
@@ -139,43 +132,43 @@ export function AuthForm({ mode }: AuthFormProps) {
     }
   }
 
-  const inputClass = 'h-12 rounded-xl border-slate-200 bg-white pl-11 text-sm shadow-sm transition-all duration-200 hover:border-blue-300 focus-visible:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500/25 focus-visible:ring-offset-0 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-slate-500'
+  const inputClass =
+    'h-12 rounded-lg border-input bg-panel pl-11 text-sm text-foreground transition-all duration-200 hover:border-primary/40 focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/25 focus-visible:ring-offset-0'
 
   return (
     <div className="relative min-h-[calc(100vh-4rem)] overflow-hidden px-4 py-12 sm:px-6 lg:px-8">
+      {/* Gallery-wall backdrop: arched niche + warm light */}
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
         <div className="bg-dots absolute inset-0 [mask-image:radial-gradient(70%_60%_at_50%_35%,black,transparent)]" />
-        <div className="absolute -left-32 top-0 h-[440px] w-[440px] rounded-full bg-gradient-to-br from-sky-200/70 to-teal-100/40 blur-3xl dark:bg-sky-900/20" />
-        <div className="absolute -right-24 top-24 h-[420px] w-[420px] rounded-full bg-gradient-to-br from-amber-100/60 to-rose-100/40 blur-3xl dark:bg-amber-900/10" />
-        <div className="absolute -bottom-32 left-1/3 h-[420px] w-[420px] rounded-full bg-gradient-to-br from-teal-100/50 to-blue-100/30 blur-3xl dark:bg-teal-900/15" />
+        <div className="absolute -left-8 top-10 hidden h-[420px] w-[220px] rounded-t-full border border-sand-dark/50 bg-gradient-to-b from-parchment to-transparent lg:block dark:border-[#3b3327] dark:from-[#221d15]" />
+        <div className="absolute -right-24 top-24 h-[420px] w-[420px] rounded-full bg-accent-subtle/60 blur-3xl dark:bg-[#3a2517]/40" />
+        <div className="absolute -bottom-32 left-1/3 h-[420px] w-[420px] rounded-full bg-primary-subtle/70 blur-3xl dark:bg-[#24312a]/40" />
       </div>
 
       <div className="relative mx-auto flex w-full max-w-md flex-col items-center">
         <Link href="/" className="hero-rise mb-8 flex items-center gap-2.5">
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-blue-600 text-white shadow-[inset_0_1px_0_rgba(255,255,255,.25),0_8px_20px_-6px_rgba(37,99,235,.5)]">
-            <Puzzle className="h-5 w-5" />
-          </span>
-          <span className="text-xl font-black tracking-tight text-slate-900 dark:text-white">
-            JigsawWorld
+          <Puzzle className="h-8 w-8 text-foreground" strokeWidth={1.8} />
+          <span className="font-display text-[26px] font-semibold leading-none tracking-tight text-foreground">
+            Jigsaw<span className="text-accent">World</span>
           </span>
         </Link>
 
-        <div className="hero-rise hero-d-1 relative w-full overflow-hidden rounded-[24px] border border-white/90 bg-white/90 shadow-[0_30px_80px_-24px_rgba(30,41,59,.28)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/90">
-          <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-500 via-sky-400 to-teal-400" aria-hidden="true" />
+        <div className="hero-rise hero-d-1 relative w-full overflow-hidden rounded-lg border border-[#e7decb] bg-card shadow-[0_30px_70px_-38px_rgba(80,60,25,0.45)] dark:border-[#3b3327]">
+          <div className="h-[3px] bg-gradient-to-r from-primary via-gold to-accent" aria-hidden="true" />
 
           <div className="p-7 sm:p-8">
-            <h1 className="text-[1.7rem] font-black leading-tight tracking-tight text-slate-950 dark:text-white">
+            <h1 className="font-display text-[30px] font-semibold leading-tight tracking-[-0.01em] text-foreground">
               {isRegister ? (
-                <>Create your{' '}
-                  <span className={cn(display.className, 'font-semibold italic tracking-normal text-blue-600 dark:text-blue-400')}>account</span>
+                <>
+                  Create your <em className="accent-word">account</em>
                 </>
               ) : (
-                <><span className={cn(display.className, 'font-semibold italic tracking-normal text-blue-600 dark:text-blue-400')}>Welcome</span>{' '}
-                  back
+                <>
+                  <em className="accent-word">Welcome</em> back
                 </>
               )}
             </h1>
-            <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">
               {isRegister
                 ? 'Sign up with email or Google to save your puzzle progress.'
                 : 'Log in with email or Google to continue playing.'}
@@ -199,21 +192,19 @@ export function AuthForm({ mode }: AuthFormProps) {
 
             <div className="relative my-6" aria-hidden="true">
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-slate-200 dark:border-white/10" />
+                <span className="w-full border-t border-border" />
               </div>
               <div className="relative flex justify-center">
-                <span className="bg-transparent px-3 text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">
-                  or use email
-                </span>
+                <span className="label-caps bg-card px-3 text-[10px] text-muted-foreground">or use email</span>
               </div>
             </div>
 
             <form onSubmit={handleEmailAuth} className="space-y-4">
               {isRegister && (
                 <label className="block space-y-1.5">
-                  <span className="text-[13px] font-semibold text-slate-700 dark:text-slate-200">Display name</span>
+                  <span className="text-[13px] font-semibold text-foreground">Display name</span>
                   <div className="relative">
-                    <User className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <User className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
                       type="text"
                       value={username}
@@ -228,9 +219,9 @@ export function AuthForm({ mode }: AuthFormProps) {
               )}
 
               <label className="block space-y-1.5">
-                <span className="text-[13px] font-semibold text-slate-700 dark:text-slate-200">Email</span>
+                <span className="text-[13px] font-semibold text-foreground">Email</span>
                 <div className="relative">
-                  <Mail className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <Mail className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     type="email"
                     value={email}
@@ -245,9 +236,9 @@ export function AuthForm({ mode }: AuthFormProps) {
               </label>
 
               <label className="block space-y-1.5">
-                <span className="text-[13px] font-semibold text-slate-700 dark:text-slate-200">Password</span>
+                <span className="text-[13px] font-semibold text-foreground">Password</span>
                 <div className="relative">
-                  <LockKeyhole className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <LockKeyhole className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     type="password"
                     value={password}
@@ -263,14 +254,14 @@ export function AuthForm({ mode }: AuthFormProps) {
               </label>
 
               {error && (
-                <div className="flex gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-600 dark:border-rose-400/20 dark:bg-rose-400/10 dark:text-rose-300">
+                <div className="flex gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
                   <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                   <span>{error}</span>
                 </div>
               )}
 
               {message && (
-                <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-300">
+                <div className="rounded-lg border border-primary/30 bg-primary-subtle p-3 text-sm text-success">
                   {message}
                 </div>
               )}
@@ -281,11 +272,11 @@ export function AuthForm({ mode }: AuthFormProps) {
               </button>
             </form>
 
-            <p className="mt-6 text-center text-sm text-slate-500 dark:text-slate-400">
+            <p className="mt-6 text-center text-sm text-muted-foreground">
               {isRegister ? 'Already have an account?' : 'New to JigsawWorld?'}{' '}
               <Link
                 href={isRegister ? `/login?next=${encodeURIComponent(nextPath)}` : `/register?next=${encodeURIComponent(nextPath)}`}
-                className="font-bold text-blue-600 hover:underline dark:text-blue-400"
+                className="font-bold text-accent hover:text-accent/80 hover:underline"
               >
                 {isRegister ? 'Log in' : 'Create an account'}
               </Link>
@@ -293,9 +284,9 @@ export function AuthForm({ mode }: AuthFormProps) {
           </div>
         </div>
 
-        <p className="hero-rise hero-d-2 mt-6 text-center text-xs text-slate-400 dark:text-slate-500">
+        <p className="hero-rise hero-d-2 mt-6 text-center text-xs text-muted-foreground">
           Just here to play?{' '}
-          <Link href="/categories" className="font-bold text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400">
+          <Link href="/categories" className="font-bold text-foreground hover:text-accent">
             Browse puzzles as guest
           </Link>{' '}
           — no account needed.
