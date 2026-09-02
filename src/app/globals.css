@@ -260,6 +260,334 @@ html {
   box-shadow: inset 0 0 0 1px rgba(60, 42, 12, 0.55);
 }
 
+/* Daily puzzle gallery wall — entirely CSS, replacing the large ornamental PNG. */
+.daily-wall {
+  --wall-light: #fffdf7;
+  --wall-mid: #f1ece2;
+  --wall-shadow: #c9c0b2;
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  aspect-ratio: 1.38 / 1;
+  background:
+    linear-gradient(90deg,
+      rgba(120, 105, 82, 0.14) 0,
+      transparent 3.5%,
+      transparent 96.5%,
+      rgba(120, 105, 82, 0.18) 100%),
+    radial-gradient(ellipse at 53% 42%, #fffef9 0%, #f9f5ed 62%, #e8e1d6 100%);
+  border-right: 1px solid #cfc6b9;
+  border-left: 1px solid #d8d0c4;
+  filter: drop-shadow(0 14px 13px rgba(70, 57, 38, 0.12));
+}
+
+.daily-wall::before,
+.daily-wall::after {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Narrow vertical mouldings along the wall panel. */
+.daily-wall::before {
+  inset: 34px 12px 67px;
+  border: 1px solid rgba(166, 151, 128, 0.48);
+  box-shadow:
+    inset 4px 0 5px -4px rgba(82, 68, 49, 0.34),
+    inset -4px 0 5px -4px rgba(82, 68, 49, 0.34),
+    0 0 0 4px rgba(255, 253, 247, 0.55);
+}
+
+/* Hairline just above the stone plinth. */
+.daily-wall::after {
+  right: 0;
+  bottom: 63px;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(to bottom, #d7cec0, #fffdf8 55%, #c4baaa);
+  box-shadow: 0 4px 7px rgba(77, 61, 39, 0.14);
+}
+
+.daily-wall-cornice {
+  position: absolute;
+  z-index: 4;
+  top: 0;
+  right: -2.4%;
+  left: -2.4%;
+  height: 37px;
+  clip-path: polygon(2.2% 0, 97.8% 0, 100% 21%, 98.6% 34%, 98.6% 100%, 1.4% 100%, 1.4% 34%, 0 21%);
+  background:
+    linear-gradient(to bottom,
+      #b9ad9c 0 2px,
+      #fffef9 3px 7px,
+      #d7cdbf 8px 11px,
+      #fdfbf5 12px 17px,
+      #bdb2a3 18px 20px,
+      #eee8dd 21px 27px,
+      #fffdf8 28px 31px,
+      #c8bdad 32px 34px,
+      #eee9df 35px 100%);
+  border-top: 1px solid #a99c89;
+  box-shadow:
+    0 4px 7px rgba(72, 57, 37, 0.22),
+    inset 0 1px rgba(255, 255, 255, 0.95);
+}
+
+.daily-wall-heading {
+  position: absolute;
+  z-index: 5;
+  top: 5px;
+  left: 4.4%;
+  font-family: var(--font-display);
+  color: #716958;
+  font-size: clamp(0.58rem, 0.75vw, 0.72rem);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-shadow: 0 1px rgba(255, 255, 255, 0.8);
+}
+
+.daily-wall-recess {
+  position: absolute;
+  z-index: 2;
+  top: 40px;
+  right: 21px;
+  bottom: 77px;
+  left: 21px;
+  background:
+    radial-gradient(ellipse at 63% 42%, rgba(255, 255, 255, 0.94), transparent 58%),
+    linear-gradient(105deg, #f8f3ea 0%, #fffdf8 51%, #eee8dd 100%);
+  border: 1px solid #c8beae;
+  box-shadow:
+    inset 0 0 0 5px #f8f4ec,
+    inset 0 0 0 7px #d9d0c2,
+    inset 9px 10px 18px rgba(99, 82, 58, 0.18),
+    inset -5px -4px 12px rgba(255, 255, 255, 0.96),
+    0 0 0 5px rgba(255, 253, 247, 0.9),
+    0 0 0 7px rgba(183, 172, 156, 0.32);
+}
+
+.daily-puzzle-layout {
+  display: grid;
+  grid-template-columns: minmax(150px, 0.78fr) minmax(270px, 1.52fr);
+  align-items: center;
+  gap: clamp(16px, 2vw, 28px);
+  height: 100%;
+  padding: clamp(25px, 3.5vw, 43px) clamp(23px, 3vw, 35px);
+}
+
+.daily-puzzle-copy {
+  position: relative;
+  z-index: 2;
+  min-width: 0;
+  padding-left: clamp(4px, 0.75vw, 10px);
+}
+
+.daily-picture-frame {
+  position: relative;
+  aspect-ratio: 1.06 / 1;
+  width: 100%;
+  padding: clamp(7px, 0.8vw, 10px);
+  background:
+    linear-gradient(90deg, transparent 0 4px, rgba(57, 35, 13, 0.52) 4px 5px, transparent 5px calc(100% - 5px), rgba(255, 228, 175, 0.45) calc(100% - 5px) calc(100% - 4px), transparent calc(100% - 4px)),
+    linear-gradient(135deg, #7e572b 0%, #d4ae6e 12%, #8b6130 27%, #d8b976 48%, #795026 72%, #c39b5f 90%, #765027 100%);
+  border: 1px solid #74512d;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 235, 191, 0.62),
+    inset 0 0 0 3px rgba(94, 60, 24, 0.48),
+    7px 10px 15px rgba(65, 48, 28, 0.25),
+    1px 2px 2px rgba(44, 30, 15, 0.28);
+}
+
+.daily-picture-frame::before,
+.daily-picture-frame::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+}
+
+.daily-picture-frame::before {
+  inset: 3px;
+  border: 1px solid rgba(255, 224, 165, 0.56);
+  box-shadow: inset 0 0 0 2px rgba(69, 43, 18, 0.35);
+}
+
+.daily-picture-frame::after {
+  inset: -2px;
+  z-index: -1;
+  box-shadow: 0 0 0 1px rgba(72, 48, 23, 0.28);
+}
+
+.daily-picture-liner {
+  position: relative;
+  height: 100%;
+  padding: 3px;
+  background: linear-gradient(135deg, #4f351c, #d5b271 23%, #63431f 58%, #bc9557 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(44, 27, 10, 0.8),
+    inset 0 0 7px rgba(26, 16, 5, 0.62);
+}
+
+.daily-wall-ledge {
+  position: absolute;
+  z-index: 6;
+  right: -2.1%;
+  bottom: 0;
+  left: -2.1%;
+  height: 62px;
+  background:
+    linear-gradient(90deg, rgba(121, 104, 81, 0.1), transparent 6% 94%, rgba(121, 104, 81, 0.13)),
+    linear-gradient(to bottom, #e0d8cc 0%, #f8f4ed 10%, #e9e2d8 70%, #d0c6b7 94%, #aaa08f 100%);
+  border: 1px solid #c4b9a9;
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, 0.94),
+    inset 0 -3px 4px rgba(105, 87, 63, 0.16),
+    0 8px 8px -7px rgba(62, 47, 29, 0.38);
+}
+
+.daily-wall-ledge::before,
+.daily-wall-ledge::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+}
+
+.daily-wall-ledge::before {
+  top: -13px;
+  right: -1.1%;
+  left: -1.1%;
+  height: 15px;
+  border-radius: 2px 2px 4px 4px;
+  background: linear-gradient(to bottom, #c8bdad 0%, #fffef9 34%, #eee8de 66%, #bdb1a0 100%);
+  border: 1px solid #b9ad9c;
+  box-shadow:
+    inset 0 2px 1px rgba(255, 255, 255, 0.95),
+    0 5px 5px rgba(69, 53, 32, 0.17);
+}
+
+.daily-wall-ledge::after {
+  right: -0.8%;
+  bottom: -5px;
+  left: -0.8%;
+  height: 6px;
+  background: linear-gradient(to bottom, #faf8f2, #bfb4a3);
+  border: 1px solid #baae9e;
+  box-shadow: 0 4px 5px rgba(65, 49, 30, 0.2);
+}
+
+.daily-wall-plaque {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  min-width: 108px;
+  transform: translateX(-50%);
+  padding: 5px 15px 6px;
+  border: 1px solid #5d4020;
+  border-radius: 2px;
+  background: linear-gradient(145deg, #a27a43, #6e4b27 52%, #97703d);
+  box-shadow:
+    inset 0 0 0 1px rgba(226, 190, 124, 0.58),
+    0 2px 4px rgba(50, 33, 16, 0.36);
+  color: #f7ead2;
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.025em;
+  text-align: center;
+  text-shadow: 0 1px 1px rgba(49, 30, 12, 0.72);
+  white-space: nowrap;
+}
+
+.daily-wall-plaque::before,
+.daily-wall-plaque::after {
+  content: '•';
+  position: absolute;
+  top: 50%;
+  transform: translateY(-53%);
+  color: #d2ae6e;
+  font-size: 0.72rem;
+}
+
+.daily-wall-plaque::before { left: 5px; }
+.daily-wall-plaque::after { right: 5px; }
+
+.dark .daily-wall {
+  --wall-light: #302a21;
+  --wall-mid: #252019;
+  --wall-shadow: #17120e;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.28), transparent 5% 95%, rgba(0, 0, 0, 0.35)),
+    radial-gradient(ellipse at 53% 42%, #332c22 0%, #282219 65%, #1e1913 100%);
+  border-color: #493e31;
+  filter: drop-shadow(0 15px 14px rgba(0, 0, 0, 0.3));
+}
+
+.dark .daily-wall::before { border-color: #514638; box-shadow: inset 4px 0 5px -4px #0e0b08, inset -4px 0 5px -4px #0e0b08, 0 0 0 4px rgba(68, 58, 45, 0.48); }
+.dark .daily-wall::after { background: linear-gradient(to bottom, #4a4034, #332b22 55%, #1b1712); }
+.dark .daily-wall-cornice { filter: brightness(0.38) sepia(0.2); }
+.dark .daily-wall-heading { color: #c7b9a3; text-shadow: 0 1px #15110d; }
+.dark .daily-wall-recess {
+  background: radial-gradient(ellipse at 63% 42%, #342d23, #241f18 72%);
+  border-color: #55493a;
+  box-shadow: inset 0 0 0 5px #302920, inset 0 0 0 7px #4b4033, inset 9px 10px 18px rgba(0, 0, 0, 0.4), 0 0 0 5px #2b251d, 0 0 0 7px #514638;
+}
+.dark .daily-wall-ledge {
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.2), transparent 6% 94%, rgba(0, 0, 0, 0.25)),
+    linear-gradient(to bottom, #51473a, #302920 14%, #28221b 72%, #181410 100%);
+  border-color: #4d4235;
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.08), inset 0 -3px 4px rgba(0, 0, 0, 0.35), 0 8px 8px -7px rgba(0, 0, 0, 0.7);
+}
+.dark .daily-wall-ledge::before {
+  background: linear-gradient(to bottom, #514639, #342d24 38%, #241f19 68%, #17130f);
+  border-color: #584b3c;
+}
+.dark .daily-wall-ledge::after {
+  background: linear-gradient(to bottom, #3e362b, #17130f);
+  border-color: #493e31;
+}
+.dark .daily-wall-plaque {
+  background: linear-gradient(145deg, #a47a42, #6f4b27 52%, #98703d);
+  color: #f7ead2;
+}
+
+@media (max-width: 639px) {
+  .daily-wall {
+    min-height: 735px;
+    aspect-ratio: auto;
+  }
+
+  .daily-wall-recess {
+    right: 17px;
+    bottom: 77px;
+    left: 17px;
+  }
+
+  .daily-puzzle-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    gap: 22px;
+    padding: 39px 27px 30px;
+  }
+
+  .daily-puzzle-copy {
+    padding: 0 7px;
+  }
+
+  .daily-puzzle-copy ul {
+    display: grid;
+    grid-template-columns: repeat(3, auto);
+    gap: 10px;
+  }
+
+  .daily-picture-frame {
+    align-self: end;
+  }
+}
+
 /* Puzzle pieces snapping into the daily preview on load */
 @keyframes pieceSnap {
   0% {

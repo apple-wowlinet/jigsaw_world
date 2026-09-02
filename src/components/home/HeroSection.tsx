@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { SafeImage } from '@/components/ui/SafeImage'
 import Link from 'next/link'
-import { ArrowRight, Clock3, Layers, Play, Puzzle, Star } from 'lucide-react'
+import { ArrowRight, Clock3, Layers, Puzzle, Star } from 'lucide-react'
 import { fetchDailyPuzzle, type DailyPuzzle } from '@/lib/data/public'
 
 const FALLBACK_DAILY: DailyPuzzle = {
@@ -126,73 +126,67 @@ export function HeroSection() {
             </div>
           </div>
 
-          {/* Right — the daily puzzle, framed on the gallery ledge */}
-          <div className="relative mt-4 lg:mt-0">
-            <p className="label-caps mb-5 text-center text-muted-foreground lg:ml-[36%] lg:text-left">
-              Today&rsquo;s Puzzle
-            </p>
+          {/* Right — today's puzzle mounted in a CSS-built gallery wall. */}
+          <div className="relative mt-4 lg:mt-0 lg:-mr-5">
+            <div className="daily-wall">
+              <div className="daily-wall-cornice" aria-hidden="true" />
+              <p className="daily-wall-heading">Today&rsquo;s Puzzle</p>
 
-            <div className="relative pb-16">
-              {/* Info panel, overlapping the frame's left edge */}
-              <div className="relative z-10 mx-auto w-[86%] max-w-[340px] border border-[#e7decb] bg-panel p-6 shadow-[0_30px_60px_-30px_rgba(80,60,25,0.4)] sm:p-7 lg:absolute lg:left-0 lg:top-10 lg:mx-0 lg:w-[46%] dark:border-[#3b3327]">
-                <h2 className="font-display text-[32px] font-semibold leading-[1.1] text-foreground">
-                  {dailyPuzzle.title}
-                </h2>
-                <hr className="my-4 border-[#e0d6c0] dark:border-[#3b3327]" />
-                <p className="text-[13px] leading-6 text-muted-foreground">
-                  {dailyPuzzle.description ||
-                    'A beautiful scene worth every piece. Set aside a quiet moment and enjoy.'}
-                </p>
+              <div className="daily-wall-recess">
+                <div className="daily-puzzle-layout">
+                  <div className="daily-puzzle-copy">
+                    <h2 className="font-display text-[clamp(1.75rem,2vw,1.95rem)] font-semibold leading-[0.98] text-[#252219] dark:text-[#f0e9dc]">
+                      {dailyPuzzle.title}
+                    </h2>
+                    <hr className="my-4 w-12 border-[#cfc2a9] dark:border-[#514536]" />
+                    <p className="text-[12px] leading-[1.55] text-[#6e6657] dark:text-[#b8ae9c]">
+                      {dailyPuzzle.description ||
+                        'A beautiful scene worth every piece. Set aside a quiet moment and enjoy.'}
+                    </p>
 
-                <ul className="mt-5 space-y-2.5 text-[13px] font-medium text-foreground/85">
-                  <li className="flex items-center gap-2.5">
-                    <Puzzle className="h-4 w-4 text-primary" />
-                    {dailyPuzzle.piece_count} pieces
-                  </li>
-                  <li className="flex items-center gap-2.5">
-                    <Layers className="h-4 w-4 text-primary" />
-                    {dailyPuzzle.difficulty}
-                  </li>
-                  <li className="flex items-center gap-2.5">
-                    <Clock3 className="h-4 w-4 text-primary" />
-                    ~{Math.max(10, Math.round(dailyPuzzle.piece_count / 10))} min
-                  </li>
-                </ul>
+                    <ul className="mt-5 space-y-2.5 text-[12px] font-medium text-[#514c41] dark:text-[#d5cbbb]">
+                      <li className="flex items-center gap-2.5">
+                        <Puzzle className="h-3.5 w-3.5 text-[#72593b] dark:text-[#c9a66b]" />
+                        {dailyPuzzle.piece_count} pieces
+                      </li>
+                      <li className="flex items-center gap-2.5">
+                        <Layers className="h-3.5 w-3.5 text-[#72593b] dark:text-[#c9a66b]" />
+                        {dailyPuzzle.difficulty}
+                      </li>
+                      <li className="flex items-center gap-2.5">
+                        <Clock3 className="h-3.5 w-3.5 text-[#72593b] dark:text-[#c9a66b]" />
+                        ~{Math.max(10, Math.round(dailyPuzzle.piece_count / 10))} min
+                      </li>
+                    </ul>
 
-                <Link
-                  href={`/play/${dailyPuzzle.slug}`}
-                  className="btn btn-terracotta btn-md btn-shine mt-6"
-                >
-                  <Play className="h-3.5 w-3.5 fill-current" />
-                  Begin Puzzle
-                </Link>
-              </div>
+                    <Link
+                      href={`/play/${dailyPuzzle.slug}`}
+                      className="btn btn-terracotta btn-md btn-shine mt-6"
+                    >
+                      Begin Puzzle
+                    </Link>
+                  </div>
 
-              {/* Gilded frame */}
-              <div className="frame-gold relative ml-auto aspect-[4/4.4] w-[88%] p-[10px] sm:w-[70%] lg:w-[64%]">
-                <div className="frame-gold-inner h-full w-full p-[7px]">
-                  <div className="relative h-full w-full overflow-hidden">
-                    <SafeImage
-                      src={dailyPuzzle.image_url}
-                      alt={dailyPuzzle.title}
-                      fill
-                      priority
-                      sizes="(max-width: 1024px) 90vw, 460px"
-                      className="object-cover"
-                    />
-                    <div className="puzzle-grid absolute inset-0 opacity-40" aria-hidden="true" />
+                  <div className="daily-picture-frame">
+                    <div className="daily-picture-liner">
+                      <div className="relative h-full w-full overflow-hidden bg-[#d7d0c2]">
+                        <SafeImage
+                          src={dailyPuzzle.image_url}
+                          alt={dailyPuzzle.title}
+                          fill
+                          priority
+                          sizes="(max-width: 1024px) 88vw, 430px"
+                          className="object-cover"
+                        />
+                        <div className="puzzle-grid absolute inset-0 opacity-40" aria-hidden="true" />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Ledge + plaque */}
-              <div className="relative ml-auto -mt-1 w-[96%] sm:w-[78%] lg:w-[72%]">
-                <div className="h-[14px] rounded-[3px] bg-gradient-to-b from-[#fffdf6] to-[#e9e1cd] shadow-[0_10px_24px_-12px_rgba(80,60,25,0.45)] dark:from-[#332c22] dark:to-[#211c15]" />
-                <div className="mx-auto flex h-[16px] w-[104%] -translate-x-[2%] items-start justify-center rounded-b-md bg-[#ddd3ba] dark:bg-[#2a241b]">
-                  <span className="label-caps -translate-y-1/2 rounded-[3px] bg-[#8a5c39] px-3.5 py-1 text-[10px] text-[#f7efe2] shadow-md dark:bg-[#6f4a2d]">
-                    Featured Today
-                  </span>
-                </div>
+              <div className="daily-wall-ledge" aria-hidden="true">
+                <span className="daily-wall-plaque">Featured Today</span>
               </div>
             </div>
           </div>
