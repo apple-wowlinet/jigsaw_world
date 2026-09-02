@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
-import { ChevronDown, Crown, Globe2, Search, Sparkles, Star, Trophy, Users } from 'lucide-react'
+import { ChevronDown, Globe2, Search, Sparkles, Star, Trophy, Users } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -43,6 +43,7 @@ type EnrichedEntry = LeaderboardEntry & {
   flag: string
   games: number
   level: number
+  starAvg: number
 }
 
 const PLAYER_META: Record<string, Pick<EnrichedEntry, 'country' | 'flag'>> = {
@@ -67,6 +68,7 @@ function enrichEntry(entry: LeaderboardEntry): EnrichedEntry {
   const minutes = 10 + (entry.rank % 7)
   const seconds = String((entry.rank * 17) % 60).padStart(2, '0')
   const change = [4, 2, -1, 3, -2, 1, 0, 5, -3, 2, 1, -1][entry.rank - 1] ?? 0
+  const starAvg = 2 + ((entry.userId.charCodeAt(1) * 7 + entry.rank * 3) % 15) / 10
 
   return {
     ...entry,
@@ -75,6 +77,7 @@ function enrichEntry(entry: LeaderboardEntry): EnrichedEntry {
     change,
     games,
     level,
+    starAvg,
   }
 }
 
@@ -205,7 +208,7 @@ function LeaderboardContent({ period }: { period: LeaderboardPeriod }) {
         </section>
 
         {top3.length > 0 && (
-          <section className="mt-5 grid gap-5 lg:grid-cols-3">
+          <section className="mt-6 grid gap-5 lg:grid-cols-[1fr_1.1fr_1fr] lg:gap-6">
             {top3.map((entry) => (
               <PodiumCard key={entry.userId} entry={entry} />
             ))}
@@ -243,54 +246,88 @@ function MetricCard({ icon, title, value }: { icon: React.ReactNode; title: stri
   )
 }
 
+/* public/golden_900.png is a 900x425 strip of three medal images
+   (silver "2" / gold "1" / bronze "3", 300px per slice) with hollow centers.
+   Hole center and diameter below are measured from the sprite: d=192px = 64% of a slice. */
+const MEDAL_SPRITE: Record<number, { pos: string; cx: number; cy: number }> = {
+  1: { pos: '50% 0%', cx: 50.2, cy: 63.2 },
+  2: { pos: '0% 0%', cx: 51, cy: 63.6 },
+  3: { pos: '100% 0%', cx: 50.7, cy: 63.8 },
+}
+
+const PODIUM_STYLE: Record<number, { card: string; games: string; star: string }> = {
+  1: {
+    card: 'border-[#f7d97e] bg-[linear-gradient(150deg,#fdf3c7_0%,#fefdf4_48%,#fdeccb_100%)] dark:border-[#8a6d2f]/60 dark:bg-[linear-gradient(150deg,rgba(216,178,94,0.22),rgba(255,255,255,0.06))]',
+    games: 'bg-[#fff2ba] text-[#ab3a00] dark:bg-[#fff2ba]/15 dark:text-[#f0b45c]',
+    star: 'bg-[#fffbf2] text-[#3a4353] dark:bg-white/10 dark:text-zinc-100',
+  },
+  2: {
+    card: 'border-[#dbe2ed] bg-[linear-gradient(155deg,#f7f8fc_0%,#edf3fc_45%,#dae1f8_100%)] dark:border-[#565f74]/60 dark:bg-[linear-gradient(155deg,rgba(168,178,210,0.22),rgba(255,255,255,0.06))]',
+    games: 'bg-[#f1f5fa] text-[#263145] dark:bg-white/10 dark:text-zinc-100',
+    star: 'bg-[#f5f6fe] text-[#3a4353] dark:bg-white/10 dark:text-zinc-100',
+  },
+  3: {
+    card: 'border-[#ffce98] bg-[linear-gradient(150deg,#fff5e9_0%,#fdeeee_45%,#fdf2bf_100%)] dark:border-[#a06b3a]/60 dark:bg-[linear-gradient(150deg,rgba(205,140,90,0.22),rgba(255,255,255,0.06))]',
+    games: 'bg-[#ffeaca] text-[#bc2200] dark:bg-[#ffeaca]/15 dark:text-[#ff9d6b]',
+    star: 'bg-[#fefbef] text-[#3a4353] dark:bg-white/10 dark:text-zinc-100',
+  },
+}
+
 function PodiumCard({ entry }: { entry: EnrichedEntry }) {
-  const isChampion = entry.rank === 1
-  const medalStyle = getMedalStyle(entry.rank)
+  const style = PODIUM_STYLE[entry.rank] ?? PODIUM_STYLE[3]
+  const sprite = MEDAL_SPRITE[entry.rank] ?? MEDAL_SPRITE[3]
 
   return (
-    <Card className={cn(
-      'group relative overflow-hidden rounded-lg border-0 shadow-[0_18px_45px_-28px_rgba(80,60,25,0.45)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_50px_-24px_rgba(80,60,25,0.5)] dark:border dark:border-[#3b3327]',
-      medalStyle.card
-    )}>
-      <CardContent className="relative min-h-[292px] p-6 sm:p-8">
-        <div className="absolute right-6 top-5 rounded-full bg-card/70 px-3 py-1 text-xs font-bold text-foreground ring-1 border border-[#ddd2ba] dark:bg-black/20 dark:text-white dark:ring-white/10">
-          #{entry.rank}
-        </div>
-        <div className="absolute -left-14 -top-20 h-52 w-52 rounded-full bg-white/45 blur-2xl dark:bg-white/10" />
-
-        <div className="flex h-full items-center gap-5">
-          <div className="relative shrink-0">
-            {isChampion && <Crown className="absolute -top-8 left-1/2 h-8 w-8 -translate-x-1/2 fill-[#d8b25e] text-[#b98a2f] drop-shadow" />}
-            <div className={cn('relative flex h-32 w-32 items-center justify-center rounded-full p-2 shadow-2xl sm:h-40 sm:w-40', medalStyle.ring)}>
-              <div className="flex h-full w-full items-center justify-center rounded-full border-4 border-[#fdfaf3] bg-panel text-6xl shadow-inner dark:border-[#1c2016] dark:bg-[#14170f]">
-                {entry.avatar}
-              </div>
-              <div className="absolute -top-3 flex h-12 w-12 items-center justify-center rounded-full border-4 border-[#fdfaf3] bg-parchment text-xl font-black text-foreground shadow-lg dark:border-[#14170f] dark:from-slate-800 dark:to-slate-900">
-                {entry.rank}
-              </div>
-            </div>
-          </div>
-
-          <div className="min-w-0 pt-8">
-            <h2 className="font-display truncate text-[22px] font-semibold text-foreground">{entry.username}</h2>
-            <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
-              <span>{entry.flag}</span>
-              <span>{entry.country}</span>
-            </div>
-            <div className="mt-7 font-display text-[28px] font-semibold tracking-tight text-accent">
-              {entry.score.toLocaleString()}
-            </div>
-            <div className="text-sm font-medium text-muted-foreground">Points</div>
-            <div className="mt-7 flex flex-wrap gap-2">
-              <span className="inline-flex items-center gap-1 rounded-md border border-accent/30 bg-accent-subtle px-3 py-1 text-xs font-bold text-accent">
-                <Sparkles className="h-3.5 w-3.5 fill-accent" /> Level {entry.level}
-              </span>
-              {isChampion && (
-                <span className="inline-flex items-center gap-1 rounded-md border border-gold/40 bg-warning-subtle px-3 py-1 text-xs font-bold text-warning">
-                  <Crown className="h-3.5 w-3.5 fill-gold text-gold" /> Legend
-                </span>
+    <Card
+      className={cn(
+        'relative rounded-3xl border shadow-[0_24px_50px_-30px_rgba(55,65,110,0.45)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_28px_60px_-28px_rgba(55,65,110,0.5)]',
+        style.card,
+        entry.rank === 1 && 'lg:order-2',
+        entry.rank === 2 && 'lg:order-1',
+        entry.rank === 3 && 'lg:order-3',
+      )}
+    >
+      <CardContent className="flex min-h-[320px] items-stretch p-0 sm:min-h-[380px]">
+        <div className="ml-[4.5%] w-[55%] shrink-0 self-start pb-4">
+          <div
+            className="relative aspect-[300/425] w-full bg-no-repeat"
+            style={{
+              backgroundImage: 'url(/golden_900.png)',
+              backgroundSize: '300% 100%',
+              backgroundPosition: sprite.pos,
+            }}
+          >
+            <div
+              className="absolute aspect-square -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-full"
+              style={{ left: `${sprite.cx}%`, top: `${sprite.cy}%`, width: '64%' }}
+            >
+              {entry.avatar.startsWith('http') || entry.avatar.startsWith('/') ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={entry.avatar} alt={entry.username} className="h-full w-full object-cover" />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center bg-[linear-gradient(140deg,#f7b0a6_0%,#e0637a_60%,#d14d8a_100%)] text-[44px] sm:text-[54px]">
+                  <span>{entry.avatar}</span>
+                </div>
               )}
             </div>
+          </div>
+        </div>
+
+        <div className="flex min-w-0 flex-1 flex-col items-start justify-center py-10 pl-[3%] pr-[4.5%]">
+          <h2 className="text-[26px] font-bold leading-[1.25] tracking-tight text-[#0b0e14] dark:text-zinc-100 sm:text-[30px]">
+            {entry.username}
+          </h2>
+          <div className="mt-3 text-[26px] font-bold tracking-tight text-[#1240fb] dark:text-[#6f8dff] sm:mt-4 sm:text-[30px]">
+            {entry.score.toLocaleString()}
+          </div>
+          <div className="mt-1 text-lg font-medium text-[#394252] dark:text-zinc-300 sm:text-xl">Points</div>
+          <div className="mt-6 flex flex-col items-start gap-3 sm:mt-8 sm:gap-3.5">
+            <span className={cn('rounded-xl px-4 py-2.5 text-[15px] font-bold sm:text-base', style.games)}>
+              {entry.games} Games
+            </span>
+            <span className={cn('rounded-xl px-4 py-2.5 text-[15px] font-bold sm:text-base', style.star)}>
+              Star Avg {entry.starAvg.toFixed(1)}
+            </span>
           </div>
         </div>
       </CardContent>
@@ -414,27 +451,6 @@ function RankChange({ value }: { value: number }) {
       {Math.abs(value)}
     </span>
   )
-}
-
-function getMedalStyle(rank: number) {
-  if (rank === 1) {
-    return {
-      card: 'bg-[linear-gradient(135deg,#f7edd2_0%,#fdfaf3_48%,#ecd9ac_100%)] dark:bg-[linear-gradient(135deg,rgba(216,178,94,0.22),rgba(255,255,255,0.06))]',
-      ring: 'bg-[linear-gradient(135deg,#b98a2f,#eedca6,#8a681f)]',
-    }
-  }
-
-  if (rank === 2) {
-    return {
-      card: 'bg-[linear-gradient(135deg,#efece0_0%,#fdfaf3_50%,#ddd8c8_100%)] dark:bg-[linear-gradient(135deg,rgba(168,164,148,0.25),rgba(255,255,255,0.06))]',
-      ring: 'bg-[linear-gradient(135deg,#948f7d,#f4f1e6,#6f6b58)]',
-    }
-  }
-
-  return {
-    card: 'bg-[linear-gradient(135deg,#f6e3d7_0%,#fdfaf3_50%,#eccdb4_100%)] dark:bg-[linear-gradient(135deg,rgba(205,122,69,0.25),rgba(255,255,255,0.06))]',
-    ring: 'bg-[linear-gradient(135deg,#a04d26,#e8c9a8,#7d3a1c)]',
-  }
 }
 
 export function LeaderboardView({ period }: { period: LeaderboardPeriod }) {
