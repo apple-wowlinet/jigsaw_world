@@ -41,11 +41,11 @@ export function Footer() {
           <div className="lg:col-span-2">
             <Link href="/" className="flex items-center space-x-2 group mb-4">
               <div className="relative p-1">
-                <div className="absolute inset-0 bg-primary/20 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity" />
-                <Puzzle className="relative h-8 w-8 text-primary transition-transform duration-300 group-hover:rotate-12" />
+                <div className="absolute inset-0 bg-accent/20 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity" />
+                <Puzzle className="relative h-7 w-7 text-foreground transition-transform duration-300 group-hover:rotate-12" />
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent tracking-tight">
-                JigsawWorld
+              <span className="font-display text-[24px] font-semibold leading-none tracking-tight text-foreground">
+                Jigsaw<span className="text-accent">World</span>
               </span>
             </Link>
             <p className="text-muted-foreground mb-6 max-w-sm">

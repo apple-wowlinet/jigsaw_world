@@ -1,9 +1,9 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import Image from 'next/image'
+import { SafeImage } from '@/components/ui/SafeImage'
 import Link from 'next/link'
-import { ArrowRight, Flame, Puzzle } from 'lucide-react'
+import { ArrowRight, Puzzle } from 'lucide-react'
 import { fetchPuzzles, type DisplayDifficulty, type PublicPuzzle } from '@/lib/data/public'
 import { cn } from '@/lib/utils'
 
@@ -34,14 +34,14 @@ const puzzle = (
 })
 
 const FALLBACK_PUZZLES: PublicPuzzle[] = [
-  puzzle('cozy-cottage', 'Cozy Cottage', 'https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?w=800&h=600&fit=crop', 100, 'Easy', 8200),
-  puzzle('ocean-sunset-waves', 'Sunset Beach', 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop', 200, 'Medium', 6700),
-  puzzle('japanese-garden', 'Japanese Garden', 'https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=800&h=600&fit=crop', 100, 'Easy', 5900),
-  puzzle('golden-retriever-smile', 'Golden Retriever', 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=800&h=600&fit=crop', 150, 'Easy', 4800),
   puzzle('ocean-sunset-waves', 'Ocean Sunset Waves', 'https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=900&h=700&fit=crop', 150, 'Easy', 2200, 4.8),
-  puzzle('mountain-morning-glow', 'Mountain Morning Glow', 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=900&h=700&fit=crop', 200, 'Medium', 1800, 4.9),
+  puzzle('mountain-morning-glow', 'Mountain Morning Glow', 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=900&h=700&fit=crop', 100, 'Medium', 2400, 4.9),
   puzzle('tropical-island-escape', 'Tropical Island Escape', 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=900&h=700&fit=crop', 100, 'Easy', 3100, 4.7),
-  puzzle('old-town-street', 'Kyoto Lantern Festival', 'https://images.unsplash.com/photo-1493780474015-ba834fd0ce2f?w=900&h=700&fit=crop', 500, 'Hard', 1200, 4.9),
+  puzzle('curious-red-fox', 'Curious Red Fox', 'https://images.unsplash.com/photo-1474511320723-9a56873867b5?w=900&h=700&fit=crop', 100, 'Easy', 2100, 4.9),
+  puzzle('crystal-castle-dream', 'Crystal Castle Dream', 'https://images.unsplash.com/photo-1533154683836-84ea7a0bc310?w=900&h=700&fit=crop', 200, 'Hard', 1600, 4.8),
+  puzzle('swiss-village-view', 'Swiss Village View', 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=900&h=700&fit=crop', 150, 'Medium', 1900, 4.7),
+  puzzle('forest-path-mystery', 'Forest Path Mystery', 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=900&h=700&fit=crop', 120, 'Medium', 1400, 4.6),
+  puzzle('night-city-skyline', 'Night City Skyline', 'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=900&h=700&fit=crop', 150, 'Medium', 2300, 4.8),
 ]
 
 const filters = ['For You', 'Easy', 'Medium', 'Hard', '500+ Pieces'] as const
@@ -50,6 +50,30 @@ type Filter = (typeof filters)[number]
 function formatPlays(value: number) {
   if (value >= 1000) return `${(value / 1000).toFixed(1)}k`
   return value.toString()
+}
+
+function SectionHeading({
+  title,
+  linkHref,
+  linkLabel,
+}: {
+  title: string
+  linkHref: string
+  linkLabel: string
+}) {
+  return (
+    <div className="mb-6 flex items-center gap-5">
+      <h2 className="label-caps shrink-0 text-foreground">{title}</h2>
+      <span className="h-px flex-1 bg-[#ddd2ba] dark:bg-[#3b3327]" />
+      <Link
+        href={linkHref}
+        className="group inline-flex shrink-0 items-center gap-1.5 text-[13px] font-semibold text-accent transition-colors hover:text-accent/80"
+      >
+        {linkLabel}
+        <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
+      </Link>
+    </div>
+  )
 }
 
 export function RecommendationsSection() {
@@ -82,76 +106,91 @@ export function RecommendationsSection() {
   }, [activeFilter, puzzles])
 
   return (
-    <section className="px-4 pb-4 pt-8 sm:px-6 lg:px-8">
+    <section className="px-4 pb-4 pt-6 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-[1380px]">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="flex items-center gap-2 text-xl font-black tracking-tight text-slate-900 dark:text-white">
-            <Flame className="h-6 w-6 fill-orange-500 text-orange-500" />
-            Popular Today
-          </h2>
-          <Link href="/explore/weekly" className="group flex items-center gap-2 text-sm font-bold text-indigo-600 dark:text-indigo-300">
-            View all <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
-          </Link>
-        </div>
+        <SectionHeading title="Popular Today" linkHref="/explore/weekly" linkLabel="View all" />
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {puzzles.slice(0, 4).map((item) => (
             <Link
               key={`${item.slug}-${item.title}`}
               href={`/puzzle/${item.slug}`}
-              className="group flex items-center gap-3 rounded-xl border border-slate-200/80 bg-white p-2.5 shadow-[0_6px_18px_rgba(30,41,59,.08)] transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-lg dark:border-white/10 dark:bg-slate-900"
+              className="group block border border-[#e7decb] bg-card p-2.5 shadow-[0_10px_30px_-22px_rgba(80,60,25,0.4)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_40px_-24px_rgba(80,60,25,0.5)] dark:border-[#3b3327]"
             >
-              <div className="relative h-[86px] w-[105px] shrink-0 overflow-hidden rounded-lg">
-                <Image src={item.image_url} alt={item.title} fill sizes="105px" className="object-cover transition duration-500 group-hover:scale-105" />
+              <div className="relative aspect-[1.55/1] overflow-hidden">
+                <SafeImage
+                  src={item.image_url}
+                  alt={item.title}
+                  fill
+                  sizes="(max-width: 640px) 100vw, 25vw"
+                  className="object-cover transition duration-700 group-hover:scale-[1.04]"
+                />
               </div>
-              <div className="min-w-0 py-1">
-                <h3 className="truncate text-sm font-bold text-slate-900 group-hover:text-indigo-600 dark:text-white">{item.title}</h3>
-                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{formatPlays(item.plays_count)} plays</p>
-                <span className="mt-2 inline-flex rounded-md bg-slate-100 px-2 py-1 text-[11px] font-semibold text-slate-600 dark:bg-white/5 dark:text-slate-300">{item.piece_count} pcs</span>
+              <div className="px-1.5 pb-1.5 pt-3">
+                <h3 className="font-display text-[19px] font-semibold leading-tight text-foreground transition-colors group-hover:text-accent">
+                  {item.title}
+                </h3>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {item.piece_count} pcs &nbsp;·&nbsp; {formatPlays(item.plays_count)} plays
+                </p>
               </div>
             </Link>
           ))}
         </div>
 
-        <div className="mb-5 mt-9 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex flex-wrap items-center gap-3">
-            <h2 className="mr-3 text-xl font-black tracking-tight text-slate-900 dark:text-white">Recommended for You</h2>
-            {filters.map((filter) => (
-              <button
-                key={filter}
-                type="button"
-                onClick={() => setActiveFilter(filter)}
-                className={cn(
-                  'rounded-full px-4 py-2 text-xs font-bold transition',
-                  activeFilter === filter
-                    ? 'bg-blue-600 text-white shadow-md shadow-blue-600/25'
-                    : 'bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-800 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10'
-                )}
-              >
-                {filter}
-              </button>
-            ))}
-          </div>
-          <Link href="/categories" className="group flex shrink-0 items-center gap-2 text-sm font-bold text-indigo-600 dark:text-indigo-300">
-            View all puzzles <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
-          </Link>
+        <div className="mt-12">
+          <SectionHeading title="Recommended for You" linkHref="/categories" linkLabel="View all puzzles" />
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {recommended.slice(0, 4).map((item, index) => (
-            <article key={`${item.slug}-recommended-${index}`} className="group overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_8px_24px_rgba(30,41,59,.08)] transition hover:-translate-y-1 hover:shadow-xl dark:border-white/10 dark:bg-slate-900">
-              <Link href={`/puzzle/${item.slug}`} className="relative block aspect-[1.42] overflow-hidden">
-                <Image src={item.image_url} alt={item.title} fill sizes="(max-width: 1024px) 50vw, 25vw" className="object-cover transition duration-500 group-hover:scale-105" />
-                <span className="absolute right-3 top-3 rounded-full bg-white px-2.5 py-1 text-xs font-black text-slate-800 shadow-md">{item.piece_count}</span>
-              </Link>
-              <div className="p-4">
-                <h3 className="truncate text-base font-black text-slate-900 dark:text-white">{item.title}</h3>
-                <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
-                  <span className="flex items-center gap-1"><Puzzle className="h-3.5 w-3.5 fill-blue-600 text-blue-600" />{item.piece_count} pieces</span>
-                  <span className="flex items-center gap-1"><span className={cn('h-2 w-2 rounded-full', item.difficulty === 'Easy' ? 'bg-emerald-500' : item.difficulty === 'Medium' ? 'bg-amber-400' : 'bg-rose-500')} />{item.difficulty}</span>
-                </div>
+        <div className="mb-6 flex flex-wrap items-center gap-2.5">
+          {filters.map((filter) => (
+            <button
+              key={filter}
+              type="button"
+              onClick={() => setActiveFilter(filter)}
+              className={cn(
+                'rounded-md border px-4 py-2 text-xs font-semibold transition-all',
+                activeFilter === filter
+                  ? 'border-primary bg-primary text-primary-foreground shadow-[0_8px_18px_-8px_rgba(47,74,58,0.6)]'
+                  : 'border-[#ddd2ba] bg-transparent text-muted-foreground hover:border-primary/50 hover:text-foreground dark:border-[#3b3327]'
+              )}
+            >
+              {filter}
+            </button>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {recommended.slice(0, 4).map((item) => (
+            <Link
+              key={`rec-${item.slug}-${item.title}`}
+              href={`/puzzle/${item.slug}`}
+              className="group block border border-[#e7decb] bg-card p-2.5 shadow-[0_10px_30px_-22px_rgba(80,60,25,0.4)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_40px_-24px_rgba(80,60,25,0.5)] dark:border-[#3b3327]"
+            >
+              <div className="relative aspect-[1.55/1] overflow-hidden">
+                <SafeImage
+                  src={item.image_url}
+                  alt={item.title}
+                  fill
+                  sizes="(max-width: 640px) 100vw, 25vw"
+                  className="object-cover transition duration-700 group-hover:scale-[1.04]"
+                />
+                <span className="absolute right-2.5 top-2.5 rounded-full bg-white/95 px-2.5 py-0.5 text-xs font-bold text-[#3c382e] shadow-md">
+                  {item.piece_count}
+                </span>
               </div>
-            </article>
+              <div className="px-1.5 pb-1.5 pt-3">
+                <h3 className="font-display text-[19px] font-semibold leading-tight text-foreground transition-colors group-hover:text-accent">
+                  {item.title}
+                </h3>
+                <p className="mt-1.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Puzzle className="h-3.5 w-3.5 text-primary" />
+                  {item.piece_count} pieces
+                  <span className="text-[#c9bfa8] dark:text-[#4a4234]">•</span>
+                  {item.difficulty}
+                </p>
+              </div>
+            </Link>
           ))}
         </div>
       </div>

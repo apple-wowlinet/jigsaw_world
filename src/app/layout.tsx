@@ -1,12 +1,18 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Cormorant_Garamond, Inter } from 'next/font/google'
 import './globals.css'
 import { Header } from '@/components/navigation/Header'
 import { ConditionalFooter } from '@/components/navigation/ConditionalFooter'
 import { ThemeProvider } from '@/components/theme/ThemeProvider'
 import { AuthProvider } from '@/components/auth/AuthProvider'
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
+const cormorant = Cormorant_Garamond({
+  subsets: ['latin'],
+  weight: ['500', '600', '700'],
+  style: ['normal', 'italic'],
+  variable: '--font-cormorant',
+})
 
 export const metadata: Metadata = {
   title: 'JigsawWorld - Online Jigsaw Puzzle Games',
@@ -35,8 +41,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${cormorant.variable}`}>
+      <body className="font-sans">
         <ThemeProvider>
           <AuthProvider>
             <div className="min-h-screen flex flex-col">

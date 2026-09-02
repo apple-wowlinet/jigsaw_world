@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Search, Menu, X, Puzzle, Sparkles, ImagePlus, Trophy, LogOut, UserCircle, type LucideIcon } from 'lucide-react'
+import { Search, Menu, X, Puzzle, Sparkles, CirclePlus, Trophy, LayoutGrid, Compass, LogOut, UserCircle, type LucideIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useAuth } from '@/components/auth/AuthProvider'
@@ -27,11 +27,11 @@ export function Header() {
   }
 
   const navLinks: Array<{ href: string; label: string; icon?: LucideIcon }> = [
-    { href: '/create', label: 'Create', icon: ImagePlus },
+    { href: '/create', label: 'Create', icon: CirclePlus },
     { href: '/daily', label: 'Daily Puzzle', icon: Sparkles },
     { href: '/leaderboard', label: 'Leaderboard', icon: Trophy },
-    { href: '/categories', label: 'Categories' },
-    { href: '/explore/weekly', label: 'Explore' },
+    { href: '/categories', label: 'Categories', icon: LayoutGrid },
+    { href: '/explore/weekly', label: 'Explore', icon: Compass },
   ]
 
   const handleSignOut = async () => {
@@ -41,16 +41,13 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 glass border-b border-border">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1380px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2 group">
-            <div className="relative">
-              <Puzzle className="h-8 w-8 text-primary transition-transform duration-300 group-hover:rotate-12" />
-              <div className="absolute inset-0 bg-primary/20 dark:bg-primary/40 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              JigsawWorld
+            <Puzzle className="h-7 w-7 text-foreground transition-transform duration-300 group-hover:rotate-12" />
+            <span className="font-display text-[26px] font-semibold leading-none tracking-tight text-foreground">
+              Jigsaw<span className="text-accent">World</span>
             </span>
           </Link>
 
@@ -81,7 +78,7 @@ export function Header() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setIsSearchFocused(true)}
                 onBlur={() => setIsSearchFocused(false)}
-                className="w-full pl-4 pr-10 bg-secondary dark:bg-[#0f172a]/80 border-transparent dark:border-white/10 text-foreground dark:text-slate-100 placeholder:text-muted-foreground dark:placeholder:text-slate-500 focus:bg-card dark:focus:bg-[#111827] dark:focus:border-primary/50 dark:focus-visible:ring-0 dark:focus-visible:ring-offset-0 dark:focus:shadow-[0_0_0_1px_rgba(96,165,250,0.35),0_0_12px_rgba(96,165,250,0.2)] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+                className="w-full rounded-md border-border bg-card/60 pl-4 pr-10 text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-primary/40"
               />
               <button
                 type="submit"
@@ -89,7 +86,7 @@ export function Header() {
                 className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer disabled:cursor-default disabled:opacity-50 transition-opacity"
                 disabled={!searchQuery.trim()}
               >
-                <Search className="h-4 w-4 text-muted-foreground dark:text-slate-500" />
+                <Search className="h-4 w-4 text-muted-foreground" />
               </button>
             </div>
           </form>
@@ -113,7 +110,7 @@ export function Header() {
               <>
                 <Link href="/login">
                   <Button variant="ghost" size="sm">
-                    Login
+                    Log in
                   </Button>
                 </Link>
                 <Link href="/register">
@@ -146,7 +143,7 @@ export function Header() {
                     placeholder="Search puzzles..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-4 pr-10 dark:bg-[#0f172a]/80 dark:border-white/10 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-[#111827] dark:focus:border-primary/50 dark:focus-visible:ring-0 dark:focus-visible:ring-offset-0 dark:focus:shadow-[0_0_0_1px_rgba(96,165,250,0.35),0_0_12px_rgba(96,165,250,0.2)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+                    className="w-full rounded-full border-border bg-card pl-4 pr-10 text-foreground placeholder:text-muted-foreground"
                   />
                   <button
                     type="submit"
@@ -165,7 +162,7 @@ export function Header() {
                 className="flex items-center px-3 py-2 rounded-lg text-base font-medium text-foreground hover:bg-secondary dark:hover:bg-secondary/50 transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
-                <ImagePlus className="w-4 h-4 mr-2 text-primary" />
+                <CirclePlus className="w-4 h-4 mr-2 text-primary" />
                 Create
               </Link>
               <Link

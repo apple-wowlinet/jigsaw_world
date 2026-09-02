@@ -4,7 +4,7 @@ import { CategoriesSection } from '@/components/home/CategoriesSection'
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen overflow-hidden bg-[#fbfcff] dark:bg-[#080b14]">
+    <div className="min-h-screen overflow-hidden bg-background">
       <HeroSection />
       <RecommendationsSection />
       <CategoriesSection />

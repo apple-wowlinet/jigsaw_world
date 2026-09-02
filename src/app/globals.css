@@ -3,125 +3,124 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
+  /* ===== JigsawWorld Design Standard =====
+     Warm gallery aesthetic: ivory surfaces, forest-green actions,
+     terracotta accents, Cormorant Garamond display serif. */
+
   /* ===== Light Theme (Default) ===== */
-  --color-background: #ffffff;
-  --color-foreground: #0f172a;
-  
+  --color-background: #f6f1e8;
+  --color-foreground: #262219;
+
   /* Card colors */
-  --color-card: #ffffff;
-  --color-card-foreground: #0f172a;
-  --color-card-hover: #f8fafc;
-  
+  --color-card: #fffdf8;
+  --color-card-foreground: #262219;
+  --color-card-hover: #f8f3e9;
+
+  /* Panel (soft sunken surface, e.g. hero info card) */
+  --color-panel: #fbf7ee;
+
   /* Popover colors */
-  --color-popover: #ffffff;
-  --color-popover-foreground: #0f172a;
-  
-  /* Primary - Blue */
-  --color-primary: #3b82f6;
-  --color-primary-foreground: #ffffff;
-  --color-primary-subtle: #eff6ff;
-  
-  /* Secondary - Slate */
-  --color-secondary: #f1f5f9;
-  --color-secondary-foreground: #334155;
-  
+  --color-popover: #fffdf8;
+  --color-popover-foreground: #262219;
+
+  /* Primary — forest green (primary actions) */
+  --color-primary: #2f4a3a;
+  --color-primary-foreground: #f7f3ea;
+  --color-primary-subtle: #e7ecdf;
+
+  /* Secondary — warm sand */
+  --color-secondary: #efe8d9;
+  --color-secondary-foreground: #4f4a3d;
+
   /* Muted colors */
-  --color-muted: #f1f5f9;
-  --color-muted-foreground: #64748b;
-  
-  /* Accent - Orange */
-  --color-accent: #f97316;
-  --color-accent-foreground: #ffffff;
-  --color-accent-subtle: #fff7ed;
-  
+  --color-muted: #efe9dc;
+  --color-muted-foreground: #857b69;
+
+  /* Accent — terracotta (highlights, italic words, begin buttons) */
+  --color-accent: #b4592e;
+  --color-accent-foreground: #fdf9f2;
+  --color-accent-subtle: #f4e4d8;
+
   /* Destructive - Red */
-  --color-destructive: #ef4444;
-  --color-destructive-foreground: #ffffff;
-  
+  --color-destructive: #c0453a;
+  --color-destructive-foreground: #fdf6f2;
+
   /* Border and Input */
-  --color-border: #e2e8f0;
-  --color-input: #e2e8f0;
-  --color-ring: #3b82f6;
-  
+  --color-border: #e4dac7;
+  --color-input: #e4dac7;
+  --color-ring: #2f4a3a;
+
   /* Custom puzzle colors */
-  --color-success: #22c55e;
-  --color-success-subtle: #f0fdf4;
-  --color-warning: #f59e0b;
-  --color-warning-subtle: #fffbeb;
-  --color-info: #3b82f6;
-  --color-info-subtle: #eff6ff;
-  
+  --color-success: #4a7259;
+  --color-success-subtle: #e9efe4;
+  --color-warning: #b98a2f;
+  --color-warning-subtle: #f7eed8;
+  --color-info: #4a6f8a;
+  --color-info-subtle: #e3ecf1;
+
   /* Difficulty colors */
-  --color-puzzle-easy: #16a34a;
-  --color-puzzle-medium: #d97706;
-  --color-puzzle-hard: #dc2626;
-  
+  --color-puzzle-easy: #4a7259;
+  --color-puzzle-medium: #b98a2f;
+  --color-puzzle-hard: #c0453a;
+
   /* Border radius */
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
   --radius-xl: 1rem;
   --radius-2xl: 1.5rem;
-  
-  /* Fonts */
-  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* Fonts — display serif for headings, sans for UI */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: var(--font-cormorant), Georgia, "Times New Roman", serif;
   --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
 }
 
-/* ===== Dark Theme ===== */
+/* ===== Dark Theme (warm charcoal) ===== */
 .dark {
-  /* Background - Deep slate */
-  --color-background: #0a0a0f;
-  --color-foreground: #ffffff;
-  
-  /* Card colors - Slightly lighter than bg for depth */
-  --color-card: #13131a;
-  --color-card-foreground: #ffffff;
-  --color-card-hover: #1a1a24;
-  
-  /* Popover colors */
-  --color-popover: #1a1a24;
-  --color-popover-foreground: #ffffff;
-  
-  /* Primary - Brighter blue for dark mode */
-  --color-primary: #60a5fa;
-  --color-primary-foreground: #0a0a0f;
-  --color-primary-subtle: #1e3a5f;
-  
-  /* Secondary - Dark slate */
-  --color-secondary: #1e293b;
-  --color-secondary-foreground: #e2e8f0;
-  
-  /* Muted colors */
-  --color-muted: #1e293b;
-  --color-muted-foreground: #94a3b8;
-  
-  /* Accent - Brighter orange */
-  --color-accent: #fb923c;
-  --color-accent-foreground: #0a0a0f;
-  --color-accent-subtle: #4a2510;
-  
-  /* Destructive */
-  --color-destructive: #f87171;
-  --color-destructive-foreground: #0a0a0f;
-  
-  /* Border and Input - Subtle borders */
-  --color-border: #27273a;
-  --color-input: #27273a;
-  --color-ring: #60a5fa;
-  
-  /* Custom colors - Adjusted for dark mode */
-  --color-success: #4ade80;
-  --color-success-subtle: #14522d;
-  --color-warning: #fbbf24;
-  --color-warning-subtle: #713f12;
-  --color-info: #60a5fa;
-  --color-info-subtle: #1e3a5f;
-  
-  /* Difficulty colors - Brighter in dark mode */
-  --color-puzzle-easy: #4ade80;
-  --color-puzzle-medium: #fbbf24;
-  --color-puzzle-hard: #f87171;
+  --color-background: #171310;
+  --color-foreground: #f0e9dc;
+
+  --color-card: #211c15;
+  --color-card-foreground: #f0e9dc;
+  --color-card-hover: #2a241c;
+
+  --color-panel: #241f17;
+
+  --color-popover: #26211a;
+  --color-popover-foreground: #f0e9dc;
+
+  --color-primary: #7ba18c;
+  --color-primary-foreground: #14201a;
+  --color-primary-subtle: #24312a;
+
+  --color-secondary: #2c271e;
+  --color-secondary-foreground: #ddd4c2;
+
+  --color-muted: #282218;
+  --color-muted-foreground: #a89d89;
+
+  --color-accent: #cd7a45;
+  --color-accent-foreground: #1d120a;
+  --color-accent-subtle: #3c2718;
+
+  --color-destructive: #e06a5c;
+  --color-destructive-foreground: #1d0f0c;
+
+  --color-border: #3b3327;
+  --color-input: #3b3327;
+  --color-ring: #7ba18c;
+
+  --color-success: #8fb49c;
+  --color-success-subtle: #24301f;
+  --color-warning: #d8b25e;
+  --color-warning-subtle: #372c14;
+  --color-info: #8fb0c6;
+  --color-info-subtle: #1f2c36;
+
+  --color-puzzle-easy: #8fb49c;
+  --color-puzzle-medium: #d8b25e;
+  --color-puzzle-hard: #e06a5c;
 }
 
 /* ===== Base Styles ===== */
@@ -134,15 +133,6 @@ body {
   color: var(--color-foreground);
   font-family: var(--font-sans);
   transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-h1, h2, h3, h4, h5, h6 {
-  color: var(--color-foreground);
-}
-
-.dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
-  color: #ffffff;
-  text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
 }
 
 html {
@@ -239,12 +229,35 @@ html {
 
 /* Subtle dot texture used behind the hero */
 .bg-dots {
-  background-image: radial-gradient(rgba(15, 23, 42, 0.09) 1px, transparent 1.2px);
+  background-image: radial-gradient(rgba(90, 76, 50, 0.12) 1px, transparent 1.2px);
   background-size: 22px 22px;
 }
 
 .dark .bg-dots {
-  background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1.2px);
+  background-image: radial-gradient(rgba(240, 233, 220, 0.07) 1px, transparent 1.2px);
+}
+
+/* Letterspaced small-caps label — section headings, eyebrows, plaques */
+.label-caps {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* Gilded picture frame for the daily puzzle */
+.frame-gold {
+  background: linear-gradient(135deg, #d9b97f 0%, #b28c4e 30%, #8f6c3a 60%, #c4a367 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 235, 200, 0.45),
+    0 30px 60px -25px rgba(75, 55, 20, 0.45);
+}
+
+.frame-gold-inner {
+  background: linear-gradient(135deg, #a8834a, #7d5f30);
+  box-shadow: inset 0 0 0 1px rgba(60, 42, 12, 0.55);
 }
 
 /* Puzzle pieces snapping into the daily preview on load */
@@ -318,14 +331,14 @@ html {
 
 /* ===== Glass Effect ===== */
 .glass {
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(250, 247, 240, 0.88);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
 
 .dark .glass {
-  background: rgba(19, 19, 26, 0.85);
-  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(23, 19, 16, 0.88);
+  border-color: rgba(240, 233, 220, 0.08);
 }
 
 /* ===== Card Styles ===== */
@@ -386,7 +399,7 @@ html {
   justify-content: center;
   gap: 0.5rem;
   white-space: nowrap;
-  border-radius: 0.875rem;
+  border-radius: 0.5rem;
   font-weight: 700;
   letter-spacing: 0.01em;
   cursor: pointer;
@@ -411,82 +424,108 @@ html {
   pointer-events: none;
 }
 
-/* Primary — solid brand blue, no gradient */
+/* Primary — forest green, the sitewide action color */
 .btn-primary {
-  background: #2563eb;
-  color: #ffffff;
+  background: #2f4a3a;
+  color: #f7f3ea;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.18),
-    0 8px 20px -6px rgba(37, 99, 235, 0.55);
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 8px 20px -6px rgba(47, 74, 58, 0.5);
 }
 
 .btn-primary:hover {
-  background: #1d4ed8;
+  background: #263d2f;
   transform: translateY(-2px);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    0 14px 28px -8px rgba(37, 99, 235, 0.6);
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 14px 28px -8px rgba(47, 74, 58, 0.55);
 }
 
 .dark .btn-primary {
-  background: #3b82f6;
+  background: #4e7a61;
+  color: #f4f0e6;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.16),
-    0 8px 20px -6px rgba(59, 130, 246, 0.4);
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 8px 20px -6px rgba(0, 0, 0, 0.4);
 }
 
 .dark .btn-primary:hover {
-  background: #60a5fa;
-  color: #0b1220;
+  background: #5d8d72;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    0 14px 28px -8px rgba(59, 130, 246, 0.5);
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 14px 28px -8px rgba(0, 0, 0, 0.5);
 }
 
-/* Outline — quiet white card button */
+/* Terracotta — warm highlight actions (Begin Puzzle, streaks) */
+.btn-terracotta {
+  background: #b4592e;
+  color: #fdf9f2;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 8px 20px -6px rgba(180, 89, 46, 0.5);
+}
+
+.btn-terracotta:hover {
+  background: #a04d26;
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 14px 28px -8px rgba(180, 89, 46, 0.55);
+}
+
+.dark .btn-terracotta {
+  background: #c9753f;
+  color: #1d120a;
+}
+
+.dark .btn-terracotta:hover {
+  background: #d8854f;
+}
+
+/* Outline — quiet ivory card button */
 .btn-outline {
-  background: rgba(255, 255, 255, 0.9);
-  color: #1e293b;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+  background: rgba(255, 253, 248, 0.92);
+  color: #3c382e;
+  border: 1px solid #ddd2bc;
+  box-shadow: 0 1px 2px rgba(60, 50, 30, 0.06);
 }
 
 .btn-outline:hover {
   transform: translateY(-2px);
-  border-color: #bfdbfe;
-  color: #1d4ed8;
-  box-shadow: 0 10px 22px -8px rgba(37, 99, 235, 0.18);
+  border-color: #2f4a3a;
+  color: #2f4a3a;
+  box-shadow: 0 10px 22px -8px rgba(47, 74, 58, 0.18);
 }
 
 .dark .btn-outline {
-  background: rgba(255, 255, 255, 0.05);
-  color: #f1f5f9;
-  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 250, 240, 0.05);
+  color: #e8e1d2;
+  border-color: rgba(240, 233, 220, 0.14);
 }
 
 .dark .btn-outline:hover {
-  border-color: rgba(96, 165, 250, 0.4);
-  color: #93c5fd;
+  border-color: rgba(123, 161, 140, 0.6);
+  color: #a9c4b3;
 }
 
 /* Ghost — borderless quiet action */
 .btn-ghost {
   background: transparent;
-  color: #475569;
+  color: #6b6353;
 }
 
 .btn-ghost:hover {
-  background: rgba(15, 23, 42, 0.06);
-  color: #0f172a;
+  background: rgba(80, 70, 45, 0.08);
+  color: #262219;
 }
 
 .dark .btn-ghost {
-  color: #94a3b8;
+  color: #a89d89;
 }
 
 .dark .btn-ghost:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: #f1f5f9;
+  background: rgba(240, 233, 220, 0.08);
+  color: #f0e9dc;
 }
 
 /* Secondary — soft filled */
@@ -501,10 +540,10 @@ html {
 
 /* Sizes */
 .btn-sm {
-  height: 2.5rem;
-  padding: 0 1rem;
+  height: 2.375rem;
+  padding: 0 1.125rem;
   font-size: 0.8125rem;
-  border-radius: 0.75rem;
+  border-radius: 0.375rem;
 }
 
 .btn-md {
@@ -514,10 +553,10 @@ html {
 }
 
 .btn-lg {
-  height: 3.5rem;
-  padding: 0 2rem;
+  height: 3.25rem;
+  padding: 0 1.875rem;
   font-size: 0.9375rem;
-  border-radius: 1rem;
+  border-radius: 0.5rem;
 }
 
 .btn-icon {
@@ -552,7 +591,7 @@ html {
 }
 
 .difficulty-hard {
-  background: rgba(220, 38, 38, 0.15);
+  background: rgba(192, 69, 58, 0.12);
   color: var(--color-puzzle-hard);
   border: 1px solid var(--color-puzzle-hard);
   opacity: 1;
@@ -560,27 +599,27 @@ html {
 
 /* Dark mode badge adjustments */
 .dark .difficulty-easy {
-  background: rgba(74, 222, 128, 0.15);
-  color: #4ade80;
-  border-color: rgba(74, 222, 128, 0.4);
+  background: rgba(143, 180, 156, 0.14);
+  color: #8fb49c;
+  border-color: rgba(143, 180, 156, 0.45);
 }
 
 .dark .difficulty-medium {
-  background: rgba(251, 191, 36, 0.15);
-  color: #fbbf24;
-  border-color: rgba(251, 191, 36, 0.4);
+  background: rgba(216, 178, 94, 0.14);
+  color: #d8b25e;
+  border-color: rgba(216, 178, 94, 0.45);
 }
 
 .dark .difficulty-hard {
-  background: rgba(248, 113, 113, 0.15);
-  color: #f87171;
-  border-color: rgba(248, 113, 113, 0.4);
+  background: rgba(224, 106, 92, 0.14);
+  color: #e06a5c;
+  border-color: rgba(224, 106, 92, 0.45);
 }
 
 /* ===== Star Rating ===== */
 .star-filled {
-  color: #fbbf24;
-  fill: #fbbf24;
+  color: #dca93f;
+  fill: #dca93f;
 }
 
 .star-empty {
@@ -608,9 +647,9 @@ html {
 }
 
 .dark .section-alt {
-  background: linear-gradient(180deg, 
-    rgba(30, 41, 59, 0.3) 0%, 
-    rgba(30, 41, 59, 0.1) 100%
+  background: linear-gradient(180deg,
+    rgba(44, 38, 26, 0.35) 0%,
+    rgba(44, 38, 26, 0.12) 100%
   );
 }
 
@@ -640,8 +679,8 @@ textarea::placeholder {
 }
 
 .dark ::selection {
-  background: rgba(96, 165, 250, 0.4);
-  color: #f1f5f9;
+  background: rgba(205, 122, 69, 0.45);
+  color: #f0e9dc;
 }
 
 /* ===== Loading Skeleton ===== */
@@ -677,11 +716,11 @@ textarea::placeholder {
 }
 
 .link-hover:hover {
-  color: var(--color-primary);
+  color: var(--color-accent);
 }
 
 .dark .link-hover:hover {
-  color: #60a5fa;
+  color: #cd7a45;
 }
 
 /* ===== Stat Cards ===== */
@@ -704,7 +743,7 @@ textarea::placeholder {
 }
 
 .dark .stat-card:hover {
-  border-color: rgba(96, 165, 250, 0.4);
+  border-color: rgba(123, 161, 140, 0.5);
 }
 
 /* ===== Navigation ===== */
@@ -727,11 +766,11 @@ textarea::placeholder {
 
 /* ===== Hero Card Dark Mode ===== */
 .dark .hero-card {
-  background: linear-gradient(145deg, 
-    rgba(19, 19, 26, 0.95) 0%, 
-    rgba(26, 26, 36, 0.95) 100%
+  background: linear-gradient(145deg,
+    rgba(28, 23, 16, 0.95) 0%,
+    rgba(38, 32, 23, 0.95) 100%
   );
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(240, 233, 220, 0.1);
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }
 
@@ -769,10 +808,10 @@ textarea::placeholder {
 /* Rank 1: animated gold glow halo */
 @keyframes championGlow {
   0%, 100% {
-    box-shadow: 0 0 30px rgba(250, 204, 21, 0.35), 0 12px 40px rgba(250, 204, 21, 0.15);
+    box-shadow: 0 0 30px rgba(216, 178, 94, 0.35), 0 12px 40px rgba(216, 178, 94, 0.15);
   }
   50% {
-    box-shadow: 0 0 50px rgba(250, 204, 21, 0.55), 0 12px 50px rgba(250, 204, 21, 0.25);
+    box-shadow: 0 0 50px rgba(216, 178, 94, 0.55), 0 12px 50px rgba(216, 178, 94, 0.25);
   }
 }
 .podium-champion {
@@ -798,37 +837,37 @@ textarea::placeholder {
 .podium-ring-gold {
   background: linear-gradient(
     100deg,
-    #facc15 0%,
-    #fde68a 25%,
-    #fbbf24 50%,
-    #fef3c7 75%,
-    #facc15 100%
+    #d8b25e 0%,
+    #eedca6 25%,
+    #d8b25e 50%,
+    #f6eccd 75%,
+    #d8b25e 100%
   );
   background-size: 200% 100%;
   animation: ringShimmer 3s linear infinite;
 }
 .podium-ring-silver {
-  background: linear-gradient(135deg, #e5e7eb 0%, #f9fafb 50%, #cbd5e1 100%);
+  background: linear-gradient(135deg, #d8d5c8 0%, #f4f1e6 50%, #b8b4a2 100%);
 }
 .podium-ring-bronze {
-  background: linear-gradient(135deg, #f97316 0%, #fbbf24 50%, #c2410c 100%);
+  background: linear-gradient(135deg, #b4592e 0%, #d8b25e 50%, #93441f 100%);
 }
 
 /* Metallic gradient text for scores on the podium */
 .podium-score-gold {
-  background: linear-gradient(135deg, #fbbf24 0%, #fde68a 50%, #f59e0b 100%);
+  background: linear-gradient(135deg, #c99a3a 0%, #eedca6 50%, #b0862c 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 .podium-score-silver {
-  background: linear-gradient(135deg, #cbd5e1 0%, #f1f5f9 50%, #94a3b8 100%);
+  background: linear-gradient(135deg, #a8a494 0%, #efece0 50%, #86826f 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 .podium-score-bronze {
-  background: linear-gradient(135deg, #fb923c 0%, #fdba74 50%, #ea580c 100%);
+  background: linear-gradient(135deg, #cd7a45 0%, #e8ab84 50%, #a04d26 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
