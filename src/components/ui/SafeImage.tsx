@@ -11,7 +11,7 @@ import { useEffect, useState } from 'react'
 export const IMAGE_FALLBACK_SRC =
   'https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?w=900&h=700&fit=crop'
 
-type SafeImageProps = Omit<ImageProps, 'src' | 'onError'> & {
+type SafeImageProps = Omit<ImageProps, 'src'> & {
   src: string
   fallbackSrc?: string
 }
@@ -20,6 +20,7 @@ export function SafeImage({
   src,
   fallbackSrc = IMAGE_FALLBACK_SRC,
   alt = '',
+  onError,
   ...rest
 }: SafeImageProps) {
   const [currentSrc, setCurrentSrc] = useState(src)
@@ -33,8 +34,9 @@ export function SafeImage({
       {...rest}
       alt={alt}
       src={currentSrc}
-      onError={() => {
+      onError={(event) => {
         setCurrentSrc((prev) => (prev === fallbackSrc ? prev : fallbackSrc))
+        onError?.(event)
       }}
     />
   )
