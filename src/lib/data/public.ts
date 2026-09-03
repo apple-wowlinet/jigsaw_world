@@ -1,4 +1,7 @@
 import { supabase } from '@/lib/supabase'
+import type { PublicTheme } from '@/lib/data/theme-catalogue'
+
+export type { PublicTheme } from '@/lib/data/theme-catalogue'
 
 export type DisplayDifficulty = 'Easy' | 'Medium' | 'Hard'
 
@@ -78,6 +81,17 @@ interface PublicCategoryRow {
   dark_color: string | null
   puzzle_count: number | null
   parent_id?: string | null
+}
+
+interface PublicThemeRow {
+  id: string
+  name: string
+  slug: string
+  description: string | null
+  emoji: string | null
+  image_url: string | null
+  sort_order: number | null
+  is_featured: boolean | null
 }
 
 interface PuzzleRow {
@@ -244,6 +258,46 @@ export async function fetchCategories(limit?: number): Promise<PublicCategory[]>
   })
 }
 
+export async function fetchThemes(): Promise<PublicTheme[]> {
+  const [themesResult, relationsResult] = await Promise.all([
+    supabase
+      .from('themes')
+      .select('id, name, slug, description, emoji, image_url, sort_order, is_featured')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true }),
+    supabase.from('puzzle_themes').select('theme_id'),
+  ])
+
+  if (themesResult.error) {
+    if (themesResult.error.code !== '42P01') {
+      console.error('Failed to fetch themes:', themesResult.error.message)
+    }
+    return []
+  }
+
+  const counts = (relationsResult.data ?? []).reduce<Record<string, number>>(
+    (result, relation) => {
+      result[relation.theme_id] = (result[relation.theme_id] ?? 0) + 1
+      return result
+    },
+    {}
+  )
+
+  return ((themesResult.data ?? []) as PublicThemeRow[]).map((theme) => ({
+    id: theme.id,
+    name: theme.name,
+    slug: theme.slug,
+    description: theme.description ?? '',
+    emoji: theme.emoji ?? '🧩',
+    image_url: theme.image_url ?? '',
+    puzzle_count: counts[theme.id] ?? 0,
+    sort_order: theme.sort_order ?? 0,
+    is_featured: theme.is_featured ?? false,
+    fallback_category_slugs: [],
+    fallback_search: theme.name,
+  }))
+}
+
 export async function fetchPuzzles(options: {
   limit?: number
   categorySlug?: string
@@ -334,6 +388,65 @@ export async function fetchPuzzles(options: {
   }
 
   return ((data ?? []) as unknown as PuzzleRow[]).map(mapPuzzle)
+}
+
+export async function fetchPuzzlesByThemeSlug(
+  slug: string
+): Promise<PublicPuzzle[]> {
+  const { data: theme, error: themeError } = await supabase
+    .from('themes')
+    .select('id')
+    .eq('slug', slug)
+    .eq('is_active', true)
+    .maybeSingle()
+
+  if (themeError || !theme) {
+    if (themeError && themeError.code !== '42P01') {
+      console.error('Failed to fetch theme:', themeError.message)
+    }
+    return []
+  }
+
+  const { data: relations, error: relationsError } = await supabase
+    .from('puzzle_themes')
+    .select('puzzle_id, sort_order')
+    .eq('theme_id', theme.id)
+    .order('sort_order', { ascending: true })
+    .limit(500)
+
+  if (relationsError || !relations?.length) {
+    if (relationsError && relationsError.code !== '42P01') {
+      console.error('Failed to fetch theme puzzles:', relationsError.message)
+    }
+    return []
+  }
+
+  const puzzleIds = relations.map((relation) => relation.puzzle_id)
+  let { data, error } = await supabase
+    .from('puzzles')
+    .select(PUZZLE_SELECT)
+    .in('id', puzzleIds)
+    .eq('is_active', true)
+
+  if (error?.message.toLowerCase().includes('weekly_plays_count')) {
+    const fallback = await supabase
+      .from('puzzles')
+      .select(PUZZLE_SELECT_WITHOUT_WEEKLY)
+      .in('id', puzzleIds)
+      .eq('is_active', true)
+    data = fallback.data as typeof data
+    error = fallback.error
+  }
+
+  if (error) {
+    console.error('Failed to fetch theme puzzles:', error.message)
+    return []
+  }
+
+  const order = new Map(puzzleIds.map((id, index) => [id, index]))
+  return ((data ?? []) as unknown as PuzzleRow[])
+    .map(mapPuzzle)
+    .sort((a, b) => (order.get(a.uuid) ?? 0) - (order.get(b.uuid) ?? 0))
 }
 
 export async function fetchPuzzleBySlug(slug: string): Promise<PublicPuzzle | null> {

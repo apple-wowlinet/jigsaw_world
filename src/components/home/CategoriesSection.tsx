@@ -5,6 +5,7 @@ import { SafeImage } from '@/components/ui/SafeImage'
 import Link from 'next/link'
 import { ArrowRight, Check, Flame } from 'lucide-react'
 import { fetchCategories, type PublicCategory } from '@/lib/data/public'
+import { themeCatalogue } from '@/lib/data/theme-catalogue'
 
 const category = (
   slug: string,
@@ -31,17 +32,6 @@ const FALLBACK_CATEGORIES: PublicCategory[] = [
   category('food', 'Food', 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=700&h=520&fit=crop', 'utensils', 74),
   category('cities', 'Cities', 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=700&h=520&fit=crop', 'building-2', 64),
   category('beaches', 'Beaches', 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=700&h=520&fit=crop', 'waves', 58),
-]
-
-const themes = [
-  ['🌸', 'Flowers', 'flowers'],
-  ['🐱', 'Cats', 'cats'],
-  ['🏰', 'Castles', 'castles'],
-  ['🌅', 'Sunset', 'sunset'],
-  ['🎄', 'Christmas', 'christmas'],
-  ['🍂', 'Autumn', 'autumn'],
-  ['🚂', 'Trains', 'trains'],
-  ['🏖️', 'Beaches', 'beaches'],
 ]
 
 export function CategoriesSection() {
@@ -103,20 +93,20 @@ export function CategoriesSection() {
 
         <h2 className="label-caps mb-4 mt-10 text-foreground">Popular Themes</h2>
         <div className="flex flex-wrap gap-2.5">
-          {themes.map(([emoji, label, slug]) => (
+          {themeCatalogue.filter((theme) => theme.is_featured).map((theme) => (
             <Link
-              key={label}
-              href={`/category/${slug}`}
-              className="inline-flex h-10 items-center gap-2 rounded-lg border border-[#ddd2ba] bg-panel px-4 text-xs font-semibold text-foreground/85 shadow-sm transition-all hover:-translate-y-0.5 hover:border-accent/60 hover:text-accent dark:border-[#3b3327] dark:bg-[#241f17]"
+              key={theme.slug}
+              href={`/theme/${theme.slug}`}
+              className="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-panel px-4 text-xs font-semibold text-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:text-accent"
             >
-              <span aria-hidden="true">{emoji}</span>
-              {label}
+              <span aria-hidden="true">{theme.emoji}</span>
+              {theme.name}
             </Link>
           ))}
           <Link
-            href="/categories"
+            href="/themes"
             aria-label="View all themes"
-            className="grid h-10 w-10 place-items-center rounded-lg border border-[#ddd2ba] bg-panel text-accent shadow-sm transition-all hover:-translate-y-0.5 hover:border-accent/60 dark:border-[#3b3327] dark:bg-[#241f17]"
+            className="grid h-10 w-10 place-items-center rounded-lg border border-border bg-panel text-accent shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/50"
           >
             <ArrowRight className="h-4 w-4" />
           </Link>
