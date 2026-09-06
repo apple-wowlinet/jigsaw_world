@@ -19,7 +19,6 @@ import {
   Star,
   Sun,
   TreePine,
-  Users,
   Waves,
 } from 'lucide-react'
 import {
@@ -73,12 +72,6 @@ function combineCategories(remoteCategories: PublicCategory[]) {
     ...catalogue,
     ...remoteCategories.filter((category) => !knownSlugs.has(category.slug)),
   ]
-}
-
-function formatCount(count: number) {
-  if (count < 1000) return count.toLocaleString()
-  const value = count / 1000
-  return `${value >= 10 ? Math.round(value) : value.toFixed(1)}K`
 }
 
 function getPaginationItems(totalPages: number, currentPage: number) {
@@ -470,7 +463,7 @@ function CategoryContent() {
                   aria-label={`Page ${item}`}
                   aria-current={item === currentPage ? 'page' : undefined}
                   className={cn(
-                    'flex h-8 min-w-8 items-center justify-center rounded-md border px-2 text-xs font-bold transition',
+                    'flex h-8 min-w-8 cursor-pointer items-center justify-center rounded-md border px-2 text-xs font-bold transition',
                     item === currentPage
                       ? 'border-primary bg-primary text-primary-foreground'
                       : 'border-[#ddd2ba] bg-card text-muted-foreground hover:border-accent/60 hover:text-accent dark:border-[#3b3327]'
@@ -572,10 +565,6 @@ function PuzzleCard({ puzzle }: { puzzle: PublicPuzzle }) {
           </div>
         </div>
       </div>
-      <div className="flex h-8 items-center px-3 text-[10px] font-medium text-muted-foreground">
-        <Users className="mr-1.5 h-3.5 w-3.5" />
-        {formatCount(puzzle.plays_count)} plays
-      </div>
     </Link>
   )
 }
@@ -597,7 +586,7 @@ function PaginationButton({
       aria-label={label}
       disabled={disabled}
       onClick={onClick}
-      className="flex h-8 w-8 items-center justify-center rounded-md border border-[#ddd2ba] bg-card text-muted-foreground transition hover:border-accent/60 hover:text-accent disabled:cursor-not-allowed disabled:opacity-35 dark:border-[#3b3327]"
+      className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md border border-[#ddd2ba] bg-card text-muted-foreground transition hover:border-accent/60 hover:text-accent disabled:cursor-not-allowed disabled:opacity-35 dark:border-[#3b3327]"
     >
       {children}
     </button>

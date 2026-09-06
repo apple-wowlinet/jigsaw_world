@@ -16,7 +16,6 @@ import {
   RefreshCw,
   Star,
   Trophy,
-  User,
 } from 'lucide-react'
 import {
   fetchPuzzles,
@@ -98,19 +97,6 @@ const PIECE_OPTIONS: Array<{ value: PieceFilter; label: string }> = [
   { value: 'large', label: '200+' },
 ]
 
-function formatPlays(count: number) {
-  if (count < 1000) return count.toLocaleString()
-  if (count < 1_000_000) {
-    const value = count / 1000
-    const formatted = value >= 100
-      ? Math.round(value).toString()
-      : value.toFixed(2).replace(/0+$/, '').replace(/\.$/, '')
-    return `${formatted}K`
-  }
-  const value = count / 1_000_000
-  return `${value.toFixed(2).replace(/0+$/, '').replace(/\.$/, '')}M`
-}
-
 function difficultyClass(difficulty: string) {
   switch (difficulty) {
     case 'Easy':
@@ -122,13 +108,6 @@ function difficultyClass(difficulty: string) {
     default:
       return 'bg-muted text-muted-foreground'
   }
-}
-
-function rankCircleClass(rank: number) {
-  if (rank === 1) return 'bg-gradient-to-b from-[#e8cf9a] to-[#b98a2f] text-white shadow-[0_4px_12px_rgba(185,138,47,0.45)]'
-  if (rank === 2) return 'bg-gradient-to-b from-[#ddd8c8] to-[#948f7d] text-white shadow-[0_4px_12px_rgba(148,143,125,0.35)]'
-  if (rank === 3) return 'bg-gradient-to-b from-[#cd7a45] to-[#9c4b2b] text-white shadow-[0_4px_12px_rgba(156,75,43,0.4)]'
-  return 'bg-[#2c322a]/70 text-white backdrop-blur-sm'
 }
 
 function getPaginationItems(totalPages: number, currentPage: number) {
@@ -252,13 +231,9 @@ export function ExploreListPage({ mode }: { mode: ExploreMode }) {
     (safePage - 1) * ITEMS_PER_PAGE,
     safePage * ITEMS_PER_PAGE
   )
-  const featured = safePage === 1 ? paginatedPuzzles.slice(0, 3) : []
-  const gridPuzzles = safePage === 1 ? paginatedPuzzles.slice(3) : paginatedPuzzles
   const paginationItems = getPaginationItems(totalPages, safePage)
 
   const resetToFirstPage = () => setCurrentPage(1)
-  const playsCountFor = (puzzle: PublicPuzzle) =>
-    mode === 'weekly' ? puzzle.weekly_plays_count : puzzle.plays_count
 
   if (loading) return <ExploreListSkeleton />
 
@@ -307,12 +282,6 @@ export function ExploreListPage({ mode }: { mode: ExploreMode }) {
             )
           })}
         </div>
-
-        {featured.length > 0 && (
-          <div className="mb-8">
-            <Podium puzzles={featured} playsCountFor={playsCountFor} />
-          </div>
-        )}
 
         <div
           ref={toolbarRef}
@@ -393,21 +362,17 @@ export function ExploreListPage({ mode }: { mode: ExploreMode }) {
               Try another category, difficulty, or piece count.
             </p>
           </div>
-        ) : gridPuzzles.length > 0 ? (
+        ) : (
           <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {gridPuzzles.map((puzzle, index) => {
-              const rank = (safePage - 1) * ITEMS_PER_PAGE + featured.length + index + 1
-              return (
-                <GridCard
-                  key={puzzle.uuid}
-                  puzzle={puzzle}
-                  rank={rank}
-                  playsCount={playsCountFor(puzzle)}
-                />
-              )
-            })}
+            {paginatedPuzzles.map((puzzle, index) => (
+              <PuzzleCard
+                key={puzzle.uuid}
+                puzzle={puzzle}
+                priority={index < 4}
+              />
+            ))}
           </section>
-        ) : null}
+        )}
 
         <nav
           aria-label="Puzzle pages"
@@ -429,7 +394,7 @@ export function ExploreListPage({ mode }: { mode: ExploreMode }) {
                 aria-label={`Page ${item}`}
                 aria-current={item === safePage ? 'page' : undefined}
                 className={cn(
-                  'flex h-9 min-w-9 items-center justify-center rounded-lg border px-2 text-sm font-bold transition',
+                  'flex h-9 min-w-9 cursor-pointer items-center justify-center rounded-lg border px-2 text-sm font-bold transition',
                   item === safePage
                     ? 'border-primary bg-primary text-primary-foreground shadow-sm'
                     : 'border-border bg-background text-muted-foreground hover:border-primary/40 hover:text-foreground'
@@ -464,170 +429,46 @@ export function ExploreListPage({ mode }: { mode: ExploreMode }) {
   )
 }
 
-function Podium({
-  puzzles,
-  playsCountFor,
-}: {
-  puzzles: PublicPuzzle[]
-  playsCountFor: (puzzle: PublicPuzzle) => number
-}) {
-  const first = puzzles[0]
-  const second = puzzles[1]
-  const third = puzzles[2]
-
-  return (
-    <section className="flex flex-col gap-4 md:flex-row md:items-end md:justify-center md:gap-5">
-      {second && (
-        <div className="order-2 w-full md:order-1 md:w-[30%] md:max-w-[300px]">
-          <HeroCard puzzle={second} rank={2} playsCount={playsCountFor(second)} />
-        </div>
-      )}
-      {first && (
-        <div className="order-1 w-full md:order-2 md:w-[38%] md:max-w-[360px]">
-          <HeroCard puzzle={first} rank={1} featured playsCount={playsCountFor(first)} />
-        </div>
-      )}
-      {third && (
-        <div className="order-3 w-full md:order-3 md:w-[30%] md:max-w-[300px]">
-          <HeroCard puzzle={third} rank={3} playsCount={playsCountFor(third)} />
-        </div>
-      )}
-    </section>
-  )
-}
-
-function HeroCard({
+function PuzzleCard({
   puzzle,
-  rank,
-  featured = false,
-  playsCount,
+  priority = false,
 }: {
   puzzle: PublicPuzzle
-  rank: number
-  featured?: boolean
-  playsCount: number
+  priority?: boolean
 }) {
   return (
     <Link
       href={`/puzzle/${puzzle.slug}`}
-      className={cn(
-        'group relative block overflow-hidden rounded-xl shadow-[0_12px_30px_-18px_rgba(80,60,25,0.4)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_20px_40px_-22px_rgba(80,60,25,0.45)]',
-        featured
-          ? 'ring-2 ring-[#d8b25e] ring-offset-2 ring-offset-background'
-          : 'ring-1 ring-[#e7decb] dark:ring-[#3b3327]'
-      )}
+      className="group block border border-[#e7decb] bg-card p-2.5 shadow-[0_10px_30px_-22px_rgba(80,60,25,0.4)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_40px_-24px_rgba(80,60,25,0.5)] dark:border-[#3b3327]"
     >
-      <div className={cn('relative w-full', featured ? 'aspect-[3/4]' : 'aspect-[4/5]')}>
+      <div className="relative aspect-[1.55/1] overflow-hidden bg-muted">
         <SafeImage
           src={puzzle.image_url}
           alt={puzzle.title}
           fill
-          sizes="(max-width: 768px) 100vw, 33vw"
-          className="object-cover transition-transform duration-700 group-hover:scale-105"
-          priority={rank <= 3}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#241d10]/90 via-[#241d10]/30 to-transparent" />
-
-        <div
-          className={cn(
-            'absolute left-3 top-3 flex items-center justify-center rounded-full font-extrabold',
-            featured ? 'h-12 w-12 text-xl' : 'h-10 w-10 text-lg',
-            rankCircleClass(rank)
-          )}
-        >
-          {rank}
-        </div>
-
-        <span
-          className={cn(
-            'absolute right-3 top-3 rounded-md px-2.5 py-0.5 text-[11px] font-bold shadow-sm',
-            difficultyClass(puzzle.difficulty)
-          )}
-        >
-          {puzzle.difficulty}
-        </span>
-
-        <div className="absolute inset-x-0 bottom-0 p-4">
-          <p className="line-clamp-2 text-lg font-extrabold leading-tight text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)] sm:text-xl">
-            {puzzle.title}
-          </p>
-          <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-medium text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]">
-            <span className="inline-flex items-center gap-1 text-white">
-              <User className="h-3.5 w-3.5 text-white" />
-              {formatPlays(playsCount)} plays
-            </span>
-            <span className="inline-flex items-center gap-1 text-white">
-              <Star className="h-3.5 w-3.5 fill-[#e8cf9a] text-[#e8cf9a]" />
-              {puzzle.rating.toFixed(1)}
-            </span>
-            <span className="inline-flex items-center gap-1 text-white">
-              <Puzzle className="h-3.5 w-3.5 text-white" />
-              {puzzle.piece_count} pieces
-            </span>
-          </div>
-        </div>
-      </div>
-    </Link>
-  )
-}
-
-function GridCard({
-  puzzle,
-  rank,
-  playsCount,
-}: {
-  puzzle: PublicPuzzle
-  rank: number
-  playsCount: number
-}) {
-  return (
-    <Link
-      href={`/puzzle/${puzzle.slug}`}
-      className="group overflow-hidden rounded-lg border border-border bg-card shadow-[0_10px_30px_-22px_rgba(80,60,25,0.4)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_40px_-24px_rgba(80,60,25,0.5)]"
-    >
-      <div className="relative aspect-[16/10] overflow-hidden bg-muted">
-        <SafeImage
-          src={puzzle.image_url}
-          alt={puzzle.title}
-          fill
+          priority={priority}
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          className="object-cover transition duration-700 group-hover:scale-[1.04]"
         />
-        <div
-          className={cn(
-            'absolute left-2.5 top-2.5 flex h-8 w-8 items-center justify-center rounded-full text-xs font-extrabold',
-            rankCircleClass(rank)
-          )}
-        >
-          {rank}
-        </div>
         <span
           className={cn(
-            'absolute right-2.5 top-2.5 rounded-md px-2 py-0.5 text-[10px] font-bold shadow-sm',
+            'absolute right-2.5 top-2.5 rounded-full px-2.5 py-0.5 text-xs font-semibold shadow-sm',
             difficultyClass(puzzle.difficulty)
           )}
         >
           {puzzle.difficulty}
         </span>
       </div>
-      <div className="px-3.5 pb-3 pt-3">
-        <h3 className="line-clamp-1 text-sm font-bold text-foreground">
+      <div className="px-1.5 pb-1.5 pt-3">
+        <h3 className="font-display text-[19px] font-semibold leading-tight text-foreground transition-colors group-hover:text-accent">
           {puzzle.title}
         </h3>
-        <div className="mt-2 flex items-center gap-3 text-[11px] font-medium text-muted-foreground">
-          <span className="inline-flex items-center gap-1">
-            <User className="h-3.5 w-3.5" />
-            {formatPlays(playsCount)}
-          </span>
-          <span className="inline-flex items-center gap-1">
-            <Star className="h-3.5 w-3.5 fill-[#dca93f] text-[#dca93f]" />
-            {puzzle.rating.toFixed(1)}
-          </span>
-          <span className="inline-flex items-center gap-1">
-            <Puzzle className="h-3.5 w-3.5" />
-            {puzzle.piece_count}
-          </span>
-        </div>
+        <p className="mt-1.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Star className="h-3 w-3 fill-[#dca93f] text-[#dca93f]" />
+          {puzzle.rating.toFixed(1)}
+          <span className="text-[#c9bfa8] dark:text-[#4a4234]">•</span>
+          {puzzle.piece_count} pcs
+        </p>
       </div>
     </Link>
   )
@@ -712,7 +553,7 @@ function PaginationButton({
       aria-label={label}
       disabled={disabled}
       onClick={onClick}
-      className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-background text-muted-foreground transition hover:border-primary/40 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-35"
+      className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-border bg-background text-muted-foreground transition hover:border-primary/40 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-35"
     >
       {children}
     </button>
@@ -732,18 +573,13 @@ export function ExploreListSkeleton() {
           ))}
         </div>
         <div className="mt-4 h-8 animate-pulse rounded-lg bg-secondary" />
-        <div className="mt-8 flex flex-col items-end gap-4 md:flex-row md:justify-center">
-          <div className="aspect-[4/5] w-full animate-pulse rounded-xl bg-secondary md:w-[30%]" />
-          <div className="aspect-[3/4] w-full animate-pulse rounded-xl bg-secondary md:w-[38%]" />
-          <div className="aspect-[4/5] w-full animate-pulse rounded-xl bg-secondary md:w-[30%]" />
-        </div>
         <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {Array.from({ length: 8 }, (_, index) => (
-            <div key={index} className="overflow-hidden rounded-xl border border-border">
-              <div className="aspect-[16/10] animate-pulse bg-secondary" />
-              <div className="space-y-2 p-3">
-                <div className="h-4 w-3/4 animate-pulse rounded bg-secondary" />
-                <div className="h-3 w-1/2 animate-pulse rounded bg-secondary" />
+            <div key={index} className="border border-border bg-card p-2.5">
+              <div className="aspect-[1.55/1] animate-pulse bg-secondary" />
+              <div className="px-1.5 pb-1.5 pt-3">
+                <div className="h-5 w-3/4 animate-pulse rounded bg-secondary" />
+                <div className="mt-2 h-3.5 w-1/2 animate-pulse rounded bg-secondary" />
               </div>
             </div>
           ))}

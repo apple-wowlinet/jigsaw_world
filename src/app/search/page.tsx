@@ -3,12 +3,10 @@
 import { Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
-import { Search, Puzzle, Frown, Sparkles, Clock, Star, Filter, X, TrendingUp } from 'lucide-react'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
+import { Search, Frown, Sparkles, Clock, Filter, X, TrendingUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { SafeImage } from '@/components/ui/SafeImage'
 import { fetchPuzzles, type PublicPuzzle } from '@/lib/data/public'
 import { cn } from '@/lib/utils'
 
@@ -78,305 +76,225 @@ function SearchContent() {
     }
   }
 
-  return (
-    <div className="min-h-screen bg-background dark:bg-[#08080c] relative overflow-hidden">
-      {/* Ambient Background Glow */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] mix-blend-screen" />
-        <div className="absolute bottom-0 left-1/4 w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-[100px] mix-blend-screen" />
-      </div>
+  const chipClass = 'inline-flex h-10 items-center gap-2 rounded-lg border border-[#ddd2ba] bg-panel px-4 text-xs font-semibold text-muted-foreground transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/50 hover:text-foreground dark:border-[#3b3327]'
 
-      <div className="relative z-10">
-        {/* Search Header */}
-        <section className="relative pt-24 pb-12 overflow-hidden">
-          <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h1 className="text-4xl md:text-5xl font-bold text-foreground dark:text-white mb-6 tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-foreground to-foreground/70 dark:from-white dark:to-white/70">
-                {query ? (
-                  <>
-                    Search Results for{' '}
-                    <span className="text-primary dark:text-primary-400">&quot;{query}&quot;</span>
-                  </>
-                ) : (
-                  'Discover Puzzles'
-                )}
-              </h1>
-              <p className="text-lg md:text-xl text-muted-foreground dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
-                Find the perfect puzzle from our collection of 1000+ puzzles
-              </p>
+  return (
+    <div className="relative min-h-screen overflow-hidden bg-background text-foreground">
+      {/* Gallery-wall backdrop: soft daylight from above */}
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-[460px] bg-[radial-gradient(ellipse_at_50%_-10%,rgba(255,255,255,0.85),transparent_60%)] dark:bg-[radial-gradient(ellipse_at_50%_-10%,rgba(240,233,220,0.05),transparent_60%)]"
+        aria-hidden="true"
+      />
+
+      {/* Search Header */}
+      <section className="relative pt-12 pb-14">
+        <div className="relative mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-3">
+              <span className="h-px w-10 bg-border" aria-hidden="true" />
+              <p className="label-caps text-muted-foreground">Search the Collection</p>
+              <span className="h-px w-10 bg-border" aria-hidden="true" />
             </div>
 
-            <form onSubmit={handleSearch} className="max-w-3xl mx-auto relative z-20">
-              <div className="relative group">
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-primary via-sky-500 to-teal-400 rounded-full blur opacity-30 group-hover:opacity-75 transition duration-500" />
-                <div className="relative flex items-center bg-background/80 dark:bg-[#121218]/90 backdrop-blur-xl rounded-full border border-border/50 dark:border-white/10 shadow-2xl transition-all duration-300 group-hover:shadow-primary/10 group-hover:border-primary/20">
-                  <div className="pl-6 flex items-center pointer-events-none">
-                    <Search className="h-6 w-6 text-muted-foreground group-focus-within:text-primary transition-colors duration-300" />
-                  </div>
-                  <Input
-                    type="text"
-                    placeholder="Search for puzzles..."
-                    value={searchInput}
-                    onChange={(e) => setSearchInput(e.target.value)}
-                    className="w-full h-16 px-4 text-lg border-0 bg-transparent !ring-0 !ring-offset-0 !outline-none focus:outline-none focus:ring-0 focus:ring-offset-0 focus:shadow-none focus-visible:!outline-none focus-visible:!ring-0 focus-visible:!ring-offset-0 focus-visible:shadow-none placeholder:text-muted-foreground/50 shadow-none hover:border-0"
-                  />
-                  {searchInput && (
-                    <button
-                      type="button"
-                      onClick={clearSearch}
-                      className="p-2 mr-2 text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-full transition-colors"
-                    >
-                      <X className="h-5 w-5" />
-                    </button>
-                  )}
-                  <div className="pr-1.5 py-1.5">
-                    <Button
-                      type="submit"
-                      size="lg"
-                      className="h-14 px-8 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-primary/25 transition-all duration-300 text-base font-medium"
-                    >
-                      Search
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </form>
+            <h1 className="font-display mt-5 text-[36px] font-semibold leading-[1.05] tracking-[-0.01em] text-foreground sm:text-[44px]">
+              {query ? (
+                <>
+                  Results for <span className="italic text-accent">&ldquo;{query}&rdquo;</span>
+                </>
+              ) : (
+                <>
+                  Discover your next <span className="italic text-accent">puzzle</span>
+                </>
+              )}
+            </h1>
+            <p className="mt-3 text-[15px] text-muted-foreground">
+              Find the perfect puzzle from our curated collection of 1000+ puzzles
+            </p>
+          </div>
 
-            {/* Recent & Popular Searches */}
-            {!query && (
-              <div className="mt-16 space-y-10 animate-fade-in">
-                {recentSearches.length > 0 && (
-                  <div className="text-center">
-                    <div className="flex items-center justify-center gap-2 mb-6">
-                      <div className="h-px w-12 bg-border/50 dark:bg-white/10" />
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-[0.2em]">Recent Searches</p>
-                      <div className="h-px w-12 bg-border/50 dark:bg-white/10" />
-                    </div>
-                    <div className="flex flex-wrap items-center justify-center gap-3">
-                      {recentSearches.map((term) => (
-                        <Link
-                          key={term}
-                          href={`/search?q=${encodeURIComponent(term)}`}
-                          className="group inline-flex items-center px-5 py-2.5 rounded-full text-sm bg-secondary/30 dark:bg-white/5 text-foreground hover:bg-secondary dark:hover:bg-white/10 border border-border/50 dark:border-white/5 hover:border-border dark:hover:border-white/20 transition-all duration-300 hover:-translate-y-0.5"
-                        >
-                          <Clock className="w-3.5 h-3.5 mr-2.5 text-muted-foreground group-hover:text-primary transition-colors" />
-                          {term}
-                        </Link>
-                      ))}
-                    </div>
+          <form onSubmit={handleSearch} className="relative z-10 mx-auto mt-9 max-w-2xl">
+            {/* Bar: rounded-lg (12px). The submit button is btn-lg (8px radius) inset by p-1
+                (4px), so 4 + 8 = 12 — the button arc stays concentric with the bar. */}
+            <div className="flex h-[60px] items-center rounded-lg border border-[#e7decb] bg-card shadow-[0_18px_45px_-32px_rgba(80,60,25,0.5)] transition-all duration-300 focus-within:border-primary/60 focus-within:ring-2 focus-within:ring-primary/15 dark:border-[#3b3327]">
+              <Search className="ml-5 h-5 w-5 shrink-0 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Search for puzzles..."
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                aria-label="Search for puzzles"
+                className="h-full min-w-0 flex-1 bg-transparent px-4 text-base text-foreground outline-none placeholder:text-muted-foreground/70"
+              />
+              {searchInput && (
+                <button
+                  type="button"
+                  onClick={clearSearch}
+                  aria-label="Clear search"
+                  className="mr-1 grid h-9 w-9 shrink-0 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+              <div className="shrink-0 p-1">
+                <Button type="submit" size="lg">Search</Button>
+              </div>
+            </div>
+          </form>
+
+          {/* Recent & Popular Searches */}
+          {!query && (
+            <div className="mt-12 grid gap-10 animate-fade-in lg:grid-cols-2">
+              {recentSearches.length > 0 && (
+                <div>
+                  <div className="mb-5 flex items-center gap-5">
+                    <h2 className="label-caps shrink-0 text-foreground">Recent Searches</h2>
+                    <span className="h-px flex-1 bg-[#ddd2ba] dark:bg-[#3b3327]" />
                   </div>
-                )}
-                
-                <div className="text-center">
-                  <div className="flex items-center justify-center gap-2 mb-6">
-                    <div className="h-px w-12 bg-border/50 dark:bg-white/10" />
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-[0.2em]">Popular Topics</p>
-                    <div className="h-px w-12 bg-border/50 dark:bg-white/10" />
-                  </div>
-                  <div className="flex flex-wrap items-center justify-center gap-3">
-                    {popularSearches.map((term) => (
-                      <Link
-                        key={term}
-                        href={`/search?q=${term}`}
-                        className="group inline-flex items-center px-5 py-2.5 rounded-full text-sm bg-primary/5 dark:bg-primary/10 text-foreground hover:text-primary hover:bg-primary/10 dark:hover:bg-primary/20 border border-primary/10 hover:border-primary/20 transition-all duration-300 hover:-translate-y-0.5"
-                      >
-                        <TrendingUp className="w-3.5 h-3.5 mr-2.5 text-primary/70 group-hover:text-primary transition-colors" />
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    {recentSearches.map((term) => (
+                      <Link key={term} href={`/search?q=${encodeURIComponent(term)}`} className={chipClass}>
+                        <Clock className="h-3.5 w-3.5" />
                         {term}
                       </Link>
                     ))}
                   </div>
                 </div>
-              </div>
-            )}
-          </div>
-        </section>
+              )}
 
-        {/* Search Results */}
-        <section className="pb-24">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {loading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {[...Array(6)].map((_, i) => (
-                  <Card key={i} className="animate-pulse border-0 shadow-lg bg-card dark:bg-[#121218] border-border/50 dark:border-white/5">
-                    <CardHeader className="p-0">
-                      <div className="bg-secondary dark:bg-white/5 aspect-[4/3] rounded-t-xl" />
-                    </CardHeader>
-                    <CardContent className="p-6">
-                      <div className="h-6 bg-secondary dark:bg-white/5 rounded w-3/4 mb-4" />
-                      <div className="space-y-2 mb-6">
-                        <div className="h-4 bg-secondary dark:bg-white/5 rounded w-full" />
-                        <div className="h-4 bg-secondary dark:bg-white/5 rounded w-5/6" />
-                      </div>
-                      <div className="flex justify-between">
-                        <div className="h-4 bg-secondary dark:bg-white/5 rounded w-20" />
-                        <div className="h-4 bg-secondary dark:bg-white/5 rounded w-24" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : searchResults.length > 0 ? (
-              <div className="animate-fade-in">
-                {/* Results Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8 bg-background/80 dark:bg-[#08080c]/80 backdrop-blur-xl p-4 rounded-2xl border border-border/50 dark:border-white/10 sticky top-20 z-30 shadow-sm">
-                  <div>
-                    <p className="text-muted-foreground">
-                      Found <span className="font-semibold text-foreground dark:text-white">{searchResults.length}</span> puzzle{searchResults.length !== 1 ? 's' : ''}
-                    </p>
-                  </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => setShowFilters(!showFilters)}
-                    className="bg-transparent border-border/50 dark:border-white/10 hover:bg-secondary/50 dark:hover:bg-white/5"
-                  >
-                    <Filter className="w-4 h-4 mr-2" />
-                    Filters
-                  </Button>
+              <div>
+                <div className="mb-5 flex items-center gap-5">
+                  <h2 className="label-caps shrink-0 text-foreground">Popular Topics</h2>
+                  <span className="h-px flex-1 bg-[#ddd2ba] dark:bg-[#3b3327]" />
                 </div>
-                
-                {/* Results Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {searchResults.map((puzzle, index) => (
-                    <Card 
-                      key={puzzle.id} 
-                      className={cn(
-                        "group overflow-hidden border-0 shadow-lg cursor-pointer relative",
-                        "bg-white dark:bg-[#121218]/50",
-                        "backdrop-blur-sm",
-                        "border border-border/50 dark:border-white/10",
-                        "transition-all duration-300 ease-out",
-                        "hover:shadow-xl dark:hover:shadow-2xl dark:hover:shadow-black/50",
-                        "hover:-translate-y-1 hover:border-primary/20 dark:hover:border-white/20",
-                        "animate-fade-in"
-                      )}
-                      style={{ animationDelay: `${index * 100}ms` }}
-                    >
-                      <CardHeader className="p-0 relative aspect-[4/3] overflow-hidden">
-                        <Image
-                          src={puzzle.image_url}
-                          alt={puzzle.title}
-                          fill
-                          className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-500" />
-                        
-                        {/* Badges */}
-                        <div className="absolute top-4 right-4 flex flex-col gap-2 items-end">
-                          <span className={cn(
-                            "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold backdrop-blur-md shadow-lg border border-white/10",
-                            getDifficultyStyle(puzzle.difficulty)
-                          )}>
-                            {puzzle.difficulty}
-                          </span>
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-black/40 text-white backdrop-blur-md border border-white/10">
-                            {puzzle.category}
-                          </span>
-                        </div>
-                        
-                        {/* Hover play button */}
-                        <Link href={`/play/${puzzle.id}`}>
-                          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 bg-black/20 backdrop-blur-[2px]">
-                            <Button size="lg" className="rounded-full h-14 w-14 p-0 bg-white text-black hover:bg-white/90 hover:scale-105 transition-all shadow-xl">
-                              <span className="ml-1 text-xl">▶</span>
-                            </Button>
-                          </div>
-                        </Link>
-
-                        {/* Bottom Info Overlay */}
-                        <div className="absolute bottom-0 left-0 right-0 p-6 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-                          <h3 className="text-xl font-bold text-white mb-1 line-clamp-1 drop-shadow-md">
-                            {puzzle.title}
-                          </h3>
-                          <div className="flex items-center gap-4 text-xs text-white/80">
-                            <span className="flex items-center">
-                              <Puzzle className="w-3.5 h-3.5 mr-1.5" />
-                              {puzzle.piece_count}
-                            </span>
-                            <span className="flex items-center">
-                              <Star className="w-3.5 h-3.5 mr-1.5 text-yellow-400 fill-yellow-400" />
-                              {puzzle.rating}
-                            </span>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      
-                      <CardContent className="p-6 relative">
-                        {/* Subtle shine effect on hover */}
-                        <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/5 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
-                        
-                        <p className="text-muted-foreground dark:text-gray-400 text-sm mb-6 line-clamp-2 leading-relaxed">
-                          {puzzle.description}
-                        </p>
-                        
-                        <div className="flex items-center justify-between pt-4 border-t border-border/50 dark:border-white/5">
-                          <span className="text-xs font-medium text-muted-foreground dark:text-gray-500 flex items-center">
-                            <Clock className="w-3.5 h-3.5 mr-1.5" />
-                            ~{Math.round(puzzle.piece_count / 10)} min
-                          </span>
-                          <Link 
-                            href={`/puzzle/${puzzle.id}`}
-                            className="text-sm font-medium text-primary hover:text-primary/80 dark:hover:text-primary-400 transition-colors flex items-center group/link"
-                          >
-                            View Details 
-                            <span className="ml-1 transition-transform group-hover/link:translate-x-0.5">→</span>
-                          </Link>
-                        </div>
-                      </CardContent>
-                    </Card>
+                <div className="flex flex-wrap items-center gap-2.5">
+                  {popularSearches.map((term) => (
+                    <Link key={term} href={`/search?q=${term}`} className={chipClass}>
+                      <TrendingUp className="h-3.5 w-3.5 text-primary/70" />
+                      {term}
+                    </Link>
                   ))}
                 </div>
               </div>
-            ) : query ? (
-              <div className="text-center py-24 animate-fade-in">
-                <div className="max-w-md mx-auto">
-                  <div className="w-24 h-24 mx-auto mb-8 rounded-3xl bg-muted/50 dark:bg-white/5 flex items-center justify-center relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-500" />
-                    <Frown className="h-12 w-12 text-muted-foreground" />
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Search Results */}
+      <section className="pb-24">
+        <div className="mx-auto max-w-[1380px] px-4 sm:px-6 lg:px-8">
+          {loading ? (
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              {[...Array(8)].map((_, i) => (
+                <div key={i} className="border border-[#e7decb] bg-card p-2.5 dark:border-[#3b3327]">
+                  <div className="aspect-[1.55/1] animate-pulse bg-muted" />
+                  <div className="px-1.5 pb-1.5 pt-3">
+                    <div className="h-5 w-3/4 animate-pulse rounded bg-muted" />
+                    <div className="mt-2.5 h-3.5 w-1/2 animate-pulse rounded bg-muted" />
                   </div>
-                  <h3 className="text-2xl font-bold text-foreground dark:text-white mb-3">
-                    No puzzles found
-                  </h3>
-                  <p className="text-muted-foreground dark:text-gray-400 mb-8 leading-relaxed">
-                    We couldn&apos;t find any puzzles matching &quot;<span className="text-foreground dark:text-white font-medium">{query}</span>&quot;. <br/>
-                    Try searching for something else or browse our popular categories.
-                  </p>
-                  
-                  <div className="p-6 rounded-2xl bg-card/50 dark:bg-white/5 border border-border/50 dark:border-white/5">
-                    <p className="text-sm font-medium text-muted-foreground mb-4 uppercase tracking-wider">Try these instead</p>
-                    <div className="flex flex-wrap gap-2 justify-center">
-                      {popularSearches.slice(0, 5).map((suggestion) => (
-                        <Link
-                          key={suggestion}
-                          href={`/search?q=${suggestion}`}
-                          className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-secondary/50 dark:bg-white/10 text-foreground dark:text-slate-100 hover:bg-secondary dark:hover:bg-white/[0.18] border border-transparent hover:border-border dark:border-white/10 dark:hover:border-white/20 transition-all"
-                        >
-                          {suggestion}
-                        </Link>
-                      ))}
+                </div>
+              ))}
+            </div>
+          ) : searchResults.length > 0 ? (
+            <div className="animate-fade-in">
+              {/* Results Header */}
+              <div className="mb-6 flex items-center gap-5">
+                <h2 className="label-caps shrink-0 text-foreground">Search Results</h2>
+                <span className="h-px flex-1 bg-[#ddd2ba] dark:bg-[#3b3327]" />
+                <p className="shrink-0 text-[13px] font-semibold text-muted-foreground">
+                  {searchResults.length} puzzle{searchResults.length !== 1 ? 's' : ''} found
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowFilters(!showFilters)}
+                >
+                  <Filter className="h-3.5 w-3.5" />
+                  Filters
+                </Button>
+              </div>
+
+              {/* Results Grid */}
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                {searchResults.map((puzzle, index) => (
+                  <Link
+                    key={puzzle.id}
+                    href={`/puzzle/${puzzle.slug}`}
+                    style={{ animationDelay: `${index * 60}ms` }}
+                    className="group block animate-fade-in border border-[#e7decb] bg-card p-2.5 shadow-[0_10px_30px_-22px_rgba(80,60,25,0.4)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_40px_-24px_rgba(80,60,25,0.5)] dark:border-[#3b3327]"
+                  >
+                    <div className="relative aspect-[1.55/1] overflow-hidden bg-muted">
+                      <SafeImage
+                        src={puzzle.image_url}
+                        alt={puzzle.title}
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                        className="object-cover transition duration-700 group-hover:scale-[1.04]"
+                      />
+                      <span
+                        className={cn(
+                          'absolute right-2.5 top-2.5 rounded-full px-2.5 py-0.5 text-xs font-semibold shadow-sm',
+                          getDifficultyStyle(puzzle.difficulty)
+                        )}
+                      >
+                        {puzzle.difficulty}
+                      </span>
                     </div>
-                  </div>
+                    <div className="px-1.5 pb-1.5 pt-3">
+                      <h3 className="font-display text-[19px] font-semibold leading-tight text-foreground transition-colors group-hover:text-accent">
+                        {puzzle.title}
+                      </h3>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {puzzle.piece_count} pcs
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ) : query ? (
+            <div className="animate-fade-in py-16 text-center">
+              <div className="mx-auto max-w-md">
+                <div className="mx-auto grid h-20 w-20 place-items-center rounded-full border border-[#d8cbb0] bg-panel dark:border-[#3b3327]">
+                  <Frown className="h-9 w-9 text-muted-foreground" />
+                </div>
+                <h3 className="font-display mt-6 text-[26px] font-semibold text-foreground">
+                  No puzzles found
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                  We couldn&rsquo;t find anything matching &ldquo;
+                  <span className="font-medium text-foreground">{query}</span>&rdquo;.
+                  Try searching for something else or browse a popular topic.
+                </p>
+                <div className="mt-6 flex flex-wrap justify-center gap-2.5">
+                  {popularSearches.slice(0, 5).map((suggestion) => (
+                    <Link key={suggestion} href={`/search?q=${suggestion}`} className={chipClass}>
+                      <TrendingUp className="h-3.5 w-3.5 text-primary/70" />
+                      {suggestion}
+                    </Link>
+                  ))}
                 </div>
               </div>
-            ) : (
-              <div className="text-center py-24 animate-fade-in">
-                <div className="max-w-md mx-auto">
-                  <div className="w-24 h-24 mx-auto mb-8 rounded-3xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center relative group">
-                    <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    <Sparkles className="h-12 w-12 text-primary relative z-10" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-foreground dark:text-white mb-3">
-                    Start your puzzle journey
-                  </h3>
-                  <p className="text-muted-foreground dark:text-gray-400 leading-relaxed">
-                    Enter a search term above to explore our vast collection,<br/>or try one of the popular topics.
-                  </p>
+            </div>
+          ) : (
+            <div className="animate-fade-in py-16 text-center">
+              <div className="mx-auto max-w-md">
+                <div className="mx-auto grid h-20 w-20 place-items-center rounded-full border border-[#d8cbb0] bg-panel dark:border-[#3b3327]">
+                  <Sparkles className="h-8 w-8 text-primary" />
                 </div>
+                <h3 className="font-display mt-6 text-[26px] font-semibold text-foreground">
+                  Start your puzzle journey
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                  Enter a search term above to explore our collection,
+                  <br />
+                  or try one of the popular topics.
+                </p>
               </div>
-            )}
-          </div>
-        </section>
-      </div>
+            </div>
+          )}
+        </div>
+      </section>
     </div>
   )
 }

@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Puzzle, Star, Users } from 'lucide-react'
+import { Puzzle, Star } from 'lucide-react'
 import { SafeImage } from '@/components/ui/SafeImage'
 import type { DisplayDifficulty, PublicPuzzle } from '@/lib/data/public'
 import { cn } from '@/lib/utils'
@@ -8,12 +8,6 @@ const difficultyStyles: Record<DisplayDifficulty, string> = {
   Easy: 'difficulty-easy',
   Medium: 'difficulty-medium',
   Hard: 'difficulty-hard',
-}
-
-function formatCount(count: number) {
-  if (count < 1000) return count.toLocaleString()
-  const value = count / 1000
-  return `${value >= 10 ? Math.round(value) : value.toFixed(1)}K`
 }
 
 export function ThemePuzzleCard({ puzzle }: { puzzle: PublicPuzzle }) {
@@ -54,10 +48,6 @@ export function ThemePuzzleCard({ puzzle }: { puzzle: PublicPuzzle }) {
             </span>
           </div>
         </div>
-      </div>
-      <div className="flex h-8 items-center px-3 text-[10px] font-medium text-muted-foreground">
-        <Users className="mr-1.5 h-3.5 w-3.5" />
-        {formatCount(puzzle.plays_count)} plays
       </div>
     </Link>
   )

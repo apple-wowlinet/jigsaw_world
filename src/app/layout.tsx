@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Cormorant_Garamond, Inter } from 'next/font/google'
 import './globals.css'
 import { Header } from '@/components/navigation/Header'
@@ -31,8 +31,12 @@ export const metadata: Metadata = {
     title: 'JigsawWorld - Online Jigsaw Puzzle Games',
     description: 'Play beautiful jigsaw puzzles online. Challenge yourself with daily puzzles, explore categories, and compete with other players.',
   },
-  viewport: 'width=device-width, initial-scale=1',
   robots: 'index, follow',
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
 }
 
 export default function RootLayout({

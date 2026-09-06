@@ -47,11 +47,6 @@ const FALLBACK_PUZZLES: PublicPuzzle[] = [
 const filters = ['For You', 'Easy', 'Medium', 'Hard', '500+ Pieces'] as const
 type Filter = (typeof filters)[number]
 
-function formatPlays(value: number) {
-  if (value >= 1000) return `${(value / 1000).toFixed(1)}k`
-  return value.toString()
-}
-
 function SectionHeading({
   title,
   linkHref,
@@ -131,7 +126,7 @@ export function RecommendationsSection() {
                   {item.title}
                 </h3>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  {item.piece_count} pcs &nbsp;·&nbsp; {formatPlays(item.plays_count)} plays
+                  {item.piece_count} pcs
                 </p>
               </div>
             </Link>

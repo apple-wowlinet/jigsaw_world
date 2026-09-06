@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Search, Menu, X, Puzzle, Sparkles, CirclePlus, Trophy, LayoutGrid, Compass, LogOut, UserCircle, type LucideIcon } from 'lucide-react'
+import { Search, Menu, X, Puzzle, Sparkles, Trophy, LayoutGrid, Compass, LogOut, UserCircle, type LucideIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useAuth } from '@/components/auth/AuthProvider'
@@ -27,11 +27,10 @@ export function Header() {
   }
 
   const navLinks: Array<{ href: string; label: string; icon?: LucideIcon }> = [
-    { href: '/create', label: 'Create', icon: CirclePlus },
     { href: '/daily', label: 'Daily Puzzle', icon: Sparkles },
-    { href: '/leaderboard', label: 'Leaderboard', icon: Trophy },
-    { href: '/categories', label: 'Categories', icon: LayoutGrid },
     { href: '/explore/weekly', label: 'Explore', icon: Compass },
+    { href: '/categories', label: 'Categories', icon: LayoutGrid },
+    { href: '/leaderboard', label: 'Leaderboard', icon: Trophy },
   ]
 
   const handleSignOut = async () => {
@@ -158,14 +157,6 @@ export function Header() {
 
               {/* Mobile Nav Links */}
               <Link
-                href="/create"
-                className="flex items-center px-3 py-2 rounded-lg text-base font-medium text-foreground hover:bg-secondary dark:hover:bg-secondary/50 transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                <CirclePlus className="w-4 h-4 mr-2 text-primary" />
-                Create
-              </Link>
-              <Link
                 href="/daily"
                 className="flex items-center px-3 py-2 rounded-lg text-base font-medium text-foreground hover:bg-secondary dark:hover:bg-secondary/50 transition-colors"
                 onClick={() => setIsMenuOpen(false)}
@@ -174,26 +165,28 @@ export function Header() {
                 Daily Puzzle
               </Link>
               <Link
+                href="/explore/weekly"
+                className="flex items-center px-3 py-2 rounded-lg text-base font-medium text-foreground hover:bg-secondary dark:hover:bg-secondary/50 transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <Compass className="w-4 h-4 mr-2 text-primary" />
+                Explore
+              </Link>
+              <Link
+                href="/categories"
+                className="flex items-center px-3 py-2 rounded-lg text-base font-medium text-foreground hover:bg-secondary dark:hover:bg-secondary/50 transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <LayoutGrid className="w-4 h-4 mr-2 text-primary" />
+                Categories
+              </Link>
+              <Link
                 href="/leaderboard"
                 className="flex items-center px-3 py-2 rounded-lg text-base font-medium text-foreground hover:bg-secondary dark:hover:bg-secondary/50 transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
                 <Trophy className="w-4 h-4 mr-2 text-yellow-500" />
                 Leaderboard
-              </Link>
-              <Link 
-                href="/categories" 
-                className="flex items-center px-3 py-2 rounded-lg text-base font-medium text-foreground hover:bg-secondary dark:hover:bg-secondary/50 transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Categories
-              </Link>
-              <Link
-                href="/explore/weekly"
-                className="flex items-center px-3 py-2 rounded-lg text-base font-medium text-foreground hover:bg-secondary dark:hover:bg-secondary/50 transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Explore
               </Link>
 
               <div className="border-t border-border dark:border-white/10 pt-3 mt-3">

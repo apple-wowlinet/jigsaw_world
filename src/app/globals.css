@@ -124,8 +124,12 @@
 }
 
 /* ===== Base Styles ===== */
-* {
-  border-color: var(--color-border);
+/* Layered so Tailwind's border-color utilities (e.g. focus-within:border-primary)
+   can override the default sand border color at normal utility precedence. */
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
 }
 
 body {
@@ -997,6 +1001,13 @@ textarea::placeholder {
 *:focus-visible {
   outline: 2px solid var(--color-ring);
   outline-offset: 2px;
+}
+
+/* Text fields carry their own focus treatment (border/ring on the field or its
+   container via focus-within); the sitewide outline rectangle clashes with them. */
+input:focus-visible,
+textarea:focus-visible {
+  outline: none;
 }
 
 /* ===== Selection ===== */
