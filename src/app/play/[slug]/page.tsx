@@ -11,7 +11,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { Utils } from '@/lib/puzzle/core/utils'
-import { Subject, computeChoices, optimizeSubjectSize, type SubjectData } from '@/lib/puzzle/core/subject'
+import {
+  Subject,
+  computeChoices,
+  computeExactChoice,
+  optimizeSubjectSize,
+  type SubjectData,
+} from '@/lib/puzzle/core/subject'
 import type { PieceChoice, SaveGameV6 } from '@/lib/puzzle/core/types'
 import { PuzzleCanvas, type PuzzleCanvasHandle } from '@/components/puzzle/PuzzleCanvas'
 import { ResumeDialog } from '@/components/puzzle/ResumeDialog'
@@ -38,6 +44,12 @@ function PlayPuzzleContent() {
   const slug = params?.slug as string
   const isCustom = slug === 'custom'
   const idbKey = isCustom ? searchParams?.get('img') ?? '' : ''
+  const requestedValue = Number(searchParams?.get('pieces'))
+  const requestedNop = Number.isSafeInteger(requestedValue)
+    && requestedValue >= 4
+    && requestedValue <= 2000
+    ? requestedValue
+    : 0
   // 存档 id：目录 slug 或 idb:<key>
   const puzzleId = isCustom ? `idb:${idbKey}` : slug
 
@@ -220,29 +232,41 @@ function PlayPuzzleContent() {
         // 自动尺寸只用于计算档位基准
         const autoSub = Subject.create(img, boardW, boardH)
         baseSizeRef.current = { w: autoSub.width, h: autoSub.height }
-        const cs = computeChoices(autoSub)
+        const computedChoices = computeChoices(autoSub)
+        const requestedChoice = requestedNop
+          ? computedChoices.find((c) => c.nop === requestedNop) ??
+            computeExactChoice(autoSub, requestedNop)
+          : null
+        const cs = requestedChoice && !computedChoices.some((c) => c.nop === requestedChoice.nop)
+          ? [...computedChoices, requestedChoice].sort((a, b) => a.nop - b.nop)
+          : computedChoices
         if (cancelled) return
         setChoices(cs)
+        setResumeCandidate(null)
         const rotPref = getRotationPref()
         setRotationOn(rotPref)
         setMuted(sfx.muted)
 
-        // 找任一档位的存档（优先块数最小档）
+        // URL 明确指定档位时只检查该档存档；否则沿用任一档位的续玩逻辑。
         let found: SaveGameV6 | null = null
-        for (const c of cs) {
-          const s = loadSave(puzzleId, c.nop)
-          if (s) {
-            found = s
-            break
+        if (requestedChoice) {
+          found = loadSave(puzzleId, requestedChoice.nop)
+        } else {
+          for (const c of cs) {
+            const s = loadSave(puzzleId, c.nop)
+            if (s) {
+              found = s
+              break
+            }
           }
         }
         if (found) {
+          setSelectedNop(found.nop)
           setResumeCandidate(found)
         } else {
           setSeed((Math.random() * 1e9) | 0)
           setPendingSave(null)
-          const requested = Number(searchParams?.get('pieces') ?? 0)
-          applyChoice(cs.find((c) => c.nop === requested) ?? cs[0])
+          applyChoice(requestedChoice ?? cs[0])
         }
       } catch (err) {
         if (cancelled) return
@@ -256,8 +280,7 @@ function PlayPuzzleContent() {
     return () => {
       cancelled = true
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [puzzle, puzzleId])
+  }, [puzzle, puzzleId, loadSource, applyChoice, requestedNop])
 
   /* ---------------- 续玩选择 ---------------- */
 
@@ -277,12 +300,16 @@ function PlayPuzzleContent() {
   }, [resumeCandidate, choices, applyChoice])
 
   const restartFresh = useCallback(() => {
-    if (resumeCandidate) clearSave(puzzleId, resumeCandidate.nop)
+    const savedNop = resumeCandidate?.nop
+    if (savedNop) clearSave(puzzleId, savedNop)
     setPendingSave(null)
     setResumeCandidate(null)
     setSeed((Math.random() * 1e9) | 0)
-    if (choices[0]) applyChoice(choices[0])
-  }, [resumeCandidate, choices, puzzleId, applyChoice])
+    const freshChoice = choices.find((c) => c.nop === savedNop)
+      ?? choices.find((c) => c.nop === requestedNop)
+      ?? choices[0]
+    if (freshChoice) applyChoice(freshChoice)
+  }, [resumeCandidate, choices, puzzleId, requestedNop, applyChoice])
 
   /* ---------------- 游戏事件 ---------------- */
 

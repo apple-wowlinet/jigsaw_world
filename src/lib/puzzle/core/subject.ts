@@ -153,3 +153,53 @@ export function computeChoices(subject: SubjectData): PieceChoice[] {
   }
   return result;
 }
+
+/**
+ * Build an exact piece-count grid for counts supplied outside the game page
+ * (for example, `?pieces=100`). The regular choices are viewport-dependent,
+ * so a requested count is not guaranteed to be present in computeChoices().
+ *
+ * Only grids with at least two rows and columns are usable. When several
+ * factor pairs exist, prefer the one whose shape best follows the image.
+ */
+export function computeExactChoice(
+  subject: SubjectData,
+  requestedNop: number
+): PieceChoice | null {
+  if (!Number.isSafeInteger(requestedNop) || requestedNop < 4 || requestedNop > 2000) {
+    return null;
+  }
+
+  const subjectRatio = subject.width / subject.height;
+  let best: PieceChoice | null = null;
+  let bestScore = Infinity;
+
+  for (let rows = 2; rows <= Math.sqrt(requestedNop); rows++) {
+    if (requestedNop % rows !== 0) continue;
+    const paired = requestedNop / rows;
+
+    for (const [candidateRows, candidateCols] of [
+      [rows, paired],
+      [paired, rows],
+    ]) {
+      const gridRatio = candidateCols / candidateRows;
+      const score = Math.abs(Math.log(gridRatio / subjectRatio));
+      if (score >= bestScore) continue;
+
+      const size = Math.floor(
+        Math.min(subject.width / candidateCols, subject.height / candidateRows)
+      );
+      if (size < 1) continue;
+
+      bestScore = score;
+      best = {
+        nop: requestedNop,
+        rows: candidateRows,
+        cols: candidateCols,
+        size,
+      };
+    }
+  }
+
+  return best;
+}
