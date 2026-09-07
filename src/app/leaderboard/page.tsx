@@ -2,10 +2,8 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
-import { ChevronDown, Globe2, Search, Sparkles, Star, Trophy, Users } from 'lucide-react'
+import { Sparkles, Trophy } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import { LeaderboardEntry, LeaderboardPeriod } from '@/lib/types'
 import { fetchLeaderboard } from '@/lib/leaderboard'
@@ -82,7 +80,6 @@ function enrichEntry(entry: LeaderboardEntry): EnrichedEntry {
 }
 
 function LeaderboardContent({ period }: { period: LeaderboardPeriod }) {
-  const [query, setQuery] = useState('')
   const [loaded, setLoaded] = useState<{ period: LeaderboardPeriod; data: LeaderboardEntry[] } | null>(null)
 
   useEffect(() => {
@@ -95,9 +92,7 @@ function LeaderboardContent({ period }: { period: LeaderboardPeriod }) {
 
   const loading = loaded?.period !== period
   const entries = (loaded?.data ?? []).map(enrichEntry)
-  const filteredEntries = entries.filter((entry) =>
-    entry.username.toLowerCase().includes(query.trim().toLowerCase())
-  )
+  const filteredEntries = entries
 
   const periodMeta = PERIODS.find((p) => p.value === period)!
 
@@ -165,15 +160,10 @@ function LeaderboardContent({ period }: { period: LeaderboardPeriod }) {
               Compete with puzzle masters around the world. {periodMeta.description} ranked by score.
             </p>
           </div>
-
-          <div className="grid grid-cols-2 gap-3 sm:min-w-[440px] animate-fade-in" style={{ animationDelay: '80ms' }}>
-            <MetricCard icon={<Star className="h-5 w-5 fill-gold text-gold" />} title="Season 12" value="12 Days Left" />
-            <MetricCard icon={<Users className="h-5 w-5 text-primary" />} title="32,841" value="Active Players" />
-          </div>
         </section>
 
-        <section className="mt-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex rounded-lg border border-border bg-card p-1 shadow-sm">
+        <section className="mt-8">
+          <div className="inline-flex rounded-lg border border-border bg-card p-1 shadow-sm">
             {PERIODS.map((p) => (
               <Link
                 key={p.value}
@@ -187,23 +177,6 @@ function LeaderboardContent({ period }: { period: LeaderboardPeriod }) {
                 {p.label}
               </Link>
             ))}
-          </div>
-
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Button variant="outline" className="h-11 justify-between gap-3 rounded-lg px-4">
-              <Globe2 className="h-4 w-4 text-primary" />
-              All Players
-              <ChevronDown className="h-4 w-4" />
-            </Button>
-            <div className="relative min-w-[260px]">
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search player..."
-                className="h-11 rounded-lg border-input bg-card pl-11 text-foreground placeholder:text-muted-foreground"
-              />
-            </div>
           </div>
         </section>
 
@@ -227,22 +200,6 @@ function LeaderboardContent({ period }: { period: LeaderboardPeriod }) {
         </section>
       </main>
     </div>
-  )
-}
-
-function MetricCard({ icon, title, value }: { icon: React.ReactNode; title: string; value: string }) {
-  return (
-    <Card className="rounded-lg border-[#e7decb] bg-card shadow-[0_10px_30px_-22px_rgba(80,60,25,0.4)] dark:border-[#3b3327]">
-      <CardContent className="flex items-center gap-3 p-4">
-        <div className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-primary-subtle">
-          {icon}
-        </div>
-        <div>
-          <div className="font-display text-lg font-semibold text-foreground">{title}</div>
-          <div className="text-sm text-muted-foreground">{value}</div>
-        </div>
-      </CardContent>
-    </Card>
   )
 }
 
