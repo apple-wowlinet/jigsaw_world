@@ -52,23 +52,15 @@ export function HeroSection() {
 
   return (
     <section className="relative overflow-hidden px-4 pt-6 sm:px-6 lg:px-8">
-      {/* Gallery-wall backdrop: arched niche + soft vignette */}
+      {/* Soft vignette */}
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
         <div className="absolute inset-x-0 top-0 h-[640px] bg-[radial-gradient(ellipse_at_50%_-10%,rgba(255,255,255,0.75),transparent_60%)] dark:bg-[radial-gradient(ellipse_at_50%_-10%,rgba(240,233,220,0.06),transparent_60%)]" />
-        <div className="absolute -left-8 top-4 hidden h-[560px] w-[240px] rounded-t-full border border-[#e3d9c4] bg-gradient-to-b from-[#efe8d8] via-[#f4efe3] to-transparent shadow-[inset_-14px_0_28px_-18px_rgba(120,100,60,0.25)] lg:block dark:border-[#3b3327] dark:from-[#221d15] dark:via-[#1c1812]">
-          <div className="absolute inset-x-6 bottom-0 h-24 bg-gradient-to-t from-[#e7dfcc]/60 to-transparent dark:from-[#26211a]/60" />
-        </div>
-        <div className="absolute right-[-30px] top-24 hidden h-64 w-40 rotate-[15deg] opacity-[0.16] lg:block dark:opacity-[0.08]">
-          <svg viewBox="0 0 100 160" fill="currentColor" className="h-full w-full text-[#5c6e51]">
-            <path d="M50 160 C48 120 46 90 50 60 C40 70 28 66 24 56 C36 54 44 48 50 40 C50 30 52 20 56 12 C60 22 66 28 76 32 C68 40 58 44 52 56 C58 70 70 76 82 74 C76 86 62 90 52 84 C54 110 52 135 50 160 Z" />
-          </svg>
-        </div>
       </div>
 
       <div className="relative mx-auto max-w-[1380px]">
         <div className="grid items-center gap-10 lg:grid-cols-[0.92fr_1.08fr] lg:gap-8">
           {/* Left — headline */}
-          <div className="max-w-[600px] lg:pl-10">
+          <div className="max-w-[600px]">
             <p className="label-caps text-muted-foreground">Pieces of Wonder</p>
 
             <h1 className="font-display mt-5 text-[3.4rem] font-semibold leading-[1.02] tracking-[-0.01em] text-foreground sm:text-6xl lg:text-[4.3rem]">
