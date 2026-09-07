@@ -25,17 +25,28 @@ import { loadSave, storeSave, clearSave, getRotationPref, setRotationPref } from
 import { getImage } from '@/lib/puzzle/storage/image-store'
 import { sfx } from '@/lib/puzzle/audio/sfx'
 import { fetchPuzzleBySlug } from '@/lib/data/public'
+import {
+  getPuzzlePieceCounts,
+  resolvePuzzlePieceCount,
+} from '@/lib/puzzle/piece-counts'
 
 interface PuzzleMeta {
   id: string
   title: string
   image_url: string
   difficulty: 'easy' | 'medium' | 'hard'
+  piece_count: number
 }
 
 type PuzzleImageSource =
   | { type: 'stored'; key: string }
   | { type: 'remote'; url: string }
+
+function parseRequestedPieceCount(value: string | null): number | null {
+  if (value === null) return null
+  const parsed = Number(value)
+  return Number.isSafeInteger(parsed) ? parsed : null
+}
 
 function PlayPuzzleContent() {
   const params = useParams()
@@ -44,12 +55,8 @@ function PlayPuzzleContent() {
   const slug = params?.slug as string
   const isCustom = slug === 'custom'
   const idbKey = isCustom ? searchParams?.get('img') ?? '' : ''
-  const requestedValue = Number(searchParams?.get('pieces'))
-  const requestedNop = Number.isSafeInteger(requestedValue)
-    && requestedValue >= 4
-    && requestedValue <= 2000
-    ? requestedValue
-    : 0
+  const requestedPiecesParam = searchParams?.get('pieces')
+  const requestedNop = parseRequestedPieceCount(requestedPiecesParam)
   // 存档 id：目录 slug 或 idb:<key>
   const puzzleId = isCustom ? `idb:${idbKey}` : slug
 
@@ -101,6 +108,7 @@ function PlayPuzzleContent() {
         title: item.title,
         image_url: item.image_url,
         difficulty: item.difficulty.toLowerCase() as PuzzleMeta['difficulty'],
+        piece_count: item.piece_count,
       } : null)
       setPuzzleLoading(false)
     })
@@ -111,7 +119,13 @@ function PlayPuzzleContent() {
   const puzzle = useMemo<PuzzleMeta | null>(() => {
     if (isCustom) {
       return idbKey
-        ? { id: 'custom', title: 'My Puzzle', image_url: '', difficulty: 'medium' }
+        ? {
+            id: 'custom',
+            title: 'My Puzzle',
+            image_url: '',
+            difficulty: 'medium',
+            piece_count: 100,
+          }
         : null
     }
     return remotePuzzle
@@ -232,14 +246,13 @@ function PlayPuzzleContent() {
         // 自动尺寸只用于计算档位基准
         const autoSub = Subject.create(img, boardW, boardH)
         baseSizeRef.current = { w: autoSub.width, h: autoSub.height }
-        const computedChoices = computeChoices(autoSub)
-        const requestedChoice = requestedNop
-          ? computedChoices.find((c) => c.nop === requestedNop) ??
-            computeExactChoice(autoSub, requestedNop)
-          : null
-        const cs = requestedChoice && !computedChoices.some((c) => c.nop === requestedChoice.nop)
-          ? [...computedChoices, requestedChoice].sort((a, b) => a.nop - b.nop)
-          : computedChoices
+        const cs = isCustom
+          ? computeChoices(autoSub)
+          : getPuzzlePieceCounts(puzzle.piece_count).map((nop) => {
+              const exactChoice = computeExactChoice(autoSub, nop)
+              if (!exactChoice) throw new Error(`invalid-piece-count:${nop}`)
+              return exactChoice
+            })
         if (cancelled) return
         setChoices(cs)
         setResumeCandidate(null)
@@ -247,26 +260,27 @@ function PlayPuzzleContent() {
         setRotationOn(rotPref)
         setMuted(sfx.muted)
 
-        // URL 明确指定档位时只检查该档存档；否则沿用任一档位的续玩逻辑。
-        let found: SaveGameV6 | null = null
-        if (requestedChoice) {
-          found = loadSave(puzzleId, requestedChoice.nop)
-        } else {
-          for (const c of cs) {
-            const s = loadSave(puzzleId, c.nop)
-            if (s) {
-              found = s
-              break
-            }
-          }
-        }
+        const counts = cs.map((c) => c.nop)
+        const defaultNop = isCustom
+          ? counts[0]
+          : resolvePuzzlePieceCount(null, counts, puzzle.piece_count)
+        const currentPiecesParam = new URLSearchParams(
+          window.location.search
+        ).get('pieces')
+        const initialNop = resolvePuzzlePieceCount(
+          parseRequestedPieceCount(currentPiecesParam),
+          counts,
+          defaultNop
+        )
+        const initialChoice = cs.find((c) => c.nop === initialNop) ?? cs[0]
+        const found: SaveGameV6 | null = loadSave(puzzleId, initialChoice.nop)
         if (found) {
           setSelectedNop(found.nop)
           setResumeCandidate(found)
         } else {
           setSeed((Math.random() * 1e9) | 0)
           setPendingSave(null)
-          applyChoice(requestedChoice ?? cs[0])
+          applyChoice(initialChoice)
         }
       } catch (err) {
         if (cancelled) return
@@ -280,7 +294,7 @@ function PlayPuzzleContent() {
     return () => {
       cancelled = true
     }
-  }, [puzzle, puzzleId, loadSource, applyChoice, requestedNop])
+  }, [puzzle, puzzleId, loadSource, applyChoice, isCustom])
 
   /* ---------------- 续玩选择 ---------------- */
 
@@ -305,11 +319,9 @@ function PlayPuzzleContent() {
     setPendingSave(null)
     setResumeCandidate(null)
     setSeed((Math.random() * 1e9) | 0)
-    const freshChoice = choices.find((c) => c.nop === savedNop)
-      ?? choices.find((c) => c.nop === requestedNop)
-      ?? choices[0]
+    const freshChoice = choices.find((c) => c.nop === savedNop) ?? choices[0]
     if (freshChoice) applyChoice(freshChoice)
-  }, [resumeCandidate, choices, puzzleId, requestedNop, applyChoice])
+  }, [resumeCandidate, choices, puzzleId, applyChoice])
 
   /* ---------------- 游戏事件 ---------------- */
 
@@ -339,6 +351,7 @@ function PlayPuzzleContent() {
       setTimer(0)
       setProgress(0)
       setMoves(0)
+      setResumeCandidate(null)
       // 该档若有存档则恢复，否则新开
       const existing = loadSave(puzzleId, c.nop)
       if (existing) {
@@ -352,6 +365,84 @@ function PlayPuzzleContent() {
     },
     [choice, flushSave, pauseClock, puzzleId, applyChoice]
   )
+
+  const navigateToPieceCount = useCallback((nop: number, replace = false) => {
+    const nextParams = new URLSearchParams(window.location.search)
+    nextParams.set('pieces', String(nop))
+    const href = `/play/${slug}?${nextParams.toString()}`
+    if (replace) {
+      router.replace(href, { scroll: false })
+    } else {
+      router.push(href, { scroll: false })
+    }
+  }, [router, slug])
+
+  // URL changes select a tier without reloading the source image. Invalid and
+  // legacy values are canonicalized to the closest choice exposed by this page.
+  useEffect(() => {
+    if (!puzzle || choices.length === 0 || !imgRef.current) return
+
+    const counts = choices.map((c) => c.nop)
+    const defaultNop = isCustom
+      ? counts[0]
+      : resolvePuzzlePieceCount(null, counts, puzzle.piece_count)
+    const resolvedNop = resolvePuzzlePieceCount(
+      requestedNop,
+      counts,
+      defaultNop
+    )
+
+    if (
+      requestedPiecesParam !== null &&
+      requestedPiecesParam !== String(resolvedNop)
+    ) {
+      navigateToPieceCount(resolvedNop, true)
+    }
+  }, [
+    choices,
+    isCustom,
+    navigateToPieceCount,
+    puzzle,
+    requestedNop,
+    requestedPiecesParam,
+  ])
+
+  // Back/forward navigation applies the URL tier through an event callback,
+  // keeping URL-driven state changes out of the source-image loading effect.
+  useEffect(() => {
+    if (!puzzle || choices.length === 0) return
+
+    const handlePopState = () => {
+      const currentParam = new URLSearchParams(window.location.search).get('pieces')
+      const counts = choices.map((c) => c.nop)
+      const defaultNop = isCustom
+        ? counts[0]
+        : resolvePuzzlePieceCount(null, counts, puzzle.piece_count)
+      const resolvedNop = resolvePuzzlePieceCount(
+        parseRequestedPieceCount(currentParam),
+        counts,
+        defaultNop
+      )
+
+      if (currentParam !== null && currentParam !== String(resolvedNop)) {
+        navigateToPieceCount(resolvedNop, true)
+      }
+      if (selectedNop === resolvedNop) return
+
+      const nextChoice = choices.find((c) => c.nop === resolvedNop)
+      if (nextChoice) rebuildWithChoice(nextChoice)
+    }
+
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [
+    choices,
+    isCustom,
+    navigateToPieceCount,
+    puzzle,
+    rebuildWithChoice,
+    selectedNop,
+  ])
 
   const resetGame = useCallback(() => {
     if (choice) clearSave(puzzleId, choice.nop)
@@ -469,7 +560,10 @@ function PlayPuzzleContent() {
                   onChange={(e) => {
                     const nop = Number(e.target.value)
                     const c = choices.find((x) => x.nop === nop)
-                    if (c) rebuildWithChoice(c)
+                    if (c) {
+                      rebuildWithChoice(c)
+                      navigateToPieceCount(c.nop)
+                    }
                   }}
                   className="bg-secondary/60 dark:bg-[#0f172a] border border-border/60 dark:border-primary/35 rounded-lg pl-2.5 pr-1 py-1 shadow-sm dark:shadow-[0_0_0_1px_rgba(96,165,250,0.12)] text-sm font-semibold text-foreground dark:text-white dark:[&>option]:bg-[#0f172a] dark:[&>option]:text-white focus:outline-none focus:ring-2 focus:ring-primary/60 cursor-pointer hover:bg-white/40 dark:hover:bg-primary/10 transition-colors"
                   aria-label="Select piece count"

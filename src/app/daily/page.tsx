@@ -25,6 +25,10 @@ import {
   type DailyChallengeProgress,
   type DailyPuzzle,
 } from '@/lib/data/public'
+import {
+  getPuzzlePieceCounts,
+  resolvePuzzlePieceCount,
+} from '@/lib/puzzle/piece-counts'
 import { cn } from '@/lib/utils'
 
 const FALLBACK_TODAY: DailyPuzzle = {
@@ -206,7 +210,11 @@ export default function DailyPage() {
   const [usingFallbackData, setUsingFallbackData] = useState(true)
   const [loading, setLoading] = useState(true)
   const [selectedPieces, setSelectedPieces] = useState(
-    FALLBACK_TODAY.piece_count
+    resolvePuzzlePieceCount(
+      null,
+      getPuzzlePieceCounts(FALLBACK_TODAY.piece_count),
+      FALLBACK_TODAY.piece_count
+    )
   )
   const [pieceMenuOpen, setPieceMenuOpen] = useState(false)
 
@@ -219,7 +227,10 @@ export default function DailyPage() {
 
         if (today) {
           setDailyPuzzle(today)
-          setSelectedPieces(today.piece_count)
+          const options = getPuzzlePieceCounts(today.piece_count)
+          setSelectedPieces(
+            resolvePuzzlePieceCount(null, options, today.piece_count)
+          )
           setHistoryPuzzles(
             history
               .filter((item) => item.challenge_id !== today.challenge_id)
@@ -286,8 +297,7 @@ export default function DailyPage() {
     100,
     Math.round((progress.completedThisMonth / Math.max(challengeDay, 1)) * 100)
   )
-  const pieceChoices = [...new Set([48, 80, 120, 200, dailyPuzzle.piece_count])]
-    .sort((a, b) => a - b)
+  const pieceChoices = getPuzzlePieceCounts(dailyPuzzle.piece_count)
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-background text-foreground">

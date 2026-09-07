@@ -23,6 +23,10 @@ import {
   type PublicPuzzle,
   type PublicPuzzleLeaderboardEntry,
 } from '@/lib/data/public'
+import {
+  getPuzzlePieceCounts,
+  resolvePuzzlePieceCount,
+} from '@/lib/puzzle/piece-counts'
 import { cn } from '@/lib/utils'
 
 function formatLeaderboardTime(seconds: number) {
@@ -126,15 +130,12 @@ function PuzzleDetailContent() {
   }
 
   const canonicalSize = puzzle.piece_count
-  const activeSize = selectedSize ?? canonicalSize
-  const sizeOptions = Array.from(
-    new Set([
-      Math.max(12, Math.round((canonicalSize * 0.3) / 6) * 6),
-      Math.max(24, Math.round((canonicalSize * 0.6) / 6) * 6),
-      canonicalSize,
-      Math.min(500, Math.round((canonicalSize * 2) / 6) * 6),
-    ])
-  ).sort((a, b) => a - b)
+  const sizeOptions = getPuzzlePieceCounts(canonicalSize)
+  const activeSize = selectedSize ?? resolvePuzzlePieceCount(
+    null,
+    sizeOptions,
+    canonicalSize
+  )
   const baseMinutes = (activeSize * 18) / 60
   const timeLow = Math.max(5, Math.round((baseMinutes * 0.75) / 5) * 5)
   const timeHigh = Math.max(timeLow + 10, Math.round((baseMinutes * 1.25) / 5) * 5)
