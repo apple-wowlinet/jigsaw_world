@@ -113,65 +113,60 @@ export function CategoriesSection() {
         </div>
 
         {/* Streak banner */}
-        <div className="relative mt-10 overflow-hidden border border-[#e7decb] bg-panel shadow-[0_18px_45px_-32px_rgba(80,60,25,0.5)] dark:border-[#3b3327]">
-          <div
-            className="pointer-events-none absolute -left-10 -top-16 h-48 w-48 rounded-full bg-[#ece3cf] blur-2xl dark:bg-[#2a241a]"
+        <div className="relative mt-10">
+          <SafeImage
+            src="/images/steak-statue_rz.png"
+            alt=""
+            width={120}
+            height={148}
             aria-hidden="true"
+            className="pointer-events-none absolute bottom-0 left-5 z-10 hidden h-[150px] w-auto dark:opacity-90 lg:block"
           />
-          <div className="relative flex flex-col items-start gap-6 px-6 py-6 sm:px-8 lg:flex-row lg:items-center lg:gap-8">
+          <div className="relative overflow-hidden border border-[#e0d5c0] bg-panel shadow-[0_18px_45px_-32px_rgba(80,60,25,0.5)] dark:border-[#3b3327]">
             <div
-              className="hidden h-24 w-24 shrink-0 place-items-center rounded-full border border-[#d8cbb0] bg-[#f3edde] shadow-inner lg:grid dark:border-[#3b3327] dark:bg-[#241f17]"
+              className="pointer-events-none absolute inset-[6px] border border-[#d8cbb0] dark:border-[#3b3327]"
               aria-hidden="true"
-            >
-              <div className="relative h-[76px] w-[76px] overflow-hidden rounded-full border border-[#d8cbb0] bg-[#262219] dark:bg-[#282218]">
-                <SafeImage
-                  src="/images/streak-statue.jpg"
-                  alt=""
-                  fill
-                  sizes="76px"
-                  className="object-cover [filter:grayscale(1)_sepia(0.12)_contrast(1.05)] dark:opacity-90"
-                />
-              </div>
-            </div>
-
-            <div className="min-w-0 flex-1">
-              <h3 className="font-display text-[26px] font-semibold leading-tight text-foreground">
-                Keep the streak, unlock the rewards.
-              </h3>
-              <p className="mt-1.5 text-sm text-muted-foreground">
-                Puzzle every day to build your streak and earn exclusive rewards.
-              </p>
-            </div>
-
-            <div className="flex items-center gap-8">
-              <div className="text-center">
-                <Flame className="mx-auto h-5 w-5 fill-accent text-accent" />
-                <p className="mt-1 font-display text-2xl font-semibold leading-none text-foreground">
-                  4 <span className="text-sm">Day</span>
+            />
+            <div className="relative flex flex-col items-start gap-6 px-6 py-6 sm:px-8 lg:flex-row lg:items-center lg:gap-8 lg:pl-[180px]">
+              <div className="min-w-0 flex-1">
+                <h3 className="font-display text-[26px] font-bold leading-tight text-foreground">
+                  Keep the streak,
+                </h3>
+                <p className="mt-1.5 max-w-72 font-display text-[17px] leading-snug text-muted-foreground">
+                  Puzzle every day to build your streak and earn exclusive rewards.
                 </p>
-                <p className="label-caps mt-1 text-[9px] text-muted-foreground">Streak</p>
               </div>
-              <div className="flex items-end gap-3">
-                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => (
-                  <div key={day} className="text-center">
-                    <span className="mb-1.5 block text-[9px] font-medium text-muted-foreground">{day}</span>
-                    <span
-                      className={`grid h-6 w-6 place-items-center rounded-full border ${
-                        index < 4
-                          ? 'border-primary bg-primary text-primary-foreground'
-                          : 'border-[#d5c9ae] bg-transparent text-transparent dark:border-[#3b3327]'
-                      }`}
-                    >
-                      {index < 4 && <Check className="h-3 w-3" strokeWidth={3} />}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
 
-            <Link href="/daily" className="btn btn-terracotta btn-md btn-shine shrink-0">
-              Play Today&rsquo;s Puzzle
-            </Link>
+              <div className="flex items-center gap-8">
+                <div className="text-center">
+                  <Flame className="mx-auto h-5 w-5 fill-accent text-accent" />
+                  <p className="mt-1 font-display text-2xl font-semibold leading-none text-foreground">
+                    4 <span className="text-sm">Day</span>
+                  </p>
+                  <p className="label-caps mt-1 text-[9px] text-muted-foreground">Streak</p>
+                </div>
+                <div className="flex items-end gap-3">
+                  {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => (
+                    <div key={day} className="text-center">
+                      <span className="mb-1.5 block text-[9px] font-medium text-muted-foreground">{day}</span>
+                      <span
+                        className={`grid h-6 w-6 place-items-center rounded-full border ${
+                          index < 4
+                            ? 'border-primary bg-primary text-primary-foreground'
+                            : 'border-[#d5c9ae] bg-transparent text-transparent dark:border-[#3b3327]'
+                        }`}
+                      >
+                        {index < 4 && <Check className="h-3 w-3" strokeWidth={3} />}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <Link href="/daily" className="btn btn-terracotta btn-md btn-shine shrink-0">
+                Play Today&rsquo;s Puzzle
+              </Link>
+            </div>
           </div>
         </div>
       </div>
