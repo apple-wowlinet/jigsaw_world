@@ -349,16 +349,21 @@ html {
 .daily-wall-heading {
   position: absolute;
   z-index: 5;
-  top: 5px;
+  top: 7px;
   left: 4.4%;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.45em 1em;
   font-family: var(--font-display);
-  color: #716958;
-  font-size: clamp(0.58rem, 0.75vw, 0.72rem);
-  font-weight: 600;
+  color: var(--color-accent);
+  background: var(--color-accent-subtle);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 35%, transparent);
+  border-radius: 999px;
+  font-size: clamp(0.6rem, 0.75vw, 0.75rem);
+  font-weight: 700;
   line-height: 1;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  text-shadow: 0 1px rgba(255, 255, 255, 0.8);
 }
 
 .daily-wall-recess {
@@ -540,7 +545,7 @@ html {
 .dark .daily-wall::before { border-color: #514638; box-shadow: inset 4px 0 5px -4px #0e0b08, inset -4px 0 5px -4px #0e0b08, 0 0 0 4px rgba(68, 58, 45, 0.48); }
 .dark .daily-wall::after { background: linear-gradient(to bottom, #4a4034, #332b22 55%, #1b1712); }
 .dark .daily-wall-cornice { filter: brightness(0.38) sepia(0.2); }
-.dark .daily-wall-heading { color: #c7b9a3; text-shadow: 0 1px #15110d; }
+.dark .daily-wall-heading { text-shadow: none; }
 .dark .daily-wall-recess {
   background: radial-gradient(ellipse at 63% 42%, #342d23, #241f18 72%);
   border-color: #55493a;
