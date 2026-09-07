@@ -214,19 +214,19 @@ const MEDAL_SPRITE: Record<number, { pos: string; cx: number; cy: number }> = {
 
 const PODIUM_STYLE: Record<number, { card: string; games: string; star: string }> = {
   1: {
-    card: 'border-[#f7d97e] bg-[linear-gradient(150deg,#fdf3c7_0%,#fefdf4_48%,#fdeccb_100%)] dark:border-[#8a6d2f]/60 dark:bg-[linear-gradient(150deg,rgba(216,178,94,0.22),rgba(255,255,255,0.06))]',
-    games: 'bg-[#fff2ba] text-[#ab3a00] dark:bg-[#fff2ba]/15 dark:text-[#f0b45c]',
-    star: 'bg-[#fffbf2] text-[#3a4353] dark:bg-white/10 dark:text-zinc-100',
+    card: 'border-[#e7d6a8] bg-[linear-gradient(150deg,#f9efd2_0%,#fdfaf3_48%,#f3e3bb_100%)] dark:border-[#8a6d2f]/60 dark:bg-[linear-gradient(150deg,rgba(216,178,94,0.22),rgba(255,255,255,0.06))]',
+    games: 'bg-[#f7edd2] text-[#8a681f] dark:bg-[#f7edd2]/15 dark:text-[#e8cf9a]',
+    star: 'bg-[#fdfaf3] text-[#6e7263] dark:bg-white/10 dark:text-zinc-100',
   },
   2: {
-    card: 'border-[#dbe2ed] bg-[linear-gradient(155deg,#f7f8fc_0%,#edf3fc_45%,#dae1f8_100%)] dark:border-[#565f74]/60 dark:bg-[linear-gradient(155deg,rgba(168,178,210,0.22),rgba(255,255,255,0.06))]',
-    games: 'bg-[#f1f5fa] text-[#263145] dark:bg-white/10 dark:text-zinc-100',
-    star: 'bg-[#f5f6fe] text-[#3a4353] dark:bg-white/10 dark:text-zinc-100',
+    card: 'border-[#ddd8c8] bg-[linear-gradient(155deg,#f2efe4_0%,#faf7ee_45%,#e6e1d0_100%)] dark:border-[#565f74]/60 dark:bg-[linear-gradient(155deg,rgba(168,164,148,0.22),rgba(255,255,255,0.06))]',
+    games: 'bg-[#efece0] text-[#6f6b58] dark:bg-white/10 dark:text-zinc-100',
+    star: 'bg-[#fdfaf3] text-[#6e7263] dark:bg-white/10 dark:text-zinc-100',
   },
   3: {
-    card: 'border-[#ffce98] bg-[linear-gradient(150deg,#fff5e9_0%,#fdeeee_45%,#fdf2bf_100%)] dark:border-[#a06b3a]/60 dark:bg-[linear-gradient(150deg,rgba(205,140,90,0.22),rgba(255,255,255,0.06))]',
-    games: 'bg-[#ffeaca] text-[#bc2200] dark:bg-[#ffeaca]/15 dark:text-[#ff9d6b]',
-    star: 'bg-[#fefbef] text-[#3a4353] dark:bg-white/10 dark:text-zinc-100',
+    card: 'border-[#e3b494] bg-[linear-gradient(150deg,#f9e8da_0%,#fdf6ee_45%,#f3ddc4_100%)] dark:border-[#a06b3a]/60 dark:bg-[linear-gradient(150deg,rgba(205,140,90,0.22),rgba(255,255,255,0.06))]',
+    games: 'bg-[#f9e8da] text-[#a04d26] dark:bg-[#f9e8da]/15 dark:text-[#e0a184]',
+    star: 'bg-[#fdfaf3] text-[#6e7263] dark:bg-white/10 dark:text-zinc-100',
   },
 }
 
@@ -237,15 +237,15 @@ function PodiumCard({ entry }: { entry: EnrichedEntry }) {
   return (
     <Card
       className={cn(
-        'relative rounded-3xl border shadow-[0_24px_50px_-30px_rgba(55,65,110,0.45)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_28px_60px_-28px_rgba(55,65,110,0.5)]',
+        'relative rounded-lg border shadow-[0_18px_45px_-28px_rgba(80,60,25,0.45)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_50px_-26px_rgba(80,60,25,0.5)]',
         style.card,
         entry.rank === 1 && 'lg:order-2',
         entry.rank === 2 && 'lg:order-1',
         entry.rank === 3 && 'lg:order-3',
       )}
     >
-      <CardContent className="flex min-h-[320px] items-stretch p-0 sm:min-h-[380px]">
-        <div className="ml-[4.5%] w-[55%] shrink-0 self-start pb-4">
+      <CardContent className="flex min-h-[300px] items-stretch p-0 sm:min-h-[350px]">
+        <div className="ml-[4.5%] w-[52%] shrink-0 self-start pb-4">
           <div
             className="relative aspect-[300/425] w-full bg-no-repeat"
             style={{
@@ -262,7 +262,7 @@ function PodiumCard({ entry }: { entry: EnrichedEntry }) {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={entry.avatar} alt={entry.username} className="h-full w-full object-cover" />
               ) : (
-                <div className="flex h-full w-full items-center justify-center bg-[linear-gradient(140deg,#f7b0a6_0%,#e0637a_60%,#d14d8a_100%)] text-[44px] sm:text-[54px]">
+                <div className="flex h-full w-full items-center justify-center bg-[linear-gradient(140deg,#f3e2d6_0%,#e8cf9a_60%,#d8b25e_100%)] text-[36px] sm:text-[44px]">
                   <span>{entry.avatar}</span>
                 </div>
               )}
@@ -271,18 +271,18 @@ function PodiumCard({ entry }: { entry: EnrichedEntry }) {
         </div>
 
         <div className="flex min-w-0 flex-1 flex-col items-start justify-center py-10 pl-[3%] pr-[4.5%]">
-          <h2 className="text-[26px] font-bold leading-[1.25] tracking-tight text-[#0b0e14] dark:text-zinc-100 sm:text-[30px]">
+          <h2 className="font-display w-full truncate text-[20px] font-semibold leading-[1.25] tracking-[-0.01em] text-foreground sm:text-[22px]">
             {entry.username}
           </h2>
-          <div className="mt-3 text-[26px] font-bold tracking-tight text-[#1240fb] dark:text-[#6f8dff] sm:mt-4 sm:text-[30px]">
+          <div className="mt-3 font-display text-[24px] font-semibold tracking-tight text-accent sm:mt-4 sm:text-[28px]">
             {entry.score.toLocaleString()}
           </div>
-          <div className="mt-1 text-lg font-medium text-[#394252] dark:text-zinc-300 sm:text-xl">Points</div>
-          <div className="mt-6 flex flex-col items-start gap-3 sm:mt-8 sm:gap-3.5">
-            <span className={cn('rounded-xl px-4 py-2.5 text-[15px] font-bold sm:text-base', style.games)}>
+          <div className="mt-1 text-base font-medium text-muted-foreground">Points</div>
+          <div className="mt-6 flex flex-col items-start gap-3 sm:mt-8 sm:gap-3">
+            <span className={cn('rounded-md px-3.5 py-2 text-[13px] font-bold sm:text-sm', style.games)}>
               {entry.games} Games
             </span>
-            <span className={cn('rounded-xl px-4 py-2.5 text-[15px] font-bold sm:text-base', style.star)}>
+            <span className={cn('rounded-md px-3.5 py-2 text-[13px] font-bold sm:text-sm', style.star)}>
               Star Avg {entry.starAvg.toFixed(1)}
             </span>
           </div>
@@ -296,7 +296,7 @@ function LeaderboardTable({ entries }: { entries: EnrichedEntry[] }) {
   return (
     <Card className="overflow-hidden rounded-lg border-[#e7decb] bg-card shadow-[0_18px_45px_-32px_rgba(80,60,25,0.5)] dark:border-[#3b3327]">
       <CardContent className="p-0">
-        <div className="label-caps grid grid-cols-[72px_1.8fr_90px_100px_110px_110px_90px] items-center border-b border-border px-7 py-5 text-[10px] text-muted-foreground max-lg:hidden">
+        <div className="label-caps grid grid-cols-[72px_1.8fr_90px_100px_110px_110px_90px] items-center gap-4 border-b border-border px-5 py-5 text-[10px] text-muted-foreground max-lg:hidden lg:px-7">
           <span>Rank</span>
           <span>Player</span>
           <span>Level</span>
