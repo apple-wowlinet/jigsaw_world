@@ -6,6 +6,7 @@ import { JigsawGridOverlay } from '@/components/ui/JigsawGridOverlay'
 import Link from 'next/link'
 import { ArrowRight, Clock3, Layers, Puzzle, Star } from 'lucide-react'
 import { fetchDailyPuzzle, type DailyPuzzle } from '@/lib/data/public'
+import { ContinuePuzzleCard } from '@/components/home/ContinuePuzzleCard'
 
 const FALLBACK_DAILY: DailyPuzzle = {
   id: 'rainbow-glass-texture',
@@ -189,49 +190,7 @@ export function HeroSection() {
           </div>
         </div>
 
-        {/* Continue Your Puzzle strip */}
-        <div className="mt-10 flex flex-col items-start gap-5 border border-[#e7decb] bg-card px-6 py-5 shadow-[0_18px_45px_-32px_rgba(80,60,25,0.5)] sm:px-8 lg:flex-row lg:items-center lg:gap-10 dark:border-[#3b3327]">
-          <div className="flex items-center gap-4 lg:w-[250px]">
-            <div className="grid h-14 w-14 shrink-0 place-items-center rounded-full border border-[#d8cbb0] bg-panel dark:border-[#3b3327] dark:bg-[#241f17]">
-              <div className="grid h-11 w-11 place-items-center rounded-full bg-primary text-primary-foreground">
-                <Puzzle className="h-5 w-5" />
-              </div>
-            </div>
-            <p className="label-caps leading-5 text-foreground">
-              Continue Your
-              <br />
-              Puzzle
-            </p>
-          </div>
-
-          <div className="flex min-w-0 flex-1 items-center gap-5">
-            <div className="relative h-[68px] w-[132px] shrink-0 overflow-hidden rounded-md">
-              <SafeImage
-                src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=500&h=300&fit=crop"
-                alt="Mountain Lake Escape"
-                fill
-                sizes="132px"
-                className="object-cover"
-              />
-            </div>
-            <div className="min-w-0 flex-1">
-              <h3 className="font-display text-[22px] font-semibold leading-tight text-foreground">
-                Mountain Lake Escape
-              </h3>
-              <div className="mt-2.5 flex items-center gap-4">
-                <div className="h-[7px] max-w-[340px] flex-1 overflow-hidden rounded-full bg-[#e5dcc6] dark:bg-[#332c20]">
-                  <div className="h-full w-[78%] rounded-full bg-[#4a7259]" />
-                </div>
-                <span className="shrink-0 text-xs font-semibold text-muted-foreground">82 / 100 pieces</span>
-              </div>
-            </div>
-            <span className="hidden shrink-0 text-sm font-semibold text-muted-foreground sm:block">78%</span>
-          </div>
-
-          <Link href="/play/alpine-lake-reflection" className="btn btn-primary btn-md shrink-0">
-            Continue Puzzle
-          </Link>
-        </div>
+        <ContinuePuzzleCard />
       </div>
     </section>
   )
