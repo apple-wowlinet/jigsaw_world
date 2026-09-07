@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { SafeImage } from '@/components/ui/SafeImage'
+import { JigsawGridOverlay } from '@/components/ui/JigsawGridOverlay'
 import Link from 'next/link'
 import { ArrowRight, Clock3, Layers, Puzzle, Star } from 'lucide-react'
 import { fetchDailyPuzzle, type DailyPuzzle } from '@/lib/data/public'
@@ -178,7 +179,11 @@ export function HeroSection() {
                           sizes="(max-width: 1024px) 88vw, 430px"
                           className="object-cover"
                         />
-                        <div className="puzzle-grid absolute inset-0 opacity-40" aria-hidden="true" />
+                        <JigsawGridOverlay
+                          rows={4}
+                          cols={4}
+                          className="absolute inset-0 h-full w-full opacity-55 drop-shadow-[0_1px_2px_rgba(60,48,28,0.35)]"
+                        />
                       </div>
                     </div>
                   </div>
