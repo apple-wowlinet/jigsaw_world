@@ -1,8 +1,8 @@
 'use client'
 
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import {
   ArrowRight,
   CheckCircle2,
@@ -10,11 +10,13 @@ import {
   Heart,
   Home,
   ImageIcon,
+  Loader2,
   Play,
   Puzzle,
   Share2,
   Trophy,
 } from 'lucide-react'
+import { useAuth } from '@/components/auth/AuthProvider'
 import { SafeImage } from '@/components/ui/SafeImage'
 import {
   fetchPuzzleBySlug,
@@ -23,6 +25,7 @@ import {
   type PublicPuzzle,
   type PublicPuzzleLeaderboardEntry,
 } from '@/lib/data/public'
+import { addFavorite, fetchFavoriteStatus, removeFavorite } from '@/lib/favorites'
 import {
   getPuzzlePieceCounts,
   resolvePuzzlePieceCount,
@@ -37,14 +40,19 @@ function formatLeaderboardTime(seconds: number) {
 
 function PuzzleDetailContent() {
   const params = useParams()
+  const router = useRouter()
+  const { user, loading: authLoading } = useAuth()
   const slug = params?.slug as string
   const [puzzle, setPuzzle] = useState<PublicPuzzle | null>(null)
   const [relatedPuzzles, setRelatedPuzzles] = useState<PublicPuzzle[]>([])
   const [leaderboard, setLeaderboard] = useState<PublicPuzzleLeaderboardEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [isLiked, setIsLiked] = useState(false)
-  const [shareCopied, setShareCopied] = useState(false)
+  const [favoriteLoading, setFavoriteLoading] = useState(false)
+  const [favoriteError, setFavoriteError] = useState<string | null>(null)
+  const [shareStatus, setShareStatus] = useState<'idle' | 'copied' | 'shared' | 'error'>('idle')
   const [selectedSize, setSelectedSize] = useState<number | null>(null)
+  const shareResetTimer = useRef<number | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -53,6 +61,9 @@ function PuzzleDetailContent() {
       setLoading(true)
       setRelatedPuzzles([])
       setLeaderboard([])
+      setSelectedSize(null)
+      setIsLiked(false)
+      setFavoriteError(null)
       const item = await fetchPuzzleBySlug(slug)
 
       if (cancelled) return
@@ -84,24 +95,126 @@ function PuzzleDetailContent() {
     }
   }, [slug])
 
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadFavorite() {
+      if (authLoading || !puzzle) return
+
+      if (!user) {
+        setIsLiked(false)
+        setFavoriteLoading(false)
+        return
+      }
+
+      setFavoriteLoading(true)
+      setFavoriteError(null)
+
+      try {
+        const favorited = await fetchFavoriteStatus(user.id, puzzle.uuid)
+        if (!cancelled) setIsLiked(favorited)
+      } catch (error) {
+        console.error('Failed to load favorite status:', error)
+        if (!cancelled) setFavoriteError('Could not load your favorite status. Please try again.')
+      } finally {
+        if (!cancelled) setFavoriteLoading(false)
+      }
+    }
+
+    loadFavorite()
+    return () => {
+      cancelled = true
+    }
+  }, [authLoading, puzzle, user])
+
+  useEffect(() => {
+    return () => {
+      if (shareResetTimer.current) window.clearTimeout(shareResetTimer.current)
+    }
+  }, [])
+
+  const showShareStatus = (status: 'copied' | 'shared' | 'error') => {
+    if (shareResetTimer.current) window.clearTimeout(shareResetTimer.current)
+    setShareStatus(status)
+    shareResetTimer.current = window.setTimeout(() => setShareStatus('idle'), 2500)
+  }
+
+  const copyShareUrl = async (url: string) => {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(url)
+      return
+    }
+
+    const input = document.createElement('textarea')
+    input.value = url
+    input.setAttribute('readonly', '')
+    input.style.position = 'fixed'
+    input.style.opacity = '0'
+    document.body.appendChild(input)
+    input.select()
+    const copied = document.execCommand('copy')
+    input.remove()
+    if (!copied) throw new Error('Copy command failed')
+  }
+
+  const handleFavorite = async () => {
+    if (!puzzle || authLoading || favoriteLoading) return
+
+    if (!user) {
+      const nextPath = `/puzzle/${encodeURIComponent(puzzle.slug)}`
+      router.push(`/login?next=${encodeURIComponent(nextPath)}`)
+      return
+    }
+
+    const nextLiked = !isLiked
+    setIsLiked(nextLiked)
+    setFavoriteLoading(true)
+    setFavoriteError(null)
+
+    try {
+      if (nextLiked) {
+        await addFavorite(user.id, puzzle.uuid)
+      } else {
+        await removeFavorite(user.id, puzzle.uuid)
+      }
+    } catch (error) {
+      console.error('Failed to update favorite:', error)
+      setIsLiked(!nextLiked)
+      setFavoriteError('Could not update your favorites. Please try again.')
+    } finally {
+      setFavoriteLoading(false)
+    }
+  }
+
   const handleShare = async () => {
+    if (!puzzle) return
+
+    const url = `${window.location.origin}/puzzle/${encodeURIComponent(puzzle.slug)}`
     const shareData = {
-      title: puzzle?.title ?? 'JigsawWorld puzzle',
-      text: puzzle?.description ?? 'Play this puzzle on JigsawWorld',
-      url: window.location.href,
+      title: `${puzzle.title} - JigsawWorld`,
+      text: puzzle.description || 'Play this puzzle on JigsawWorld',
+      url,
     }
 
     try {
       if (navigator.share) {
         await navigator.share(shareData)
+        showShareStatus('shared')
         return
       }
 
-      await navigator.clipboard.writeText(window.location.href)
-      setShareCopied(true)
-      window.setTimeout(() => setShareCopied(false), 2000)
-    } catch {
-      // The native share sheet can be dismissed by the user.
+      await copyShareUrl(url)
+      showShareStatus('copied')
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') return
+
+      try {
+        await copyShareUrl(url)
+        showShareStatus('copied')
+      } catch (copyError) {
+        console.error('Failed to share puzzle:', copyError)
+        showShareStatus('error')
+      }
     }
   }
 
@@ -191,17 +304,23 @@ function PuzzleDetailContent() {
                   <div className="absolute right-5 top-5 flex gap-2.5 sm:right-7 sm:top-7">
                     <button
                       type="button"
-                      onClick={() => setIsLiked((liked) => !liked)}
+                      onClick={handleFavorite}
                       aria-label={isLiked ? 'Remove from favorites' : 'Save to favorites'}
                       aria-pressed={isLiked}
+                      aria-busy={favoriteLoading}
+                      disabled={authLoading || favoriteLoading}
                       className={cn(
-                        'flex h-11 w-11 items-center justify-center rounded-full border border-[#e7decb] shadow-lg backdrop-blur-md transition-all hover:-translate-y-0.5',
+                        'flex h-11 w-11 items-center justify-center rounded-full border border-[#e7decb] shadow-lg backdrop-blur-md transition-all hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-70',
                         isLiked
                           ? 'bg-accent text-accent-foreground'
                           : 'bg-card/95 text-muted-foreground hover:bg-card'
                       )}
                     >
-                      <Heart className={cn('h-5 w-5', isLiked && 'fill-current')} />
+                      {favoriteLoading ? (
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                      ) : (
+                        <Heart className={cn('h-5 w-5', isLiked && 'fill-current')} />
+                      )}
                     </button>
                     <button
                       type="button"
@@ -278,25 +397,50 @@ function PuzzleDetailContent() {
             <div className="mt-3 flex flex-wrap items-center gap-1.5">
               <button
                 type="button"
-                onClick={() => setIsLiked((liked) => !liked)}
-                className="inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-xs font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-accent"
+                onClick={handleFavorite}
+                aria-pressed={isLiked}
+                aria-busy={favoriteLoading}
+                disabled={authLoading || favoriteLoading}
+                className="inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-xs font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-accent disabled:cursor-wait disabled:opacity-70"
               >
-                <Heart className={cn('h-4 w-4', isLiked && 'fill-accent text-accent')} />
-                {isLiked ? 'Saved' : 'Save to Favorites'}
+                {favoriteLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Heart className={cn('h-4 w-4', isLiked && 'fill-accent text-accent')} />
+                )}
+                {isLiked ? 'Saved' : user ? 'Save to Favorites' : 'Log in to Save'}
               </button>
               <button
                 type="button"
                 onClick={handleShare}
                 className="inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-xs font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-accent"
               >
-                {shareCopied ? (
+                {shareStatus === 'copied' || shareStatus === 'shared' ? (
                   <CheckCircle2 className="h-4 w-4 text-[#4a7259]" />
                 ) : (
                   <Share2 className="h-4 w-4" />
                 )}
-                {shareCopied ? 'Link Copied' : 'Share Puzzle'}
+                {shareStatus === 'copied'
+                  ? 'Link Copied'
+                  : shareStatus === 'shared'
+                    ? 'Shared'
+                    : 'Share Puzzle'}
               </button>
             </div>
+            {(favoriteError || shareStatus === 'error') && (
+              <p role="alert" className="mt-2 text-xs font-medium text-destructive">
+                {favoriteError || 'Sharing is unavailable. Please copy the page URL manually.'}
+              </p>
+            )}
+            <p className="sr-only" role="status" aria-live="polite">
+              {shareStatus === 'copied'
+                ? 'Puzzle link copied to clipboard.'
+                : shareStatus === 'shared'
+                  ? 'Puzzle shared.'
+                  : isLiked
+                    ? 'Puzzle saved to favorites.'
+                    : ''}
+            </p>
           </div>
         </section>
 
