@@ -544,57 +544,55 @@ function PlayPuzzleContent() {
   return (
     <div className="h-screen bg-muted dark:bg-[#08080c] flex flex-col overflow-hidden">
       {/* Game Header */}
-      <header className="bg-card dark:bg-[#13131a] border-b border-border dark:border-white/10 px-4 sm:px-6 py-4">
-        <div className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-center gap-4">
+      <header className="bg-card dark:bg-[#13131a] border-b border-border dark:border-white/10 px-4 sm:px-6 py-2">
+        <h1 className="sr-only">{puzzle.title}</h1>
+        <div className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+          <div className="flex items-center gap-3">
             <Link href="/">
               <Button variant="ghost" size="icon" className="hidden sm:flex dark:hover:bg-white/10">
                 <ChevronLeft className="h-5 w-5" />
               </Button>
             </Link>
-            <div>
-              <h1 className="text-lg font-bold text-foreground">{puzzle.title}</h1>
-              <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                <select
-                  value={selectedNop}
-                  onChange={(e) => {
-                    const nop = Number(e.target.value)
-                    const c = choices.find((x) => x.nop === nop)
-                    if (c) {
-                      rebuildWithChoice(c)
-                      navigateToPieceCount(c.nop)
-                    }
-                  }}
-                  className="bg-secondary/60 dark:bg-[#0f172a] border border-border/60 dark:border-primary/35 rounded-lg pl-2.5 pr-1 py-1 shadow-sm dark:shadow-[0_0_0_1px_rgba(96,165,250,0.12)] text-sm font-semibold text-foreground dark:text-white dark:[&>option]:bg-[#0f172a] dark:[&>option]:text-white focus:outline-none focus:ring-2 focus:ring-primary/60 cursor-pointer hover:bg-white/40 dark:hover:bg-primary/10 transition-colors"
-                  aria-label="Select piece count"
-                >
-                  {choices.length === 0 && <option value={0}>… pieces</option>}
-                  {choices.map((c) => (
-                    <option key={c.nop} value={c.nop}>
-                      {c.nop} pieces ({c.rows}×{c.cols})
-                    </option>
-                  ))}
-                </select>
-                <span className="hidden sm:inline">•</span>
-                <span
-                  className={cn(
-                    'hidden sm:inline px-2 py-0.5 rounded text-xs font-medium',
-                    puzzle.difficulty === 'easy' && 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-                    puzzle.difficulty === 'medium' && 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
-                    puzzle.difficulty === 'hard' && 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                  )}
-                >
-                  {puzzle.difficulty}
-                </span>
-              </div>
+            <div className="flex items-center gap-3 text-sm text-muted-foreground">
+              <select
+                value={selectedNop}
+                onChange={(e) => {
+                  const nop = Number(e.target.value)
+                  const c = choices.find((x) => x.nop === nop)
+                  if (c) {
+                    rebuildWithChoice(c)
+                    navigateToPieceCount(c.nop)
+                  }
+                }}
+                className="bg-secondary/60 dark:bg-[#0f172a] border border-border/60 dark:border-primary/35 rounded-lg pl-2.5 pr-1 py-1 shadow-sm dark:shadow-[0_0_0_1px_rgba(96,165,250,0.12)] text-sm font-semibold text-foreground dark:text-white dark:[&>option]:bg-[#0f172a] dark:[&>option]:text-white focus:outline-none focus:ring-2 focus:ring-primary/60 cursor-pointer hover:bg-white/40 dark:hover:bg-primary/10 transition-colors"
+                aria-label="Select piece count"
+              >
+                {choices.length === 0 && <option value={0}>… pieces</option>}
+                {choices.map((c) => (
+                  <option key={c.nop} value={c.nop}>
+                    {c.nop} pieces ({c.rows}×{c.cols})
+                  </option>
+                ))}
+              </select>
+              <span className="hidden sm:inline">•</span>
+              <span
+                className={cn(
+                  'hidden sm:inline px-2 py-0.5 rounded text-xs font-medium',
+                  puzzle.difficulty === 'easy' && 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+                  puzzle.difficulty === 'medium' && 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+                  puzzle.difficulty === 'hard' && 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                )}
+              >
+                {puzzle.difficulty}
+              </span>
             </div>
           </div>
 
-          <div className="flex items-center justify-between sm:justify-end gap-4">
+          <div className="flex min-w-0 items-center justify-between sm:justify-end gap-2 sm:gap-4">
             {/* Timer */}
-            <div className="flex items-center gap-2 bg-secondary/80 dark:bg-[#0f172a] border border-border/60 dark:border-primary/35 px-4 py-2 rounded-xl shadow-sm dark:shadow-[0_0_0_1px_rgba(96,165,250,0.12)]">
+            <div className="flex shrink-0 items-center gap-2 bg-secondary/80 dark:bg-[#0f172a] border border-border/60 dark:border-primary/35 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl shadow-sm dark:shadow-[0_0_0_1px_rgba(96,165,250,0.12)]">
               <Clock className="h-4 w-4 text-primary dark:text-primary" />
-              <span className="text-xl font-mono font-extrabold text-foreground dark:text-white tabular-nums tracking-tight dark:drop-shadow-[0_0_6px_rgba(255,255,255,0.18)]">
+              <span className="text-lg sm:text-xl font-mono font-extrabold text-foreground dark:text-white tabular-nums tracking-tight dark:drop-shadow-[0_0_6px_rgba(255,255,255,0.18)]">
                 {formatTime(timer)}
               </span>
             </div>
@@ -619,8 +617,8 @@ function PlayPuzzleContent() {
               </div>
             </div>
 
-            {/* Control buttons */}
-            <div className="flex items-center gap-2">
+            {/* Control buttons (swipeable on small screens) */}
+            <div className="flex items-center gap-2 min-w-0 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [&>*]:shrink-0">
               <Button
                 variant="ghost"
                 size="icon"
@@ -697,26 +695,6 @@ function PlayPuzzleContent() {
               >
                 <RotateCcw className="h-4 w-4" />
               </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* Mobile Progress - Circular */}
-        <div className="sm:hidden mt-3 flex items-center justify-center">
-          <div className="relative w-10 h-10">
-            <svg className="w-full h-full -rotate-90" viewBox="0 0 44 44">
-              <circle cx="22" cy="22" r="18" fill="none" stroke="currentColor" strokeWidth="4" className="text-secondary dark:text-white/15" />
-              <circle
-                cx="22" cy="22" r="18" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round"
-                className="text-primary transition-all duration-500 drop-shadow-[0_0_6px_rgba(96,165,250,0.5)]"
-                style={{
-                  strokeDasharray: `${2 * Math.PI * 18}`,
-                  strokeDashoffset: `${2 * Math.PI * 18 * (1 - progress / 100)}`,
-                }}
-              />
-            </svg>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-[10px] font-bold text-foreground tabular-nums">{progress}</span>
             </div>
           </div>
         </div>
