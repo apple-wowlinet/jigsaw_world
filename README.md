@@ -16,6 +16,27 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Event administration
+
+Apply `supabase/migrations/009_event_puzzles.sql`, then configure these server-only
+environment variables in `.env.local` or the deployment environment:
+
+```bash
+ADMIN_TOKEN=<a-long-random-admin-token>
+SUPABASE_SERVICE_ROLE_KEY=<your-supabase-service-role-key>
+```
+
+Never expose `SUPABASE_SERVICE_ROLE_KEY` through a `NEXT_PUBLIC_` variable. Restart
+the application, then open:
+
+```text
+http://localhost:3000/admin/events?admin_token=<your-admin-token>
+```
+
+The same token is validated by both the server-rendered management page and its
+write APIs. Because the token appears in the URL, avoid sharing screenshots or
+URLs from the administration page.
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.

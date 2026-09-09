@@ -23,6 +23,7 @@ auth.users (Supabase 内置)
    └─< favorites                   收藏
 
 categories ─< puzzles ─< daily_challenges ──> events（赛季/活动）
+events ─< event_puzzles >─ puzzles（活动拼图编排）
 
 levels（等级字典）          achievements（conditions jsonb）
 ```
@@ -57,6 +58,7 @@ user_stats.total_completions: +1
 | `categories` | 分类 | 公共读 |
 | `puzzles` | 关卡（扩展，含运营字段） | 公共读 |
 | `events` | 活动/赛季（圣诞/周年庆） | 公共读 |
+| `event_puzzles` | 活动与拼图的有序多对多关系 | 公共读，后台写 |
 | `daily_challenges` | 每日挑战（关联 event） | 公共读 |
 | `levels` | 等级字典 | 公共读 |
 | `achievements` | 成就定义（conditions jsonb） | 公共读 |
@@ -203,6 +205,12 @@ level, required_xp, title, badge_url
 ### events
 ```sql
 slug, name, description, banner_url, starts_at, ends_at, is_active
+```
+
+### event_puzzles
+```sql
+event_id, puzzle_id, sort_order, created_at
+PRIMARY KEY (event_id, puzzle_id)
 ```
 
 ---

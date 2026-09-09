@@ -178,6 +178,19 @@ ON CONFLICT (challenge_date) DO UPDATE SET
   description = EXCLUDED.description,
   event_id = EXCLUDED.event_id;
 
+-- Keep curated event membership in sync with the seeded daily challenges.
+INSERT INTO public.event_puzzles (event_id, puzzle_id, sort_order)
+SELECT
+  event_id,
+  puzzle_id,
+  row_number() OVER (
+    PARTITION BY event_id
+    ORDER BY challenge_date, puzzle_id
+  )::integer - 1
+FROM public.daily_challenges
+WHERE event_id IS NOT NULL
+ON CONFLICT (event_id, puzzle_id) DO NOTHING;
+
 -- 5. Levels ----------------------------------------------------------------
 INSERT INTO public.levels (level, required_xp, title, badge_url)
 VALUES
