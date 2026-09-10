@@ -146,7 +146,6 @@ export function ExploreListPage({ mode }: { mode: ExploreMode }) {
 
   useEffect(() => {
     let cancelled = false
-    setLoading(true)
 
     fetchPuzzles({ limit: FETCH_LIMIT, orderBy: copy.orderBy })
       .then((items) => {
@@ -164,15 +163,6 @@ export function ExploreListPage({ mode }: { mode: ExploreMode }) {
       cancelled = true
     }
   }, [copy.orderBy])
-
-  useEffect(() => {
-    setSortOrder(copy.defaultSort)
-    setCurrentPage(1)
-    setCategorySlug('all')
-    setDifficulty('Any')
-    setPieceFilter('any')
-    setOpenMenu(null)
-  }, [mode, copy.defaultSort])
 
   useEffect(() => {
     if (!openMenu) return

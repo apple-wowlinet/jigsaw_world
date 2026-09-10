@@ -25,6 +25,14 @@ import { loadSave, storeSave, clearSave, getRotationPref, setRotationPref } from
 import { getImage } from '@/lib/puzzle/storage/image-store'
 import { sfx } from '@/lib/puzzle/audio/sfx'
 import { fetchPuzzleBySlug } from '@/lib/data/public'
+import { useAuth } from '@/components/auth/AuthProvider'
+import {
+  abandonGameSession,
+  checkpointGameSession,
+  completeGameSession,
+  startGameSession,
+  type CompletedGameResult,
+} from '@/lib/game-sessions'
 import {
   getPuzzlePieceCounts,
   resolvePuzzlePieceCount,
@@ -32,6 +40,7 @@ import {
 
 interface PuzzleMeta {
   id: string
+  slug: string
   title: string
   image_url: string
   difficulty: 'easy' | 'medium' | 'hard'
@@ -42,6 +51,14 @@ type PuzzleImageSource =
   | { type: 'stored'; key: string }
   | { type: 'remote'; url: string }
 
+type RecordingState =
+  | 'waiting'
+  | 'connecting'
+  | 'recording'
+  | 'verified'
+  | 'local'
+  | 'failed'
+
 function parseRequestedPieceCount(value: string | null): number | null {
   if (value === null) return null
   const parsed = Number(value)
@@ -49,6 +66,7 @@ function parseRequestedPieceCount(value: string | null): number | null {
 }
 
 function PlayPuzzleContent() {
+  const { user, loading: authLoading } = useAuth()
   const params = useParams()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -57,8 +75,14 @@ function PlayPuzzleContent() {
   const idbKey = isCustom ? searchParams?.get('img') ?? '' : ''
   const requestedPiecesParam = searchParams?.get('pieces')
   const requestedNop = parseRequestedPieceCount(requestedPiecesParam)
+  const dailyChallengeId = isCustom ? null : searchParams?.get('daily') ?? null
+  const isDaily = dailyChallengeId !== null
   // 存档 id：目录 slug 或 idb:<key>
-  const puzzleId = isCustom ? `idb:${idbKey}` : slug
+  const puzzleId = isCustom
+    ? `idb:${idbKey}`
+    : isDaily
+      ? `daily:${dailyChallengeId}:${slug}`
+      : slug
 
   const [isPlaying, setIsPlaying] = useState(false)
   const [isReady, setIsReady] = useState(false)
@@ -73,7 +97,9 @@ function PlayPuzzleContent() {
   const [choices, setChoices] = useState<PieceChoice[]>([])
   const [selectedNop, setSelectedNop] = useState(0)
   const [remotePuzzle, setRemotePuzzle] = useState<PuzzleMeta | null>(null)
-  const [puzzleLoading, setPuzzleLoading] = useState(!isCustom)
+  const [loadedRemoteSlug, setLoadedRemoteSlug] = useState<string | null>(null)
+  const [recordingState, setRecordingState] = useState<RecordingState>('waiting')
+  const [serverResult, setServerResult] = useState<CompletedGameResult | null>(null)
 
   // 游戏构建参数（作为 PuzzleCanvas 的 key 输入，变化即重建）
   const [subject, setSubject] = useState<SubjectData | null>(null)
@@ -91,26 +117,26 @@ function PlayPuzzleContent() {
   const timerLockedRef = useRef(0)
   const timerRunningRef = useRef(false)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const serverSessionRef = useRef<string | null>(null)
+  const serverAttemptRef = useRef(0)
+  const lastCheckpointRef = useRef({ sessionId: '', progress: 0, at: 0 })
 
   useEffect(() => {
-    if (isCustom) {
-      setPuzzleLoading(false)
-      return
-    }
+    if (isCustom) return
 
     let cancelled = false
-    setPuzzleLoading(true)
 
     fetchPuzzleBySlug(slug).then((item) => {
       if (cancelled) return
       setRemotePuzzle(item ? {
-        id: item.id,
+        id: item.uuid,
+        slug: item.slug,
         title: item.title,
         image_url: item.image_url,
         difficulty: item.difficulty.toLowerCase() as PuzzleMeta['difficulty'],
         piece_count: item.piece_count,
       } : null)
-      setPuzzleLoading(false)
+      setLoadedRemoteSlug(slug)
     })
 
     return () => { cancelled = true }
@@ -121,6 +147,7 @@ function PlayPuzzleContent() {
       return idbKey
         ? {
             id: 'custom',
+            slug: 'custom',
             title: 'My Puzzle',
             image_url: '',
             difficulty: 'medium',
@@ -140,6 +167,7 @@ function PlayPuzzleContent() {
   }, [puzzle, isCustom, idbKey])
 
   const pieceCount = choice?.nop ?? 0
+  const puzzleLoading = !isCustom && loadedRemoteSlug !== slug
 
   /* ---------------- 计时 ---------------- */
 
@@ -172,6 +200,20 @@ function PlayPuzzleContent() {
     setIsPlaying(false)
   }, [])
 
+  const abandonActiveSession = useCallback(() => {
+    serverAttemptRef.current += 1
+    const sessionId = serverSessionRef.current
+    serverSessionRef.current = null
+    lastCheckpointRef.current = { sessionId: '', progress: 0, at: 0 }
+    setServerResult(null)
+
+    if (sessionId) {
+      void abandonGameSession(sessionId).catch((error) => {
+        console.error('Failed to abandon game session:', error)
+      })
+    }
+  }, [])
+
   /* ---------------- 自动存档 ---------------- */
 
   const flushSave = useCallback(() => {
@@ -182,7 +224,28 @@ function PlayPuzzleContent() {
       return
     }
     const save = game.getSave(currentElapsed())
-    if (save) storeSave(puzzleId, save)
+    if (!save) return
+
+    storeSave(puzzleId, save)
+
+    const sessionId = serverSessionRef.current
+    const checkpointProgress = game.getPercent()
+    const now = Date.now()
+    const checkpoint = lastCheckpointRef.current
+    if (
+      sessionId &&
+      checkpointProgress > checkpoint.progress &&
+      (checkpoint.sessionId !== sessionId || now - checkpoint.at >= 15_000)
+    ) {
+      lastCheckpointRef.current = {
+        sessionId,
+        progress: Math.min(99, checkpointProgress),
+        at: now,
+      }
+      void checkpointGameSession(sessionId, checkpointProgress).catch((error) => {
+        console.error('Failed to checkpoint game session:', error)
+      })
+    }
   }, [choice, puzzleId, currentElapsed])
 
   const scheduleSave = useCallback(() => {
@@ -232,12 +295,12 @@ function PlayPuzzleContent() {
   useEffect(() => {
     if (!puzzle) return
     let cancelled = false
-    setIsReady(false)
-    setLoadError(null)
     ;(async () => {
       try {
         const img = await loadSource()
         if (cancelled) return
+        setIsReady(false)
+        setLoadError(null)
         const wrap = canvasWrapRef.current
         const boardW = Math.max(320, wrap?.clientWidth ?? window.innerWidth)
         const boardH = Math.max(320, wrap?.clientHeight ?? window.innerHeight - 180)
@@ -246,9 +309,12 @@ function PlayPuzzleContent() {
         // 自动尺寸只用于计算档位基准
         const autoSub = Subject.create(img, boardW, boardH)
         baseSizeRef.current = { w: autoSub.width, h: autoSub.height }
+        const allowedCounts = isDaily
+          ? [puzzle.piece_count]
+          : getPuzzlePieceCounts(puzzle.piece_count)
         const cs = isCustom
           ? computeChoices(autoSub)
-          : getPuzzlePieceCounts(puzzle.piece_count).map((nop) => {
+          : allowedCounts.map((nop) => {
               const exactChoice = computeExactChoice(autoSub, nop)
               if (!exactChoice) throw new Error(`invalid-piece-count:${nop}`)
               return exactChoice
@@ -256,7 +322,7 @@ function PlayPuzzleContent() {
         if (cancelled) return
         setChoices(cs)
         setResumeCandidate(null)
-        const rotPref = getRotationPref()
+        const rotPref = isDaily ? false : getRotationPref()
         setRotationOn(rotPref)
         setMuted(sfx.muted)
 
@@ -294,7 +360,7 @@ function PlayPuzzleContent() {
     return () => {
       cancelled = true
     }
-  }, [puzzle, puzzleId, loadSource, applyChoice, isCustom])
+  }, [puzzle, puzzleId, loadSource, applyChoice, isCustom, isDaily])
 
   /* ---------------- 续玩选择 ---------------- */
 
@@ -307,17 +373,18 @@ function PlayPuzzleContent() {
       return
     }
     setSeed(save.seed)
-    setRotationOn(save.rot)
+    setRotationOn(isDaily ? false : save.rot)
     setPendingSave(save)
     setResumeCandidate(null)
     applyChoice(c)
-  }, [resumeCandidate, choices, applyChoice])
+  }, [resumeCandidate, choices, applyChoice, isDaily])
 
   const restartFresh = useCallback(() => {
     const savedNop = resumeCandidate?.nop
     if (savedNop) clearSave(puzzleId, savedNop)
     setPendingSave(null)
     setResumeCandidate(null)
+    setRecordingState('waiting')
     setSeed((Math.random() * 1e9) | 0)
     const freshChoice = choices.find((c) => c.nop === savedNop) ?? choices[0]
     if (freshChoice) applyChoice(freshChoice)
@@ -325,27 +392,115 @@ function PlayPuzzleContent() {
 
   /* ---------------- 游戏事件 ---------------- */
 
+  const beginTrustedSession = useCallback(async () => {
+    if (!puzzle || !choice || serverSessionRef.current) return
+    if (authLoading) return
+
+    if (isCustom || !user || pendingSave) {
+      setRecordingState('local')
+      return
+    }
+
+    const attempt = ++serverAttemptRef.current
+    setRecordingState('connecting')
+
+    try {
+      const sessionId = await startGameSession({
+        puzzleId: puzzle.id,
+        pieceCount: choice.nop,
+        rotationEnabled: isDaily ? false : rotationOn,
+        dailyChallengeId,
+      })
+
+      if (attempt !== serverAttemptRef.current) {
+        void abandonGameSession(sessionId).catch(() => undefined)
+        return
+      }
+
+      serverSessionRef.current = sessionId
+      lastCheckpointRef.current = { sessionId, progress: 0, at: Date.now() }
+      setRecordingState('recording')
+    } catch (error) {
+      if (attempt !== serverAttemptRef.current) return
+      console.error('Failed to start trusted game session:', error)
+      setRecordingState('failed')
+    }
+  }, [
+    authLoading,
+    choice,
+    dailyChallengeId,
+    isCustom,
+    isDaily,
+    pendingSave,
+    puzzle,
+    rotationOn,
+    user,
+  ])
+
   const handleReady = useCallback(() => {
     setIsReady(true)
     setIsCompleted(false)
     setProgress(gameRef.current?.getPercent() ?? 0)
     setMoves(gameRef.current?.getMoves() ?? 0)
     startClock(pendingSave?.elapsed ?? 0)
-  }, [startClock, pendingSave])
+    void beginTrustedSession()
+  }, [startClock, pendingSave, beginTrustedSession])
+
+  useEffect(() => {
+    if (authLoading || !isReady || recordingState !== 'waiting') return
+    const timerId = window.setTimeout(() => {
+      void beginTrustedSession()
+    }, 0)
+    return () => window.clearTimeout(timerId)
+  }, [authLoading, beginTrustedSession, isReady, recordingState])
 
   const handleComplete = useCallback(() => {
+    const completedMoves = gameRef.current?.getMoves() ?? moves
+    const localElapsed = currentElapsed()
+    const sessionId = serverSessionRef.current
+
     setIsCompleted(true)
     setProgress(100)
+    setMoves(completedMoves)
+    setTimer(localElapsed)
     pauseClock()
     if (choice) clearSave(puzzleId, choice.nop)
-  }, [pauseClock, choice, puzzleId])
+
+    if (!sessionId) {
+      serverAttemptRef.current += 1
+      if (recordingState === 'connecting') setRecordingState('local')
+      return
+    }
+
+    void completeGameSession(sessionId, completedMoves)
+      .then((result) => {
+        serverSessionRef.current = null
+        setServerResult(result)
+        setTimer(result.completion_time)
+        setMoves(result.moves)
+        setRecordingState(result.ranked ? 'recording' : 'verified')
+      })
+      .catch((error) => {
+        console.error('Failed to complete trusted game session:', error)
+        setRecordingState('failed')
+      })
+  }, [
+    choice,
+    currentElapsed,
+    moves,
+    pauseClock,
+    puzzleId,
+    recordingState,
+  ])
 
   /* ---------------- 控制操作 ---------------- */
 
   const rebuildWithChoice = useCallback(
     (c: PieceChoice) => {
       if (choice) flushSave() // 换档前先落盘当前档
+      abandonActiveSession()
       pauseClock()
+      setRecordingState('waiting')
       setIsCompleted(false)
       setIsReady(false)
       setTimer(0)
@@ -363,7 +518,7 @@ function PlayPuzzleContent() {
       }
       applyChoice(c)
     },
-    [choice, flushSave, pauseClock, puzzleId, applyChoice]
+    [choice, flushSave, abandonActiveSession, pauseClock, puzzleId, applyChoice]
   )
 
   const navigateToPieceCount = useCallback((nop: number, replace = false) => {
@@ -446,7 +601,9 @@ function PlayPuzzleContent() {
 
   const resetGame = useCallback(() => {
     if (choice) clearSave(puzzleId, choice.nop)
+    abandonActiveSession()
     pauseClock()
+    setRecordingState('waiting')
     setIsCompleted(false)
     setIsReady(false)
     setTimer(0)
@@ -454,7 +611,7 @@ function PlayPuzzleContent() {
     setMoves(0)
     setPendingSave(null)
     setSeed((Math.random() * 1e9) | 0)
-  }, [choice, puzzleId, pauseClock])
+  }, [choice, puzzleId, abandonActiveSession, pauseClock])
 
   const togglePause = useCallback(() => {
     if (isPlaying) {
@@ -477,6 +634,7 @@ function PlayPuzzleContent() {
   }, [])
 
   const toggleRotation = useCallback(() => {
+    if (isDaily) return
     const next = !rotationOn
     // 中途切换旋转模式会重建拼图（存档依赖角度语义）
     if (isReady && progress > 0) {
@@ -484,7 +642,10 @@ function PlayPuzzleContent() {
       if (!ok) return
     }
     setRotationPref(next)
+    abandonActiveSession()
+    pauseClock()
     setRotationOn(next)
+    setRecordingState('waiting')
     if (choice) clearSave(puzzleId, choice.nop)
     setPendingSave(null)
     setIsReady(false)
@@ -492,7 +653,16 @@ function PlayPuzzleContent() {
     setProgress(0)
     setMoves(0)
     setSeed((Math.random() * 1e9) | 0)
-  }, [rotationOn, isReady, progress, choice, puzzleId])
+  }, [
+    abandonActiveSession,
+    choice,
+    isDaily,
+    isReady,
+    pauseClock,
+    progress,
+    puzzleId,
+    rotationOn,
+  ])
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
@@ -501,6 +671,7 @@ function PlayPuzzleContent() {
   }
 
   const calculateStars = () => {
+    if (serverResult) return serverResult.stars
     if (!pieceCount) return 0
     const timePerPiece = timer / pieceCount
     const movesPerPiece = moves / pieceCount
@@ -530,6 +701,13 @@ function PlayPuzzleContent() {
               <p className="text-foreground font-medium mb-4">{loadError}</p>
               <Button onClick={() => router.push('/create')}>Create a puzzle</Button>
             </>
+          ) : !puzzleLoading && !puzzle ? (
+            <>
+              <p className="text-foreground font-medium mb-4">
+                This puzzle is not available or has not been published yet.
+              </p>
+              <Button onClick={() => router.push('/categories')}>Browse puzzles</Button>
+            </>
           ) : (
             <>
               <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent mx-auto mb-4" />
@@ -554,26 +732,32 @@ function PlayPuzzleContent() {
               </Button>
             </Link>
             <div className="flex items-center gap-3 text-sm text-muted-foreground">
-              <select
-                value={selectedNop}
-                onChange={(e) => {
-                  const nop = Number(e.target.value)
-                  const c = choices.find((x) => x.nop === nop)
-                  if (c) {
-                    rebuildWithChoice(c)
-                    navigateToPieceCount(c.nop)
-                  }
-                }}
-                className="bg-secondary/60 dark:bg-[#0f172a] border border-border/60 dark:border-primary/35 rounded-lg pl-2.5 pr-1 py-1 shadow-sm dark:shadow-[0_0_0_1px_rgba(96,165,250,0.12)] text-sm font-semibold text-foreground dark:text-white dark:[&>option]:bg-[#0f172a] dark:[&>option]:text-white focus:outline-none focus:ring-2 focus:ring-primary/60 cursor-pointer hover:bg-white/40 dark:hover:bg-primary/10 transition-colors"
-                aria-label="Select piece count"
-              >
-                {choices.length === 0 && <option value={0}>… pieces</option>}
-                {choices.map((c) => (
-                  <option key={c.nop} value={c.nop}>
-                    {c.nop} pieces ({c.rows}×{c.cols})
-                  </option>
-                ))}
-              </select>
+              {isDaily ? (
+                <span className="rounded-lg border border-border/60 bg-secondary/60 px-2.5 py-1 text-sm font-semibold text-foreground">
+                  {selectedNop || puzzle.piece_count} pieces · Daily rules
+                </span>
+              ) : (
+                <select
+                  value={selectedNop}
+                  onChange={(e) => {
+                    const nop = Number(e.target.value)
+                    const c = choices.find((x) => x.nop === nop)
+                    if (c) {
+                      rebuildWithChoice(c)
+                      navigateToPieceCount(c.nop)
+                    }
+                  }}
+                  className="bg-secondary/60 dark:bg-[#0f172a] border border-border/60 dark:border-primary/35 rounded-lg pl-2.5 pr-1 py-1 shadow-sm dark:shadow-[0_0_0_1px_rgba(96,165,250,0.12)] text-sm font-semibold text-foreground dark:text-white dark:[&>option]:bg-[#0f172a] dark:[&>option]:text-white focus:outline-none focus:ring-2 focus:ring-primary/60 cursor-pointer hover:bg-white/40 dark:hover:bg-primary/10 transition-colors"
+                  aria-label="Select piece count"
+                >
+                  {choices.length === 0 && <option value={0}>… pieces</option>}
+                  {choices.map((c) => (
+                    <option key={c.nop} value={c.nop}>
+                      {c.nop} pieces ({c.rows}×{c.cols})
+                    </option>
+                  ))}
+                </select>
+              )}
               <span className="hidden sm:inline">•</span>
               <span
                 className={cn(
@@ -585,6 +769,34 @@ function PlayPuzzleContent() {
               >
                 {puzzle.difficulty}
               </span>
+              {recordingState !== 'waiting' && (
+                <span
+                  className={cn(
+                    'hidden rounded px-2 py-0.5 text-xs font-semibold md:inline',
+                    recordingState === 'recording' || recordingState === 'verified'
+                      ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                      : recordingState === 'connecting'
+                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                        : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300'
+                  )}
+                >
+                  {recordingState === 'recording'
+                    ? serverResult
+                      ? 'Result recorded'
+                      : rotationOn
+                        ? 'Completion recording · unranked'
+                        : 'Score recording'
+                    : recordingState === 'verified'
+                      ? 'Verified · not ranked'
+                    : recordingState === 'connecting'
+                      ? 'Connecting score…'
+                      : recordingState === 'failed'
+                        ? 'Local mode · score sync failed'
+                        : pendingSave
+                          ? 'Local resume · not ranked'
+                          : 'Local mode · not ranked'}
+                </span>
+              )}
             </div>
           </div>
 
@@ -633,13 +845,14 @@ function PlayPuzzleContent() {
                 variant="ghost"
                 size="icon"
                 onClick={toggleRotation}
+                disabled={isDaily}
                 className={cn(
                   'border border-transparent transition-all',
                   rotationOn
                     ? 'bg-primary/10 text-primary border-primary/30 dark:bg-primary/20 dark:text-primary dark:border-primary/40 hover:bg-primary/20 dark:hover:bg-primary/30'
                     : 'bg-secondary/60 text-foreground border-border/60 dark:bg-white/[0.06] dark:text-white dark:border-white/10 hover:bg-secondary dark:hover:bg-white/10'
                 )}
-                title={rotationOn ? 'Turn off rotation mode' : 'Turn on rotation mode (R key / right-click / double-click to rotate)'}
+                title={isDaily ? 'Rotation is disabled for daily challenges' : rotationOn ? 'Turn off rotation mode' : 'Turn on rotation mode (R key / right-click / double-click to rotate)'}
               >
                 <RefreshCw className="h-4 w-4" />
               </Button>
@@ -781,6 +994,15 @@ function PlayPuzzleContent() {
                       Outstanding work! You&apos;ve mastered this puzzle!
                     </p>
                     <p className="text-4xl font-bold text-primary mb-2">{formatTime(timer)}</p>
+                    <p className="mb-3 text-xs font-medium text-muted-foreground">
+                      {serverResult
+                        ? serverResult.ranked
+                          ? 'Verified by the server and included in eligible records.'
+                          : 'Verified completion; rotation-mode results are not ranked.'
+                        : recordingState === 'failed'
+                          ? 'Saved locally. The server could not record this result.'
+                          : 'Local result only; it is not included in records.'}
+                    </p>
                     <div className="flex justify-center gap-1 mb-4">
                       {[...Array(3)].map((_, i) => (
                         <Star

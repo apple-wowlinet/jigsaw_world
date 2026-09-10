@@ -4,46 +4,22 @@ import { useEffect, useState } from 'react'
 import { SafeImage } from '@/components/ui/SafeImage'
 import { JigsawGridOverlay } from '@/components/ui/JigsawGridOverlay'
 import Link from 'next/link'
-import { ArrowRight, Clock3, Layers, Puzzle, Star } from 'lucide-react'
+import { ArrowRight, Clock3, Layers, Puzzle } from 'lucide-react'
 import { fetchDailyPuzzle, type DailyPuzzle } from '@/lib/data/public'
 import { ContinuePuzzleCard } from '@/components/home/ContinuePuzzleCard'
 
-const FALLBACK_DAILY: DailyPuzzle = {
-  id: 'rainbow-glass-texture',
-  uuid: 'rainbow-glass-texture',
-  title: 'Rainbow Glass Texture',
-  slug: 'rainbow-glass-texture',
-  image_url: 'https://images.unsplash.com/photo-1492447166138-50c3889fccb1?w=1200&h=900&fit=crop',
-  description: 'A kaleidoscope of color and light—each piece reveals a brighter view.',
-  piece_count: 100,
-  difficulty: 'Medium',
-  plays_count: 3800,
-  weekly_plays_count: 980,
-  completions_count: 2100,
-  rating: 4.9,
-  created_at: '2026-08-20T00:00:00.000Z',
-  category: 'Art',
-  category_slug: 'art',
-  challenge_id: 'daily-rainbow-glass',
-  challenge_date: '2026-08-20',
-  challenge_title: 'Rainbow Glass Texture',
-}
-
-const AVATARS = [
-  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop',
-  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop',
-  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop',
-  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop',
-]
-
 export function HeroSection() {
-  const [dailyPuzzle, setDailyPuzzle] = useState<DailyPuzzle>(FALLBACK_DAILY)
+  const [dailyPuzzle, setDailyPuzzle] = useState<DailyPuzzle | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     let cancelled = false
 
     fetchDailyPuzzle().then((puzzle) => {
-      if (!cancelled && puzzle) setDailyPuzzle(puzzle)
+      if (!cancelled) {
+        setDailyPuzzle(puzzle)
+        setLoading(false)
+      }
     })
 
     return () => {
@@ -83,10 +59,15 @@ export function HeroSection() {
             </p>
 
             <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center">
-              <Link href={`/play/${dailyPuzzle.slug}`} className="btn btn-primary btn-lg btn-shine">
-                Start Today&rsquo;s Puzzle
-                <ArrowRight className="h-4 w-4" />
-              </Link>
+              {dailyPuzzle && (
+                <Link
+                  href={`/play/${dailyPuzzle.slug}?pieces=${dailyPuzzle.piece_count}&daily=${dailyPuzzle.challenge_id}`}
+                  className="btn btn-primary btn-lg btn-shine"
+                >
+                  Start Today&rsquo;s Puzzle
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              )}
               <Link
                 href="/categories"
                 className="group inline-flex items-center gap-2 px-2 text-sm font-semibold text-foreground/80 transition-colors hover:text-accent"
@@ -96,33 +77,19 @@ export function HeroSection() {
               </Link>
             </div>
 
-            <div className="mt-9 flex flex-wrap items-center gap-x-4 gap-y-2">
-              <div className="flex -space-x-3">
-                {AVATARS.map((src) => (
-                  <SafeImage
-                    key={src}
-                    src={src}
-                    alt=""
-                    width={32}
-                    height={32}
-                    className="h-8 w-8 rounded-full border-2 border-[#f6f1e8] object-cover dark:border-[#171310]"
-                  />
-                ))}
-              </div>
-              <p className="text-[13px] text-muted-foreground">
-                Loved by{' '}
-                <strong className="font-semibold text-foreground">250K+</strong> puzzlers
+            {!loading && !dailyPuzzle && (
+              <p className="mt-8 text-sm text-muted-foreground">
+                No daily challenge is published for today. Browse the catalogue in the meantime.
               </p>
-              <span className="inline-flex items-center gap-1 text-[13px] text-muted-foreground">
-                <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
-                <strong className="font-semibold text-foreground">4.8</strong> rating
-              </span>
-            </div>
+            )}
           </div>
 
           {/* Right — today's puzzle mounted in a CSS-built gallery wall. */}
           <div className="relative mt-4 lg:mt-0 lg:-mr-5">
-            <div className="daily-wall">
+            {loading ? (
+              <div className="min-h-[390px] rounded-2xl skeleton" aria-label="Loading today's puzzle" />
+            ) : dailyPuzzle ? (
+              <div className="daily-wall">
               <div className="daily-wall-cornice" aria-hidden="true" />
               <p className="daily-wall-heading">Today&rsquo;s Puzzle</p>
 
@@ -154,7 +121,7 @@ export function HeroSection() {
                     </ul>
 
                     <Link
-                      href={`/play/${dailyPuzzle.slug}`}
+                      href={`/play/${dailyPuzzle.slug}?pieces=${dailyPuzzle.piece_count}&daily=${dailyPuzzle.challenge_id}`}
                       className="btn btn-terracotta btn-md btn-shine mt-6"
                     >
                       Begin Puzzle
@@ -186,12 +153,33 @@ export function HeroSection() {
               <div className="daily-wall-ledge" aria-hidden="true">
                 <span className="daily-wall-plaque">Featured Today</span>
               </div>
-            </div>
+              </div>
+            ) : (
+              <div className="flex min-h-[390px] items-center justify-center rounded-2xl border border-dashed border-border bg-card/70 px-8 text-center shadow-sm">
+                <div>
+                  <CalendarPlaceholder />
+                  <p className="font-display mt-4 text-2xl font-semibold text-foreground">
+                    Today&apos;s wall is waiting
+                  </p>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    A published daily puzzle will appear here automatically.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
         <ContinuePuzzleCard />
       </div>
     </section>
+  )
+}
+
+function CalendarPlaceholder() {
+  return (
+    <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-secondary text-accent">
+      <Puzzle className="h-6 w-6" />
+    </span>
   )
 }

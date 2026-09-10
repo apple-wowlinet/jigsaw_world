@@ -1,6 +1,6 @@
 /**
  * SaveStore —— localStorage 存档槽 + 设置
- * key 方案：jw:save:<puzzleId>:<nop>（puzzleId = 目录 slug 或 idb:<key>）
+ * key 方案：jw:save:<puzzleId>:<nop>（puzzleId = 目录 slug、daily:<challengeId>:<slug> 或 idb:<key>）
  */
 import type { SaveGameV6 } from '@/lib/puzzle/core/types';
 

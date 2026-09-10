@@ -7,14 +7,12 @@ import {
   BarChart3,
   CalendarDays,
   Check,
-  ChevronDown,
   ChevronRight,
   Clock3,
   Flame,
   Grid2X2,
   Play,
   Puzzle,
-  Settings2,
 } from 'lucide-react'
 import { useAuth } from '@/components/auth/AuthProvider'
 import {
@@ -25,99 +23,7 @@ import {
   type DailyChallengeProgress,
   type DailyPuzzle,
 } from '@/lib/data/public'
-import {
-  getPuzzlePieceCounts,
-  resolvePuzzlePieceCount,
-} from '@/lib/puzzle/piece-counts'
 import { cn } from '@/lib/utils'
-
-const FALLBACK_TODAY: DailyPuzzle = {
-  id: 'rainbow-glass-texture',
-  uuid: 'fallback-rainbow-glass',
-  challenge_id: 'fallback-daily-aug-14',
-  challenge_date: '2026-08-14',
-  challenge_title: 'Rainbow Glass Texture',
-  title: 'Rainbow Glass Texture',
-  slug: 'rainbow-glass-texture',
-  image_url:
-    'https://images.unsplash.com/photo-1492447166138-50c3889fccb1?w=1400&h=900&fit=crop',
-  description: 'Piece together a brilliant mosaic of color and light.',
-  piece_count: 120,
-  difficulty: 'Medium',
-  plays_count: 1160,
-  weekly_plays_count: 320,
-  completions_count: 610,
-  rating: 4.7,
-  created_at: '2026-08-14T00:00:00.000Z',
-  category: 'Art',
-  category_slug: 'art',
-}
-
-const FALLBACK_HISTORY: DailyPuzzle[] = [
-  {
-    id: 'watercolor-flowers',
-    uuid: 'fallback-watercolor-flowers',
-    challenge_id: 'fallback-daily-aug-13',
-    challenge_date: '2026-08-13',
-    challenge_title: 'Watercolor Flowers',
-    title: 'Watercolor Flowers',
-    slug: 'watercolor-flowers',
-    image_url:
-      'https://images.unsplash.com/photo-1504198453319-5ce911bafcde?w=1000&h=650&fit=crop',
-    description: 'Soft watercolor flowers in gentle pastel shades.',
-    piece_count: 120,
-    difficulty: 'Easy',
-    plays_count: 1010,
-    weekly_plays_count: 280,
-    completions_count: 590,
-    rating: 4.6,
-    created_at: '2026-08-13T00:00:00.000Z',
-    category: 'Art',
-    category_slug: 'art',
-  },
-  {
-    id: 'venice-canal-ride',
-    uuid: 'fallback-venice-canal',
-    challenge_id: 'fallback-daily-aug-12',
-    challenge_date: '2026-08-12',
-    challenge_title: 'Venice Canal Ride',
-    title: 'Venice Canal Ride',
-    slug: 'venice-canal-ride',
-    image_url:
-      'https://images.unsplash.com/photo-1514890547357-a9ee288728e0?w=1000&h=650&fit=crop',
-    description: 'A classic canal ride through a beautiful old city.',
-    piece_count: 100,
-    difficulty: 'Medium',
-    plays_count: 1660,
-    weekly_plays_count: 440,
-    completions_count: 990,
-    rating: 4.8,
-    created_at: '2026-08-12T00:00:00.000Z',
-    category: 'Travel',
-    category_slug: 'travel',
-  },
-  {
-    id: 'sushi-platter-detail',
-    uuid: 'fallback-sushi-platter',
-    challenge_id: 'fallback-daily-aug-11',
-    challenge_date: '2026-08-11',
-    challenge_title: 'Sushi Platter Detail',
-    title: 'Sushi Platter Detail',
-    slug: 'sushi-platter-detail',
-    image_url:
-      'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=1000&h=650&fit=crop',
-    description: 'A detailed sushi platter with clean colors and shapes.',
-    piece_count: 200,
-    difficulty: 'Hard',
-    plays_count: 880,
-    weekly_plays_count: 210,
-    completions_count: 310,
-    rating: 4.4,
-    created_at: '2026-08-11T00:00:00.000Z',
-    category: 'Food',
-    category_slug: 'food',
-  },
-]
 
 const EMPTY_PROGRESS: DailyChallengeProgress = {
   currentStreak: 0,
@@ -126,27 +32,6 @@ const EMPTY_PROGRESS: DailyChallengeProgress = {
   participations: {},
 }
 
-const FALLBACK_PROGRESS: DailyChallengeProgress = {
-  currentStreak: 6,
-  maxStreak: 8,
-  completedThisMonth: 10,
-  participations: {
-    'fallback-daily-aug-13': {
-      challengeId: 'fallback-daily-aug-13',
-      challengeDate: '2026-08-13',
-      isCompleted: true,
-      progressPercent: 100,
-      completionTime: 522,
-    },
-    'fallback-daily-aug-12': {
-      challengeId: 'fallback-daily-aug-12',
-      challengeDate: '2026-08-12',
-      isCompleted: false,
-      progressPercent: 64,
-      completionTime: null,
-    },
-  },
-}
 
 function parseChallengeDate(value: string) {
   return new Date(`${value}T12:00:00Z`)
@@ -203,20 +88,13 @@ function DailyPageSkeleton() {
 
 export default function DailyPage() {
   const { user, loading: authLoading } = useAuth()
-  const [dailyPuzzle, setDailyPuzzle] = useState(FALLBACK_TODAY)
-  const [historyPuzzles, setHistoryPuzzles] = useState(FALLBACK_HISTORY)
-  const [remoteProgress, setRemoteProgress] =
-    useState<DailyChallengeProgress | null>(null)
-  const [usingFallbackData, setUsingFallbackData] = useState(true)
+  const [dailyPuzzle, setDailyPuzzle] = useState<DailyPuzzle | null>(null)
+  const [historyPuzzles, setHistoryPuzzles] = useState<DailyPuzzle[]>([])
+  const [remoteProgress, setRemoteProgress] = useState<{
+    key: string
+    data: DailyChallengeProgress
+  } | null>(null)
   const [loading, setLoading] = useState(true)
-  const [selectedPieces, setSelectedPieces] = useState(
-    resolvePuzzlePieceCount(
-      null,
-      getPuzzlePieceCounts(FALLBACK_TODAY.piece_count),
-      FALLBACK_TODAY.piece_count
-    )
-  )
-  const [pieceMenuOpen, setPieceMenuOpen] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -225,19 +103,12 @@ export default function DailyPage() {
       ([today, history]) => {
         if (cancelled) return
 
-        if (today) {
-          setDailyPuzzle(today)
-          const options = getPuzzlePieceCounts(today.piece_count)
-          setSelectedPieces(
-            resolvePuzzlePieceCount(null, options, today.piece_count)
-          )
-          setHistoryPuzzles(
-            history
-              .filter((item) => item.challenge_id !== today.challenge_id)
-              .slice(0, 3)
-          )
-          setUsingFallbackData(false)
-        }
+        setDailyPuzzle(today)
+        setHistoryPuzzles(
+          history
+            .filter((item) => item.challenge_id !== today?.challenge_id)
+            .slice(0, 3)
+        )
         setLoading(false)
       }
     )
@@ -249,7 +120,7 @@ export default function DailyPage() {
 
   useEffect(() => {
     if (authLoading || loading) return
-    if (usingFallbackData || !user) return
+    if (!dailyPuzzle || !user) return
 
     let cancelled = false
     const challengeDate = parseChallengeDate(dailyPuzzle.challenge_date)
@@ -257,8 +128,9 @@ export default function DailyPage() {
       challengeDate.getUTCMonth() + 1
     ).padStart(2, '0')}-01`
 
+    const progressKey = `${user.id}:${dailyPuzzle.challenge_date}`
     fetchDailyChallengeProgress(user.id, monthStart).then((nextProgress) => {
-      if (!cancelled) setRemoteProgress(nextProgress)
+      if (!cancelled) setRemoteProgress({ key: progressKey, data: nextProgress })
     })
 
     return () => {
@@ -266,26 +138,48 @@ export default function DailyPage() {
     }
   }, [
     authLoading,
-    dailyPuzzle.challenge_date,
+    dailyPuzzle,
     loading,
     user,
-    usingFallbackData,
   ])
 
-  const progress = usingFallbackData
-    ? FALLBACK_PROGRESS
-    : remoteProgress ?? EMPTY_PROGRESS
+  const progressKey = user && dailyPuzzle
+    ? `${user.id}:${dailyPuzzle.challenge_date}`
+    : null
+  const progress = remoteProgress?.key === progressKey
+    ? remoteProgress.data
+    : EMPTY_PROGRESS
 
   const calendarDays = useMemo(() => {
+    if (!dailyPuzzle) return []
     const current = parseChallengeDate(dailyPuzzle.challenge_date)
     return Array.from({ length: 7 }, (_, index) => {
       const date = new Date(current)
       date.setUTCDate(current.getUTCDate() + index - 4)
       return date
     })
-  }, [dailyPuzzle.challenge_date])
+  }, [dailyPuzzle])
 
   if (loading) return <DailyPageSkeleton />
+
+  if (!dailyPuzzle) {
+    return (
+      <main className="mx-auto flex min-h-[65vh] max-w-2xl items-center px-4 py-16 text-center sm:px-6">
+        <div className="w-full rounded-2xl border border-border bg-card px-6 py-14 shadow-sm">
+          <CalendarDays className="mx-auto h-10 w-10 text-muted-foreground" />
+          <h1 className="font-display mt-5 text-3xl font-semibold text-foreground">
+            No daily puzzle is published yet
+          </h1>
+          <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted-foreground">
+            Today&apos;s challenge will appear here after it has been published.
+          </p>
+          <Link href="/categories" className="btn btn-primary btn-md mt-6">
+            Browse published puzzles
+          </Link>
+        </div>
+      </main>
+    )
+  }
 
   const challengeDate = parseChallengeDate(dailyPuzzle.challenge_date)
   const challengeDay = challengeDate.getUTCDate()
@@ -297,7 +191,7 @@ export default function DailyPage() {
     100,
     Math.round((progress.completedThisMonth / Math.max(challengeDay, 1)) * 100)
   )
-  const pieceChoices = getPuzzlePieceCounts(dailyPuzzle.piece_count)
+  const dailyPlayHref = `/play/${dailyPuzzle.slug}?pieces=${dailyPuzzle.piece_count}&daily=${dailyPuzzle.challenge_id}`
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-background text-foreground">
@@ -325,7 +219,7 @@ export default function DailyPage() {
             <div className="mt-5 flex flex-wrap items-center gap-y-2 text-xs font-semibold text-muted-foreground sm:text-sm">
               <span className="inline-flex items-center gap-1.5 pr-4">
                 <Puzzle className="h-[18px] w-[18px] text-primary" />
-                {selectedPieces} Pieces
+                {dailyPuzzle.piece_count} Pieces
               </span>
               <span className="inline-flex items-center gap-1.5 border-l border-border px-4">
                 <BarChart3 className="h-[18px] w-[18px] text-primary" />
@@ -333,58 +227,19 @@ export default function DailyPage() {
               </span>
               <span className="inline-flex items-center gap-1.5 border-l border-border pl-4">
                 <Clock3 className="h-[18px] w-[18px] text-primary" />
-                About {Math.max(5, Math.round(selectedPieces / 10))} min
+                About {Math.max(5, Math.round(dailyPuzzle.piece_count / 10))} min
               </span>
             </div>
 
             <div className="mt-6 flex flex-wrap items-center gap-3">
               <Link
-                href={`/play/${dailyPuzzle.slug}?pieces=${selectedPieces}`}
+                href={dailyPlayHref}
                 className="btn btn-terracotta btn-lg btn-shine"
               >
                 <Puzzle className="h-[18px] w-[18px]" />
                 Start Today&apos;s Puzzle
               </Link>
 
-              <div className="relative">
-                <button
-                  type="button"
-                  aria-expanded={pieceMenuOpen}
-                  onClick={() => setPieceMenuOpen((open) => !open)}
-                  className="inline-flex h-[52px] items-center justify-center gap-2 rounded-lg px-4 text-sm font-bold text-muted-foreground transition hover:bg-secondary hover:text-accent"
-                >
-                  <Settings2 className="h-[18px] w-[18px]" />
-                  Choose Pieces
-                  <ChevronDown
-                    className={cn(
-                      'h-4 w-4 transition',
-                      pieceMenuOpen && 'rotate-180'
-                    )}
-                  />
-                </button>
-                {pieceMenuOpen && (
-                  <div className="absolute left-0 top-14 z-30 grid min-w-48 grid-cols-2 gap-1 rounded-lg border border-border bg-popover p-2 shadow-xl">
-                    {pieceChoices.map((pieceCount) => (
-                      <button
-                        key={pieceCount}
-                        type="button"
-                        onClick={() => {
-                          setSelectedPieces(pieceCount)
-                          setPieceMenuOpen(false)
-                        }}
-                        className={cn(
-                          'rounded-md px-3 py-2 text-xs font-bold transition',
-                          selectedPieces === pieceCount
-                            ? 'bg-primary text-primary-foreground'
-                            : 'text-muted-foreground hover:bg-secondary'
-                        )}
-                      >
-                        {pieceCount} pcs
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
             </div>
 
             <div className="mt-5 inline-flex items-center gap-1.5 rounded-lg border border-accent/25 bg-accent-subtle px-3 py-2 text-[11px] font-semibold text-muted-foreground">
@@ -412,10 +267,10 @@ export default function DailyPage() {
                   <div className="absolute inset-0 bg-gradient-to-t from-[#241d10]/15 via-transparent to-transparent" />
                   <div className="absolute right-3.5 top-3.5 inline-flex h-7 items-center gap-1.5 rounded-full bg-card/95 px-3 text-[11px] font-bold text-foreground shadow-lg backdrop-blur-md">
                     <Puzzle className="h-3.5 w-3.5" />
-                    {selectedPieces} pcs
+                    {dailyPuzzle.piece_count} pcs
                   </div>
                   <Link
-                    href={`/play/${dailyPuzzle.slug}?pieces=${selectedPieces}`}
+                    href={dailyPlayHref}
                     aria-label={`Play ${dailyPuzzle.title}`}
                     className="absolute inset-0 flex items-center justify-center opacity-0 transition hover:bg-[#241d10]/15 hover:opacity-100"
                   >
@@ -464,9 +319,7 @@ export default function DailyPage() {
                   participation.challengeDate === dateKey &&
                   participation.isCompleted
               )
-              const fallbackComplete =
-                usingFallbackData && day >= challengeDay - 4 && day < challengeDay
-              const isComplete = recordedComplete || fallbackComplete
+              const isComplete = recordedComplete
 
               return (
                 <div
@@ -524,6 +377,11 @@ export default function DailyPage() {
                 participation={progress.participations[puzzle.challenge_id]}
               />
             ))}
+            {historyPuzzles.length === 0 && (
+              <div className="rounded-lg border border-dashed border-border bg-card px-5 py-8 text-sm text-muted-foreground md:col-span-3">
+                No previous published daily challenges are available yet.
+              </div>
+            )}
           </div>
         </section>
       </main>
@@ -546,7 +404,7 @@ function PreviousChallengeCard({
   return (
     <article className="group overflow-hidden rounded-lg border border-[#e7decb] bg-card shadow-[0_10px_30px_-22px_rgba(80,60,25,0.4)] transition hover:-translate-y-0.5 hover:shadow-[0_20px_40px_-24px_rgba(80,60,25,0.5)] dark:border-[#3b3327]">
       <Link
-        href={`/play/${puzzle.slug}`}
+        href={`/play/${puzzle.slug}?pieces=${puzzle.piece_count}&daily=${puzzle.challenge_id}`}
         className="relative block aspect-[1.94/1] overflow-hidden bg-muted"
       >
         <SafeImage
@@ -605,7 +463,7 @@ function PreviousChallengeCard({
         )}
 
         <Link
-          href={`/play/${puzzle.slug}`}
+          href={`/play/${puzzle.slug}?pieces=${puzzle.piece_count}&daily=${puzzle.challenge_id}`}
           className={cn(
             'mt-3 inline-flex items-center gap-1 text-[10px] font-bold transition sm:text-[11px]',
             completed ? 'text-[#4a7259]' : 'text-accent'

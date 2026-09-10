@@ -162,7 +162,7 @@ export default function ArchivePage() {
                     {items.map((puzzle) => (
                       <Link
                         key={puzzle.id}
-                        href={`/play/${puzzle.slug}`}
+                        href={`/play/${puzzle.slug}?pieces=${puzzle.piece_count}&daily=${puzzle.challenge_id}`}
                         className="group block border border-[#e7decb] bg-card p-2.5 shadow-[0_10px_30px_-22px_rgba(80,60,25,0.4)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_40px_-24px_rgba(80,60,25,0.5)] dark:border-[#3b3327]"
                       >
                         <div className="relative aspect-[1.55/1] overflow-hidden">

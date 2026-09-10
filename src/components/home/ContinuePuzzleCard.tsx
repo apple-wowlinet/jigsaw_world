@@ -45,7 +45,9 @@ export function ContinuePuzzleCard() {
           return
         }
 
-        const publicPuzzle = await fetchPuzzleBySlug(save.puzzleId)
+        const dailyMatch = save.puzzleId.match(/^daily:([^:]+):(.+)$/)
+        const publicSlug = dailyMatch?.[2] ?? save.puzzleId
+        const publicPuzzle = await fetchPuzzleBySlug(publicSlug)
         if (!publicPuzzle) continue
 
         if (!cancelled) {
@@ -53,7 +55,9 @@ export function ContinuePuzzleCard() {
             ...save,
             title: publicPuzzle.title,
             imageUrl: publicPuzzle.image_url,
-            href: `/play/${encodeURIComponent(save.puzzleId)}?pieces=${save.nop}`,
+            href: dailyMatch
+              ? `/play/${encodeURIComponent(publicSlug)}?pieces=${save.nop}&daily=${encodeURIComponent(dailyMatch[1])}`
+              : `/play/${encodeURIComponent(publicSlug)}?pieces=${save.nop}`,
             isCustom: false,
           })
         }

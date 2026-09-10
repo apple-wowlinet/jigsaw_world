@@ -4,45 +4,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { SafeImage } from '@/components/ui/SafeImage'
 import Link from 'next/link'
 import { ArrowRight, Puzzle } from 'lucide-react'
-import { fetchPuzzles, type DisplayDifficulty, type PublicPuzzle } from '@/lib/data/public'
+import { fetchPuzzles, type PublicPuzzle } from '@/lib/data/public'
 import { cn } from '@/lib/utils'
-
-const puzzle = (
-  slug: string,
-  title: string,
-  image_url: string,
-  piece_count: number,
-  difficulty: DisplayDifficulty,
-  plays_count: number,
-  rating = 4.8
-): PublicPuzzle => ({
-  id: slug,
-  uuid: slug,
-  slug,
-  title,
-  image_url,
-  piece_count,
-  difficulty,
-  plays_count,
-  weekly_plays_count: Math.round(plays_count * 0.3),
-  rating,
-  description: '',
-  completions_count: Math.round(plays_count * 0.6),
-  created_at: '2026-08-20T00:00:00.000Z',
-  category: 'Featured',
-  category_slug: 'featured',
-})
-
-const FALLBACK_PUZZLES: PublicPuzzle[] = [
-  puzzle('ocean-sunset-waves', 'Ocean Sunset Waves', 'https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=900&h=700&fit=crop', 150, 'Easy', 2200, 4.8),
-  puzzle('mountain-morning-glow', 'Mountain Morning Glow', 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=900&h=700&fit=crop', 100, 'Medium', 2400, 4.9),
-  puzzle('tropical-island-escape', 'Tropical Island Escape', 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=900&h=700&fit=crop', 100, 'Easy', 3100, 4.7),
-  puzzle('curious-red-fox', 'Curious Red Fox', 'https://images.unsplash.com/photo-1474511320723-9a56873867b5?w=900&h=700&fit=crop', 100, 'Easy', 2100, 4.9),
-  puzzle('crystal-castle-dream', 'Crystal Castle Dream', 'https://images.unsplash.com/photo-1533154683836-84ea7a0bc310?w=900&h=700&fit=crop', 200, 'Hard', 1600, 4.8),
-  puzzle('swiss-village-view', 'Swiss Village View', 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=900&h=700&fit=crop', 150, 'Medium', 1900, 4.7),
-  puzzle('forest-path-mystery', 'Forest Path Mystery', 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=900&h=700&fit=crop', 120, 'Medium', 1400, 4.6),
-  puzzle('night-city-skyline', 'Night City Skyline', 'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=900&h=700&fit=crop', 150, 'Medium', 2300, 4.8),
-]
 
 const filters = ['For You', 'Easy', 'Medium', 'Hard', '500+ Pieces'] as const
 type Filter = (typeof filters)[number]
@@ -72,15 +35,17 @@ function SectionHeading({
 }
 
 export function RecommendationsSection() {
-  const [puzzles, setPuzzles] = useState<PublicPuzzle[]>(FALLBACK_PUZZLES)
+  const [puzzles, setPuzzles] = useState<PublicPuzzle[]>([])
+  const [loading, setLoading] = useState(true)
   const [activeFilter, setActiveFilter] = useState<Filter>('For You')
 
   useEffect(() => {
     let cancelled = false
 
     fetchPuzzles({ limit: 8, orderBy: 'featured' }).then((items) => {
-      if (!cancelled && items.length >= 4) {
-        setPuzzles([...items, ...FALLBACK_PUZZLES].slice(0, 8))
+      if (!cancelled) {
+        setPuzzles(items)
+        setLoading(false)
       }
     })
 
@@ -93,11 +58,9 @@ export function RecommendationsSection() {
     const items = puzzles.slice(4)
     if (activeFilter === 'For You') return items
     if (activeFilter === '500+ Pieces') {
-      const filtered = items.filter((item) => item.piece_count >= 500)
-      return filtered.length ? filtered : items
+      return items.filter((item) => item.piece_count >= 500)
     }
-    const filtered = items.filter((item) => item.difficulty === activeFilter)
-    return filtered.length ? filtered : items
+    return items.filter((item) => item.difficulty === activeFilter)
   }, [activeFilter, puzzles])
 
   return (
@@ -131,6 +94,14 @@ export function RecommendationsSection() {
               </div>
             </Link>
           ))}
+          {loading && Array.from({ length: 4 }, (_, index) => (
+            <div key={index} className="aspect-[1.3/1] rounded-lg skeleton" />
+          ))}
+          {!loading && puzzles.length === 0 && (
+            <div className="rounded-lg border border-dashed border-border bg-card px-5 py-10 text-sm text-muted-foreground sm:col-span-2 lg:col-span-4">
+              No published puzzles are available yet.
+            </div>
+          )}
         </div>
 
         <div className="mt-12">
@@ -187,6 +158,14 @@ export function RecommendationsSection() {
               </div>
             </Link>
           ))}
+          {loading && Array.from({ length: 4 }, (_, index) => (
+            <div key={index} className="aspect-[1.3/1] rounded-lg skeleton" />
+          ))}
+          {!loading && recommended.length === 0 && (
+            <div className="rounded-lg border border-dashed border-border bg-card px-5 py-10 text-sm text-muted-foreground sm:col-span-2 lg:col-span-4">
+              No published puzzles match this selection.
+            </div>
+          )}
         </div>
       </div>
     </section>

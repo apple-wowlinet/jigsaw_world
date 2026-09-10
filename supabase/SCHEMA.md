@@ -1,6 +1,6 @@
 # JigsawWorld 数据库 Schema v2
 
-基于 Supabase（PostgreSQL），用户认证复用 `auth.users`。Migration：`supabase/migrations/002_full_schema.sql`。
+基于 Supabase（PostgreSQL），用户认证复用 `auth.users`。基础结构见 `002_full_schema.sql`，发布边界与可信游戏写入见 `010_publication_and_game_integrity.sql`。
 
 本版按架构评审 12 条改进重构。核心变化：**职责分离**（明细 vs 排行 vs 统计）、**运营字段补齐**、**jsonb 抽象成就**、**等级/活动系统**。
 
@@ -176,7 +176,14 @@ user_stats.total_completions: +1
 PRIMARY KEY (user_id, puzzle_id, piece_count)
 best_time, best_moves, best_score, best_stars
 attempts          -- 尝试次数
-session_id        -- 关联明细（追溯最佳成绩来自哪次）
+best_time_session_id, best_moves_session_id -- 分别追溯两种最佳成绩
+```
+
+### game_sessions（可信游戏明细）
+```sql
+daily_challenge_id, rotation_enabled, progress_percent
+started_at         -- 服务端创建；完成时间由数据库计算
+status, completion_time, moves, stars, completed_at
 ```
 
 ### user_stats（聚合 + 等级段）
@@ -217,9 +224,11 @@ PRIMARY KEY (event_id, puzzle_id)
 
 ## RLS 策略
 
-- **公共读**：categories / puzzles / events / daily_challenges / achievements / levels
-- **仅本人**：其余所有用户表（`user_id = auth.uid()`）
-- **写操作**：内容表增删改走 service_role（服务端，绕过 RLS）
+- **公共读**：`puzzles` 仅限 `is_active = true AND publish_at IS NOT NULL AND publish_at <= now()`；每日、主题和活动关系继承该发布边界
+- **仅本人读**：成绩、统计、成就和活动日志等权威用户表（`user_id = auth.uid()`）
+- **权威写入**：浏览器不可直接增删改，开始/进度/完成/放弃只走 `SECURITY DEFINER` RPC
+- **用户偏好写入**：`favorites` 与 `user_preferences` 仍允许本人写入
+- **内容写入**：走 service_role（服务端，绕过 RLS）
 
 ---
 
@@ -228,7 +237,7 @@ PRIMARY KEY (event_id, puzzle_id)
 - **`v_leaderboard_time`** — 按 `best_time` 升序排行（每关×档位）
 - **`v_leaderboard_moves`** — 按 `best_moves` 升序排行
 
-均基于 `user_best_records`（非 game_sessions），查询性能高。
+均基于 `user_best_records`（非 game_sessions），并再次过滤关联拼图的发布状态。
 
 ---
 
@@ -255,7 +264,7 @@ FROM user_stats WHERE user_id = $1;
 ### 首页推荐（人工推荐分）
 ```sql
 SELECT * FROM puzzles
-WHERE is_active AND (publish_at IS NULL OR publish_at <= now())
+WHERE is_active AND publish_at IS NOT NULL AND publish_at <= now()
 ORDER BY editor_score DESC, rating DESC LIMIT 6;
 ```
 

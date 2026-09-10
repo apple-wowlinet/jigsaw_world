@@ -12,15 +12,6 @@ CREATE TABLE IF NOT EXISTS public.puzzles (
   updated_at timestamptz DEFAULT now()
 );
 
--- Enable RLS and allow read access to everyone
+-- Enable RLS. Public read access is defined by the publication-boundary
+-- migration; this bootstrap migration must not create an unconditional policy.
 ALTER TABLE public.puzzles ENABLE ROW LEVEL SECURITY;
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'puzzles' AND policyname = 'Allow read access to everyone'
-  ) THEN
-    CREATE POLICY "Allow read access to everyone"
-      ON public.puzzles FOR SELECT
-      USING (true);
-  END IF;
-END $$;

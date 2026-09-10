@@ -3,45 +3,22 @@
 import { useEffect, useState } from 'react'
 import { SafeImage } from '@/components/ui/SafeImage'
 import Link from 'next/link'
-import { ArrowRight, Check, Flame } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import { fetchCategories, type PublicCategory } from '@/lib/data/public'
 import { themeCatalogue } from '@/lib/data/theme-catalogue'
 
-const category = (
-  slug: string,
-  name: string,
-  image_url: string,
-  icon: string,
-  puzzle_count: number
-): PublicCategory => ({
-  id: slug,
-  slug,
-  name,
-  image_url,
-  icon,
-  puzzle_count,
-  description: '',
-  color: '#b4592e',
-  dark_color: '#cd7a45',
-})
-
-const FALLBACK_CATEGORIES: PublicCategory[] = [
-  category('nature', 'Nature', 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=700&h=520&fit=crop', 'trees', 128),
-  category('animals', 'Animals', 'https://images.unsplash.com/photo-1474511320723-9a56873867b5?w=700&h=520&fit=crop', 'paw-print', 96),
-  category('lakes-rivers', 'Lakes & Rivers', 'https://images.unsplash.com/photo-1439066615861-d1af74d74000?w=700&h=520&fit=crop', 'waves', 86),
-  category('food', 'Food', 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=700&h=520&fit=crop', 'utensils', 74),
-  category('cities', 'Cities', 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=700&h=520&fit=crop', 'building-2', 64),
-  category('beaches', 'Beaches', 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=700&h=520&fit=crop', 'waves', 58),
-]
-
 export function CategoriesSection() {
-  const [categories, setCategories] = useState<PublicCategory[]>(FALLBACK_CATEGORIES)
+  const [categories, setCategories] = useState<PublicCategory[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     let cancelled = false
 
     fetchCategories(6).then((items) => {
-      if (!cancelled && items.length) setCategories(items)
+      if (!cancelled) {
+        setCategories(items)
+        setLoading(false)
+      }
     })
 
     return () => {
@@ -89,6 +66,14 @@ export function CategoriesSection() {
               </div>
             </Link>
           ))}
+          {loading && Array.from({ length: 6 }, (_, index) => (
+            <div key={index} className="aspect-[1.3/1] rounded-lg skeleton" />
+          ))}
+          {!loading && categories.length === 0 && (
+            <div className="col-span-2 rounded-lg border border-dashed border-border bg-card px-5 py-8 text-sm text-muted-foreground sm:col-span-3 lg:col-span-6">
+              No categories with published puzzles are available yet.
+            </div>
+          )}
         </div>
 
         <h2 className="label-caps mb-4 mt-10 text-foreground">Popular Themes</h2>
@@ -135,32 +120,6 @@ export function CategoriesSection() {
                 <p className="mt-1.5 max-w-72 font-display text-[17px] leading-snug text-muted-foreground">
                   Puzzle every day to build your streak and earn exclusive rewards.
                 </p>
-              </div>
-
-              <div className="flex items-center gap-8">
-                <div className="text-center">
-                  <Flame className="mx-auto h-5 w-5 fill-accent text-accent" />
-                  <p className="mt-1 font-display text-2xl font-semibold leading-none text-foreground">
-                    4 <span className="text-sm">Day</span>
-                  </p>
-                  <p className="label-caps mt-1 text-[9px] text-muted-foreground">Streak</p>
-                </div>
-                <div className="flex items-end gap-3">
-                  {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => (
-                    <div key={day} className="text-center">
-                      <span className="mb-1.5 block text-[9px] font-medium text-muted-foreground">{day}</span>
-                      <span
-                        className={`grid h-6 w-6 place-items-center rounded-full border ${
-                          index < 4
-                            ? 'border-primary bg-primary text-primary-foreground'
-                            : 'border-[#d5c9ae] bg-transparent text-transparent dark:border-[#3b3327]'
-                        }`}
-                      >
-                        {index < 4 && <Check className="h-3 w-3" strokeWidth={3} />}
-                      </span>
-                    </div>
-                  ))}
-                </div>
               </div>
 
               <Link href="/daily" className="btn btn-terracotta btn-md btn-shine shrink-0">

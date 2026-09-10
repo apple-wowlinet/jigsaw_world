@@ -7,7 +7,6 @@ import { AlertCircle, Loader2, LockKeyhole, Mail, Puzzle, User } from 'lucide-re
 import { Input } from '@/components/ui/input'
 import { getSafeRedirectPath } from '@/lib/auth'
 import { supabase } from '@/lib/supabase'
-import { cn } from '@/lib/utils'
 
 type AuthMode = 'login' | 'register'
 

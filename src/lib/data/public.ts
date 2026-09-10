@@ -305,11 +305,14 @@ export async function fetchPuzzles(options: {
   search?: string
   orderBy?: 'featured' | 'plays' | 'rating' | 'recent' | 'editor' | 'weekly'
 } = {}): Promise<PublicPuzzle[]> {
+  const publishedBefore = new Date().toISOString()
   const runQuery = (select: string, orderBy = options.orderBy) => {
     let query = supabase
       .from('puzzles')
       .select(select)
       .eq('is_active', true)
+      .not('publish_at', 'is', null)
+      .lte('publish_at', publishedBefore)
 
     if (requestedCategorySlugs.length) {
       query = query.in('category_id', categoryIds)
@@ -393,6 +396,7 @@ export async function fetchPuzzles(options: {
 export async function fetchPuzzlesByThemeSlug(
   slug: string
 ): Promise<PublicPuzzle[]> {
+  const publishedBefore = new Date().toISOString()
   const { data: theme, error: themeError } = await supabase
     .from('themes')
     .select('id')
@@ -427,6 +431,8 @@ export async function fetchPuzzlesByThemeSlug(
     .select(PUZZLE_SELECT)
     .in('id', puzzleIds)
     .eq('is_active', true)
+    .not('publish_at', 'is', null)
+    .lte('publish_at', publishedBefore)
 
   if (error?.message.toLowerCase().includes('weekly_plays_count')) {
     const fallback = await supabase
@@ -434,6 +440,8 @@ export async function fetchPuzzlesByThemeSlug(
       .select(PUZZLE_SELECT_WITHOUT_WEEKLY)
       .in('id', puzzleIds)
       .eq('is_active', true)
+      .not('publish_at', 'is', null)
+      .lte('publish_at', publishedBefore)
     data = fallback.data as typeof data
     error = fallback.error
   }
@@ -450,11 +458,14 @@ export async function fetchPuzzlesByThemeSlug(
 }
 
 export async function fetchPuzzleBySlug(slug: string): Promise<PublicPuzzle | null> {
+  const publishedBefore = new Date().toISOString()
   let { data, error } = await supabase
     .from('puzzles')
     .select(PUZZLE_SELECT)
     .eq('slug', slug)
     .eq('is_active', true)
+    .not('publish_at', 'is', null)
+    .lte('publish_at', publishedBefore)
     .maybeSingle()
 
   if (error?.message.toLowerCase().includes('weekly_plays_count')) {
@@ -463,6 +474,8 @@ export async function fetchPuzzleBySlug(slug: string): Promise<PublicPuzzle | nu
       .select(PUZZLE_SELECT_WITHOUT_WEEKLY)
       .eq('slug', slug)
       .eq('is_active', true)
+      .not('publish_at', 'is', null)
+      .lte('publish_at', publishedBefore)
       .maybeSingle()
     data = fallback.data as typeof data
     error = fallback.error
@@ -504,24 +517,12 @@ export async function fetchPuzzleLeaderboard(
 
 export async function fetchDailyPuzzle(): Promise<DailyPuzzle | null> {
   const today = new Date().toISOString().slice(0, 10)
-  let { data, error } = await supabase
+  const { data, error } = await supabase
     .from('daily_challenges')
     .select(`id, challenge_date, title, description, puzzles(${PUZZLE_SELECT_WITHOUT_WEEKLY})`)
-    .lte('challenge_date', today)
-    .order('challenge_date', { ascending: false })
+    .eq('challenge_date', today)
     .limit(1)
     .maybeSingle()
-
-  if (!data && !error) {
-    const fallback = await supabase
-      .from('daily_challenges')
-      .select(`id, challenge_date, title, description, puzzles(${PUZZLE_SELECT_WITHOUT_WEEKLY})`)
-      .order('challenge_date', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-    data = fallback.data
-    error = fallback.error
-  }
 
   if (error) {
     console.error('Failed to fetch daily puzzle:', error.message)
@@ -542,9 +543,11 @@ export async function fetchDailyPuzzle(): Promise<DailyPuzzle | null> {
 }
 
 export async function fetchDailyHistory(limit = 12): Promise<DailyPuzzle[]> {
+  const today = new Date().toISOString().slice(0, 10)
   const { data, error } = await supabase
     .from('daily_challenges')
     .select(`id, challenge_date, title, description, puzzles(${PUZZLE_SELECT_WITHOUT_WEEKLY})`)
+    .lte('challenge_date', today)
     .order('challenge_date', { ascending: false })
     .limit(limit)
 
