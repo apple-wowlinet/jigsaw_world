@@ -694,7 +694,7 @@ function PlayPuzzleContent() {
 
   if (puzzleLoading || !puzzle || loadError) {
     return (
-      <div className="min-h-screen bg-muted dark:bg-[#08080c] flex items-center justify-center">
+      <div className="min-h-[calc(100dvh-4rem)] bg-muted dark:bg-[#08080c] flex items-center justify-center">
         <div className="text-center max-w-sm px-6">
           {loadError ? (
             <>
@@ -720,7 +720,7 @@ function PlayPuzzleContent() {
   }
 
   return (
-    <div className="h-screen bg-muted dark:bg-[#08080c] flex flex-col overflow-hidden">
+    <div className="h-[calc(100dvh-4rem)] bg-muted dark:bg-[#08080c] flex flex-col overflow-hidden">
       {/* Game Header */}
       <header className="bg-card dark:bg-[#13131a] border-b border-border dark:border-white/10 px-4 sm:px-6 py-2">
         <h1 className="sr-only">{puzzle.title}</h1>
@@ -1062,7 +1062,7 @@ export default function PlayPuzzlePage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-muted dark:bg-[#08080c] flex items-center justify-center">
+        <div className="min-h-[calc(100dvh-4rem)] bg-muted dark:bg-[#08080c] flex items-center justify-center">
           <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent" />
         </div>
       }
