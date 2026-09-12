@@ -374,9 +374,11 @@ function PuzzleDetailContent() {
                       'h-2 w-2 rounded-full',
                       puzzle.difficulty === 'Easy'
                         ? 'bg-[#4a7259]'
-                        : puzzle.difficulty === 'Hard'
+                        : puzzle.difficulty === 'Medium'
+                          ? 'bg-[#c9973f]'
+                          : puzzle.difficulty === 'Hard'
                           ? 'bg-[#c0453a]'
-                          : 'bg-[#c9973f]'
+                          : 'bg-[#6d4aae]'
                     )}
                   />
                   {puzzle.difficulty} difficulty

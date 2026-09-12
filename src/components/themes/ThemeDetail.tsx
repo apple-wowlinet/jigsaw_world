@@ -216,6 +216,7 @@ export function ThemeDetail() {
                   ['Easy', 'Easy'],
                   ['Medium', 'Medium'],
                   ['Hard', 'Hard'],
+                  ['Expert', 'Expert'],
                 ]}
               />
               <FilterSelect

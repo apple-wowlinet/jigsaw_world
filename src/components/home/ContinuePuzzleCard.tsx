@@ -5,8 +5,11 @@ import Link from 'next/link'
 import { Puzzle } from 'lucide-react'
 import { SafeImage } from '@/components/ui/SafeImage'
 import { fetchPuzzleBySlug } from '@/lib/data/public'
+import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/components/auth/AuthProvider'
 import { getImage } from '@/lib/puzzle/storage/image-store'
 import {
+  clearPuzzleSaves,
   listPuzzleSaves,
   type PuzzleSaveSummary,
 } from '@/lib/puzzle/storage/save-store'
@@ -19,6 +22,7 @@ interface ContinuePuzzleData extends PuzzleSaveSummary {
 }
 
 export function ContinuePuzzleCard() {
+  const { user, loading: authLoading } = useAuth()
   const [puzzle, setPuzzle] = useState<ContinuePuzzleData | null>(null)
 
   useEffect(() => {
@@ -26,6 +30,23 @@ export function ContinuePuzzleCard() {
     let objectUrl: string | null = null
 
     const resolveLatestSave = async () => {
+      if (authLoading) return
+
+      const completedPuzzleIds = new Set<string>()
+      if (user) {
+        const { data, error } = await supabase
+          .from('game_sessions')
+          .select('puzzle_id')
+          .eq('user_id', user.id)
+          .eq('status', 'completed')
+
+        if (error) {
+          console.error('Failed to load completed puzzles:', error.message)
+        } else {
+          for (const session of data) completedPuzzleIds.add(session.puzzle_id)
+        }
+      }
+
       for (const save of listPuzzleSaves()) {
         if (save.puzzleId.startsWith('idb:')) {
           const imageKey = save.puzzleId.slice(4)
@@ -49,6 +70,10 @@ export function ContinuePuzzleCard() {
         const publicSlug = dailyMatch?.[2] ?? save.puzzleId
         const publicPuzzle = await fetchPuzzleBySlug(publicSlug)
         if (!publicPuzzle) continue
+        if (completedPuzzleIds.has(publicPuzzle.uuid)) {
+          clearPuzzleSaves(save.puzzleId)
+          continue
+        }
 
         if (!cancelled) {
           setPuzzle({
@@ -73,7 +98,7 @@ export function ContinuePuzzleCard() {
       cancelled = true
       if (objectUrl) URL.revokeObjectURL(objectUrl)
     }
-  }, [])
+  }, [authLoading, user])
 
   if (!puzzle) return null
 

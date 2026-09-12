@@ -72,6 +72,7 @@ function SearchContent() {
       case 'Easy': return 'difficulty-easy'
       case 'Medium': return 'difficulty-medium'
       case 'Hard': return 'difficulty-hard'
+      case 'Expert': return 'difficulty-expert'
       default: return 'bg-muted text-muted-foreground'
     }
   }

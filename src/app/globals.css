@@ -942,6 +942,14 @@ html {
   opacity: 1;
 }
 
+.difficulty-expert {
+  background: #63359b;
+  color: #fff;
+  border: 1px solid #4b237a;
+  box-shadow: 0 1px 5px rgba(55, 24, 90, 0.45);
+  opacity: 1;
+}
+
 /* Dark mode badge adjustments */
 .dark .difficulty-easy {
   background: rgba(143, 180, 156, 0.14);
@@ -959,6 +967,13 @@ html {
   background: rgba(224, 106, 92, 0.14);
   color: #e06a5c;
   border-color: rgba(224, 106, 92, 0.45);
+}
+
+.dark .difficulty-expert {
+  background: #8150b8;
+  color: #fff;
+  border-color: #b993e2;
+  box-shadow: 0 1px 5px rgba(16, 7, 29, 0.65);
 }
 
 /* ===== Star Rating ===== */

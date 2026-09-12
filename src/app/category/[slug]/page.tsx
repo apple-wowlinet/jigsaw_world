@@ -63,6 +63,7 @@ const difficultyStyles: Record<DisplayDifficulty, string> = {
   Easy: 'difficulty-easy',
   Medium: 'difficulty-medium',
   Hard: 'difficulty-hard',
+  Expert: 'difficulty-expert',
 }
 
 function combineCategories(remoteCategories: PublicCategory[]) {
@@ -391,6 +392,7 @@ function CategoryContent() {
                 ['Easy', 'Easy'],
                 ['Medium', 'Medium'],
                 ['Hard', 'Hard'],
+                ['Expert', 'Expert'],
               ]}
             />
             <FilterSelect

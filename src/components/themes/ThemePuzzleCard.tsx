@@ -8,6 +8,7 @@ const difficultyStyles: Record<DisplayDifficulty, string> = {
   Easy: 'difficulty-easy',
   Medium: 'difficulty-medium',
   Hard: 'difficulty-hard',
+  Expert: 'difficulty-expert',
 }
 
 export function ThemePuzzleCard({ puzzle }: { puzzle: PublicPuzzle }) {

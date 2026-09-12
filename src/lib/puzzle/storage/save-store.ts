@@ -55,6 +55,28 @@ export function clearSave(puzzleId: string, nop: number) {
   }
 }
 
+/** Clear every local difficulty slot for one puzzle after it is completed. */
+export function clearPuzzleSaves(puzzleId: string) {
+  try {
+    const prefix = `${SAVE_PREFIX}${puzzleId}:`;
+    const keys: string[] = [];
+
+    for (let index = 0; index < localStorage.length; index++) {
+      const key = localStorage.key(index);
+      if (key?.startsWith(prefix)) keys.push(key);
+    }
+
+    for (const key of keys) localStorage.removeItem(key);
+  } catch {
+    /* ignore */
+  }
+}
+
+function isCompletedSave(save: SaveGameV6) {
+  const completedGroup = save.pieces[0]?.g ?? 0;
+  return completedGroup > 0 && save.pieces.every((piece) => piece.g === completedGroup);
+}
+
 /**
  * 列出浏览器中尚未完成的拼图存档，最近保存的排在最前。
  * 旧版存档没有 savedAt，使用游戏时长和移动次数作为稳定的降级排序。
@@ -63,6 +85,7 @@ export function listPuzzleSaves(): PuzzleSaveSummary[] {
   if (typeof window === 'undefined') return [];
 
   const saves: PuzzleSaveSummary[] = [];
+  const completedSaveKeys: string[] = [];
 
   try {
     for (let index = 0; index < localStorage.length; index++) {
@@ -85,6 +108,10 @@ export function listPuzzleSaves(): PuzzleSaveSummary[] {
         !Array.isArray(save.pieces) ||
         save.pieces.length === 0
       ) {
+        continue;
+      }
+      if (isCompletedSave(save)) {
+        completedSaveKeys.push(key);
         continue;
       }
 
@@ -115,6 +142,14 @@ export function listPuzzleSaves(): PuzzleSaveSummary[] {
     }
   } catch {
     return [];
+  }
+
+  for (const key of completedSaveKeys) {
+    try {
+      localStorage.removeItem(key);
+    } catch {
+      /* ignore */
+    }
   }
 
   return saves.sort(

@@ -88,6 +88,7 @@ const DIFFICULTY_OPTIONS: Array<{ value: 'Any' | DisplayDifficulty; label: strin
   { value: 'Easy', label: 'Easy' },
   { value: 'Medium', label: 'Medium' },
   { value: 'Hard', label: 'Hard' },
+  { value: 'Expert', label: 'Expert' },
 ]
 
 const PIECE_OPTIONS: Array<{ value: PieceFilter; label: string }> = [
@@ -105,6 +106,8 @@ function difficultyClass(difficulty: string) {
       return 'difficulty-medium'
     case 'Hard':
       return 'difficulty-hard'
+    case 'Expert':
+      return 'difficulty-expert'
     default:
       return 'bg-muted text-muted-foreground'
   }

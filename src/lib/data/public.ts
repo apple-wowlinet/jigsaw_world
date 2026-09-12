@@ -3,7 +3,7 @@ import type { PublicTheme } from '@/lib/data/theme-catalogue'
 
 export type { PublicTheme } from '@/lib/data/theme-catalogue'
 
-export type DisplayDifficulty = 'Easy' | 'Medium' | 'Hard'
+export type DisplayDifficulty = 'Easy' | 'Medium' | 'Hard' | 'Expert'
 
 export interface PublicCategory {
   id: string
@@ -179,6 +179,7 @@ function getFirst<T>(value: T | T[] | null | undefined): T | null {
 export function toDisplayDifficulty(value: string | null | undefined): DisplayDifficulty {
   if (value === 'easy') return 'Easy'
   if (value === 'medium') return 'Medium'
+  if (value === 'expert') return 'Expert'
   return 'Hard'
 }
 

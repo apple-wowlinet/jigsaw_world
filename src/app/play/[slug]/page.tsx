@@ -21,7 +21,7 @@ import {
 import type { PieceChoice, SaveGameV6 } from '@/lib/puzzle/core/types'
 import { PuzzleCanvas, type PuzzleCanvasHandle } from '@/components/puzzle/PuzzleCanvas'
 import { ResumeDialog } from '@/components/puzzle/ResumeDialog'
-import { loadSave, storeSave, clearSave, getRotationPref, setRotationPref } from '@/lib/puzzle/storage/save-store'
+import { clearPuzzleSaves, loadSave, storeSave, clearSave, getRotationPref, setRotationPref } from '@/lib/puzzle/storage/save-store'
 import { getImage } from '@/lib/puzzle/storage/image-store'
 import { sfx } from '@/lib/puzzle/audio/sfx'
 import { fetchPuzzleBySlug } from '@/lib/data/public'
@@ -43,7 +43,7 @@ interface PuzzleMeta {
   slug: string
   title: string
   image_url: string
-  difficulty: 'easy' | 'medium' | 'hard'
+  difficulty: 'easy' | 'medium' | 'hard' | 'expert'
   piece_count: number
 }
 
@@ -227,7 +227,7 @@ function PlayPuzzleContent() {
     const game = gameRef.current
     if (!game || !choice) return
     if (game.isComplete()) {
-      clearSave(puzzleId, choice.nop)
+      clearPuzzleSaves(puzzleId)
       return
     }
     const save = game.getSave(currentElapsed())
@@ -471,7 +471,7 @@ function PlayPuzzleContent() {
     setMoves(completedMoves)
     setTimer(localElapsed)
     pauseClock()
-    if (choice) clearSave(puzzleId, choice.nop)
+    clearPuzzleSaves(puzzleId)
 
     if (!sessionId) {
       serverAttemptRef.current += 1
@@ -492,7 +492,6 @@ function PlayPuzzleContent() {
         setRecordingState('failed')
       })
   }, [
-    choice,
     currentElapsed,
     moves,
     pauseClock,
@@ -771,7 +770,8 @@ function PlayPuzzleContent() {
                   'hidden sm:inline px-2 py-0.5 rounded text-xs font-medium',
                   puzzle.difficulty === 'easy' && 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
                   puzzle.difficulty === 'medium' && 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
-                  puzzle.difficulty === 'hard' && 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                  puzzle.difficulty === 'hard' && 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+                  puzzle.difficulty === 'expert' && 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300'
                 )}
               >
                 {puzzle.difficulty}
