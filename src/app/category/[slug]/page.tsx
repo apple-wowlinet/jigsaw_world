@@ -394,20 +394,6 @@ function CategoryContent() {
               ]}
             />
             <FilterSelect
-              label="Pieces"
-              value={pieceFilter}
-              onChange={(value) => {
-                setPieceFilter(value as PieceFilter)
-                resetPagination()
-              }}
-              options={[
-                ['any', 'Any'],
-                ['small', 'Up to 100'],
-                ['medium', '101–200'],
-                ['large', '200+'],
-              ]}
-            />
-            <FilterSelect
               label="Sort"
               value={sortOrder}
               onChange={(value) => {
@@ -419,6 +405,20 @@ function CategoryContent() {
                 ['rating', 'Rating'],
                 ['newest', 'Newest'],
                 ['pieces', 'Pieces'],
+              ]}
+            />
+            <FilterSelect
+              label="Pieces"
+              value={pieceFilter}
+              onChange={(value) => {
+                setPieceFilter(value as PieceFilter)
+                resetPagination()
+              }}
+              options={[
+                ['any', 'Any'],
+                ['small', 'Up to 100'],
+                ['medium', '101–200'],
+                ['large', '200+'],
               ]}
             />
           </div>

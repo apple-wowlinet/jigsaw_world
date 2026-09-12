@@ -65,6 +65,13 @@ function parseRequestedPieceCount(value: string | null): number | null {
   return Number.isSafeInteger(parsed) ? parsed : null
 }
 
+function getCanvasImageUrl(url: string): string {
+  // Load third-party images through Next's same-origin optimizer. Some image
+  // hosts allow display in <img> but omit CORS headers required by canvas.
+  const params = new URLSearchParams({ url, w: '3840', q: '75' })
+  return `/_next/image?${params.toString()}`
+}
+
 function PlayPuzzleContent() {
   const { user, loading: authLoading } = useAuth()
   const params = useParams()
@@ -275,7 +282,7 @@ function PlayPuzzleContent() {
       if (!rec) throw new Error('missing-image')
       return createImageBitmap(rec.blob, { imageOrientation: 'from-image' })
     }
-    return Utils.loadImage(imageSource.url)
+    return Utils.loadImage(getCanvasImageUrl(imageSource.url))
   }, [imageSource])
 
   /** 针对档位生成最优 subject（块尺寸 × 初始缩放 最大化）并应用 */
