@@ -1,13 +1,14 @@
 'use client'
 
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
+import Image from 'next/image'
 import { useState, useEffect, useRef, Suspense, useCallback, useMemo } from 'react'
 import {
-  Play, Pause, RotateCcw, Clock, Home, Shuffle, Eye, EyeOff,
-  ChevronLeft, ChevronRight, Trophy, Star, X, Volume2, VolumeX, RefreshCw,
+  Play, Pause, RotateCcw, Clock, Shuffle, Eye, EyeOff,
+  ChevronLeft, ChevronRight, Star, X, Volume2, VolumeX, RefreshCw, Info,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { Utils } from '@/lib/puzzle/core/utils'
@@ -175,6 +176,19 @@ function PlayPuzzleContent() {
 
   const pieceCount = choice?.nop ?? 0
   const puzzleLoading = !isCustom && loadedRemoteSlug !== slug
+  const completedImageUrl = useMemo(() => {
+    if (!subject) return puzzle?.image_url ?? ''
+
+    try {
+      return subject.canvas.toDataURL('image/jpeg', 0.9)
+    } catch {
+      return puzzle?.image_url ?? ''
+    }
+  }, [puzzle?.image_url, subject])
+  const currentGameQuery = searchParams?.toString()
+  const loginHref = `/login?next=${encodeURIComponent(
+    `/play/${slug}${currentGameQuery ? `?${currentGameQuery}` : ''}`
+  )}`
 
   /* ---------------- 计时 ---------------- */
 
@@ -980,79 +994,108 @@ function PlayPuzzleContent() {
 
           {/* Completion Modal */}
           {isCompleted && (
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[1500]">
-              <Card className="relative max-w-md w-full mx-4 border-0 shadow-2xl animate-fade-in dark:bg-card dark:border dark:border-white/10">
+            <div className="absolute inset-0 z-[1500] flex items-start justify-center overflow-y-auto bg-black/65 p-3 backdrop-blur-sm sm:items-center">
+              <Card
+                role="dialog"
+                aria-modal="true"
+                aria-label="Puzzle results"
+                className="relative my-auto w-full max-w-[32rem] overflow-hidden rounded-[1.75rem] border border-white/50 bg-card shadow-[0_28px_90px_rgba(0,0,0,0.38)] animate-fade-in dark:border-white/10 dark:bg-card"
+              >
                 <button
                   onClick={() => setIsCompleted(false)}
-                  className="absolute top-3 right-3 p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-secondary/60 dark:hover:bg-white/10 transition-colors cursor-pointer z-10"
+                  className="absolute right-1 top-1 z-10 rounded-full p-2 text-muted-foreground transition-colors hover:bg-secondary/70 hover:text-foreground dark:hover:bg-white/10"
                   aria-label="Close"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="h-5 w-5" />
                 </button>
-                <CardHeader className="text-center pb-2">
-                  <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-success-subtle dark:bg-success/20 flex items-center justify-center animate-pulse-ring">
-                    <Trophy className="w-10 h-10 text-success" />
+
+                <CardContent className="space-y-3 px-5 pb-4 pt-5 text-center sm:px-8">
+                  {completedImageUrl && (
+                    <div className="relative aspect-[16/8.6] overflow-hidden rounded-xl border-[6px] border-card bg-secondary shadow-[0_10px_24px_-14px_rgba(47,74,58,0.65)] ring-1 ring-border dark:ring-white/10">
+                      <Image
+                        src={completedImageUrl}
+                        alt={`Completed ${puzzle.title} puzzle`}
+                        fill
+                        unoptimized
+                        sizes="(max-width: 640px) calc(100vw - 3.5rem), 512px"
+                        className="object-cover"
+                      />
+                    </div>
+                  )}
+
+                  <div className="pt-1">
+                    <p className="font-mono text-5xl font-black leading-none tracking-tight text-primary tabular-nums sm:text-6xl">
+                      {formatTime(timer)}
+                    </p>
+                    <p className="mt-1 text-sm font-medium text-muted-foreground">Completion Time</p>
                   </div>
-                  <CardTitle className="text-2xl text-success">Puzzle Completed!</CardTitle>
-                </CardHeader>
-                <CardContent className="text-center space-y-6">
-                  <div>
-                    <p className="text-lg text-foreground mb-2">
-                      Outstanding work! You&apos;ve mastered this puzzle!
-                    </p>
-                    <p className="text-4xl font-bold text-primary mb-2">{formatTime(timer)}</p>
-                    <p className="mb-3 text-xs font-medium text-muted-foreground">
-                      {serverResult
-                        ? serverResult.ranked
-                          ? 'Verified by the server and included in eligible records.'
-                          : 'Verified completion; rotation-mode results are not ranked.'
-                        : recordingState === 'failed'
-                          ? 'Saved locally. The server could not record this result.'
-                          : 'Local result only; it is not included in records.'}
-                    </p>
-                    <div className="flex justify-center gap-1 mb-4">
-                      {[...Array(3)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={cn(
-                            'w-8 h-8 transition-all',
-                            i < calculateStars()
-                              ? 'text-yellow-500 fill-yellow-500'
-                              : 'text-gray-300 dark:text-gray-600'
-                          )}
-                        />
-                      ))}
+
+                  <div className="grid grid-cols-3 divide-x divide-border border-y border-border py-2 dark:divide-white/10 dark:border-white/10">
+                    <div>
+                      <p className="text-2xl font-extrabold leading-tight text-foreground sm:text-3xl">{pieceCount}</p>
+                      <p className="text-xs font-medium text-muted-foreground sm:text-sm">Pieces</p>
+                    </div>
+                    <div>
+                      <p className="text-2xl font-extrabold leading-tight text-foreground sm:text-3xl">{moves}</p>
+                      <p className="text-xs font-medium text-muted-foreground sm:text-sm">Moves</p>
+                    </div>
+                    <div className="flex flex-col items-center justify-center">
+                      <div className="flex gap-0.5" aria-label={`${calculateStars()} out of 3 stars`}>
+                        {[...Array(3)].map((_, i) => (
+                          <Star
+                            key={i}
+                            className={cn(
+                              'h-5 w-5 sm:h-6 sm:w-6',
+                              i < calculateStars()
+                                ? 'fill-[#f2ae19] text-[#f2ae19] drop-shadow-[0_3px_4px_rgba(185,138,47,0.24)]'
+                                : 'fill-secondary text-border dark:fill-white/5 dark:text-white/15'
+                            )}
+                            strokeWidth={1.8}
+                          />
+                        ))}
+                      </div>
+                      <p className="mt-1 text-xs font-medium text-muted-foreground sm:text-sm">Stars</p>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4 py-4 border-y border-border dark:border-white/10">
-                    <div>
-                      <p className="text-2xl font-bold text-foreground">{pieceCount}</p>
-                      <p className="text-xs text-muted-foreground">Pieces</p>
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold text-foreground">{moves}</p>
-                      <p className="text-xs text-muted-foreground">Moves</p>
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold text-foreground">{calculateStars()}</p>
-                      <p className="text-xs text-muted-foreground">Stars</p>
-                    </div>
+                  <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground sm:text-sm">
+                    <Info className="h-4 w-4 shrink-0" />
+                    {user ? (
+                      <span>
+                        {serverResult?.ranked
+                          ? 'Result verified and added to eligible records.'
+                          : 'This result is saved on this device.'}
+                      </span>
+                    ) : (
+                      <span>
+                        <Link
+                          href={loginHref}
+                          className="font-semibold text-primary underline decoration-primary/35 underline-offset-4 transition-colors hover:text-accent hover:decoration-accent/50"
+                        >
+                          Log in
+                        </Link>{' '}
+                        to save your record and track your progress.
+                      </span>
+                    )}
                   </div>
 
-                  <div className="flex gap-3">
-                    <Button onClick={() => router.push('/')} variant="outline" className="flex-1 dark:bg-transparent">
-                      <Home className="w-4 h-4 mr-2" />
-                      Home
+                  <div className="grid grid-cols-[0.95fr_1.35fr] gap-3 pt-1">
+                    <Button
+                      onClick={resetGame}
+                      variant="outline"
+                      size="lg"
+                      className="w-full bg-transparent font-semibold"
+                    >
+                      <RotateCcw className="mr-2 h-4 w-4" />
+                      Replay Puzzle
                     </Button>
                     <Button
-                      onClick={() => {
-                        router.push('/explore/weekly')
-                      }}
-                      className="flex-1 btn-shine"
+                      onClick={() => router.push('/explore/weekly')}
+                      size="lg"
+                      className="btn-shine w-full text-base font-bold shadow-lg shadow-primary/20"
                     >
-                      Next Level
-                      <ChevronRight className="w-4 h-4 ml-2" />
+                      Next Puzzle
+                      <ChevronRight className="ml-2 h-5 w-5" />
                     </Button>
                   </div>
                 </CardContent>
