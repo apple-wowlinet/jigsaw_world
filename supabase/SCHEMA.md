@@ -1,6 +1,6 @@
 # JigsawWorld 数据库 Schema v2
 
-基于 Supabase（PostgreSQL），用户认证复用 `auth.users`。基础结构见 `002_full_schema.sql`，发布边界与可信游戏写入见 `010_publication_and_game_integrity.sql`。
+基于 Supabase（PostgreSQL），用户认证复用 `auth.users`。基础结构见 `002_full_schema.sql`，发布边界与可信游戏写入见 `010_publication_and_game_integrity.sql`，数据库分类树与拼图多分类关系见 `011_puzzle_category_relations.sql`。
 
 本版按架构评审 12 条改进重构。核心变化：**职责分离**（明细 vs 排行 vs 统计）、**运营字段补齐**、**jsonb 抽象成就**、**等级/活动系统**。
 
@@ -22,7 +22,8 @@ auth.users (Supabase 内置)
    ├─< activity_logs               运营日志
    └─< favorites                   收藏
 
-categories ─< puzzles ─< daily_challenges ──> events（赛季/活动）
+categories ─< categories（任意深度分类树）
+categories ─< puzzle_categories >─ puzzles ─< daily_challenges ──> events（赛季/活动）
 events ─< event_puzzles >─ puzzles（活动拼图编排）
 
 levels（等级字典）          achievements（conditions jsonb）
@@ -51,11 +52,12 @@ user_stats.total_completions: +1
 
 ---
 
-## 表清单（15 张 + 2 视图）
+## 表清单
 
 | 表 | 用途 | RLS |
 |----|------|-----|
 | `categories` | 分类 | 公共读 |
+| `puzzle_categories` | 拼图与分类的多对多关系；每个拼图最多一个主分类 | 公共读，后台写 |
 | `puzzles` | 关卡（扩展，含运营字段） | 公共读 |
 | `events` | 活动/赛季（圣诞/周年庆） | 公共读 |
 | `event_puzzles` | 活动与拼图的有序多对多关系 | 公共读，后台写 |
@@ -72,6 +74,27 @@ user_stats.total_completions: +1
 | `user_preferences` | 偏好 | 仅本人 |
 | `activity_logs` | 运营日志 | 仅本人 |
 | `favorites` | 收藏 | 仅本人 |
+
+---
+
+## 分类与拼图关系
+
+- `categories.parent_id` 构成数据库分类树，父分类查询自动包含全部后代分类。
+- `puzzle_categories` 是公开目录归类的唯一数据源，一个拼图可以属于多个分类。
+- `puzzles.category_id` 暂时保留为兼容主分类；触发器会同步对应的 `is_primary = true` 关系。
+- `categories.puzzle_count` 是弃用的兼容字段；公开数量由数据库按照关联关系和发布状态实时去重计算。
+- `get_public_category_puzzles` 在数据库中完成分类、筛选、排序和分页。
+- `get_public_category_puzzle_counts` 返回分类总数和当前筛选结果数，两者与列表采用完全相同的公开规则。
+
+分类页只统计同时满足以下条件的拼图：
+
+```sql
+is_active = true
+AND publish_at IS NOT NULL
+AND publish_at <= now()
+```
+
+关键词只在 `011` 数据迁移时用于把旧的前端虚拟分类转换成真实关系，此后不参与线上查询。
 
 ---
 

@@ -30,8 +30,8 @@ type SortOrder = 'plays' | 'rating' | 'newest'
 type PieceFilter = 'any' | 'small' | 'medium' | 'large'
 type OpenMenu = 'sort' | 'difficulty' | 'pieces' | null
 
-const ITEMS_PER_PAGE = 15
-const FETCH_LIMIT = 60
+const ITEMS_PER_PAGE = 24
+const FETCH_LIMIT = ITEMS_PER_PAGE * 4
 
 const CATEGORY_CHIPS = [
   { slug: 'all', name: 'All' },
@@ -567,7 +567,7 @@ export function ExploreListSkeleton() {
         </div>
         <div className="mt-4 h-8 animate-pulse rounded-lg bg-secondary" />
         <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {Array.from({ length: 8 }, (_, index) => (
+          {Array.from({ length: 24 }, (_, index) => (
             <div key={index} className="border border-border bg-card p-2.5">
               <div className="aspect-[1.55/1] animate-pulse bg-secondary" />
               <div className="px-1.5 pb-1.5 pt-3">

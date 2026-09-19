@@ -65,6 +65,8 @@ export function mergeCategoryCatalogue(remoteCategories: PublicCategory[]): Cata
 
   return catalogue.map((category) => {
     const remote = remoteBySlug.get(category.slug)
-    return remote ? { ...category, ...remote, group: category.group, popular: category.popular } : category
+    return remote
+      ? { ...category, ...remote, group: category.group, popular: category.popular }
+      : { ...category, puzzle_count: 0 }
   })
 }

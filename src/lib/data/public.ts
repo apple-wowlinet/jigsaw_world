@@ -42,6 +42,14 @@ export interface PublicPuzzle {
   category_slug: string
 }
 
+export type CategoryPuzzleSort = 'popular' | 'rating' | 'newest' | 'pieces'
+
+export interface CategoryPuzzlePage {
+  puzzles: PublicPuzzle[]
+  categoryTotal: number
+  filteredTotal: number
+}
+
 export interface PublicPuzzleLeaderboardEntry {
   rank: number
   userId: string
@@ -104,6 +112,34 @@ interface PublicThemeRow {
   updated_at: string | null
 }
 
+interface PublicCategoryCountRow {
+  slug: string
+  puzzle_count: number | string
+}
+
+interface CategoryPuzzleCountRow {
+  category_total: number | string
+  filtered_total: number | string
+}
+
+interface CategoryPuzzleRow {
+  id: string
+  title: string
+  slug: string
+  image_url: string
+  description: string | null
+  piece_count: number | null
+  difficulty: string | null
+  plays_count: number | null
+  weekly_plays_count: number | null
+  completions_count: number | null
+  rating: number | string | null
+  created_at: string | null
+  updated_at: string | null
+  category_name: string | null
+  category_slug: string | null
+}
+
 interface PuzzleRow {
   id: string
   title: string
@@ -162,7 +198,7 @@ const PUZZLE_SELECT = `
   rating,
   created_at,
   updated_at,
-  categories(name, slug)
+  categories:categories!puzzles_category_id_fkey(name, slug)
 `
 
 const PUZZLE_SELECT_WITHOUT_WEEKLY = `
@@ -178,7 +214,7 @@ const PUZZLE_SELECT_WITHOUT_WEEKLY = `
   rating,
   created_at,
   updated_at,
-  categories(name, slug)
+  categories:categories!puzzles_category_id_fkey(name, slug)
 `
 
 function getFirst<T>(value: T | T[] | null | undefined): T | null {
@@ -251,6 +287,19 @@ export async function fetchCategories(limit?: number): Promise<PublicCategory[]>
 
   const rows = (data ?? []) as unknown as PublicCategoryRow[]
   const slugById = new Map(rows.map((category) => [category.id, category.slug]))
+  const countResult = await supabase.rpc('get_public_category_counts')
+  const countRows = (countResult.data ?? []) as PublicCategoryCountRow[]
+  const countBySlug = new Map(
+    countRows.map((row) => [row.slug, Number(row.puzzle_count)])
+  )
+
+  if (
+    countResult.error
+    && countResult.error.code !== 'PGRST202'
+    && countResult.error.code !== '42883'
+  ) {
+    console.error('Failed to fetch category counts:', countResult.error.message)
+  }
 
   return rows.map((category) => {
     const parentId = 'parent_id' in category
@@ -266,7 +315,7 @@ export async function fetchCategories(limit?: number): Promise<PublicCategory[]>
       icon: category.icon ?? 'grid',
       color: category.color ?? '#3b82f6',
       dark_color: category.dark_color ?? category.color ?? '#60a5fa',
-      puzzle_count: category.puzzle_count ?? 0,
+      puzzle_count: countBySlug.get(category.slug) ?? category.puzzle_count ?? 0,
       updated_at: category.updated_at ?? undefined,
       seo_title: category.seo_title ?? undefined,
       seo_description: category.seo_description ?? undefined,
@@ -275,6 +324,58 @@ export async function fetchCategories(limit?: number): Promise<PublicCategory[]>
       parent_slug: parentId ? slugById.get(parentId) ?? null : null,
     }
   })
+}
+
+export async function fetchCategoryPuzzlePage(options: {
+  categorySlug: string
+  difficulty?: DisplayDifficulty
+  minPieces?: number
+  maxPieces?: number
+  sort?: CategoryPuzzleSort
+  limit?: number
+  offset?: number
+}): Promise<CategoryPuzzlePage> {
+  const parameters = {
+    p_category_slug: options.categorySlug,
+    p_difficulty: options.difficulty?.toLowerCase() ?? null,
+    p_min_pieces: options.minPieces ?? null,
+    p_max_pieces: options.maxPieces ?? null,
+  }
+
+  const [puzzlesResult, countsResult] = await Promise.all([
+    supabase.rpc('get_public_category_puzzles', {
+      ...parameters,
+      p_sort: options.sort ?? 'popular',
+      p_limit: options.limit ?? 24,
+      p_offset: options.offset ?? 0,
+    }),
+    supabase.rpc('get_public_category_puzzle_counts', parameters),
+  ])
+
+  if (puzzlesResult.error) {
+    throw new Error(`Failed to fetch category puzzles: ${puzzlesResult.error.message}`)
+  }
+
+  if (countsResult.error) {
+    throw new Error(`Failed to count category puzzles: ${countsResult.error.message}`)
+  }
+
+  const puzzles = ((puzzlesResult.data ?? []) as CategoryPuzzleRow[]).map(
+    (row) => mapPuzzle({
+      ...row,
+      categories: {
+        name: row.category_name ?? 'Uncategorized',
+        slug: row.category_slug ?? 'uncategorized',
+      },
+    })
+  )
+  const counts = ((countsResult.data ?? []) as CategoryPuzzleCountRow[])[0]
+
+  return {
+    puzzles,
+    categoryTotal: Number(counts?.category_total ?? 0),
+    filteredTotal: Number(counts?.filtered_total ?? 0),
+  }
 }
 
 export async function fetchThemes(): Promise<PublicTheme[]> {
@@ -327,15 +428,18 @@ export async function fetchPuzzles(options: {
 } = {}): Promise<PublicPuzzle[]> {
   const publishedBefore = new Date().toISOString()
   const runQuery = (select: string, orderBy = options.orderBy) => {
+    const selectWithCategoryRelation = requestedCategorySlugs.length
+      ? `${select}, puzzle_categories!inner(category_id)`
+      : select
     let query = supabase
       .from('puzzles')
-      .select(select)
+      .select(selectWithCategoryRelation)
       .eq('is_active', true)
       .not('publish_at', 'is', null)
       .lte('publish_at', publishedBefore)
 
     if (requestedCategorySlugs.length) {
-      query = query.in('category_id', categoryIds)
+      query = query.in('puzzle_categories.category_id', categoryIds)
     }
 
     if (search) {

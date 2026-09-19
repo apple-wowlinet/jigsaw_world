@@ -29,7 +29,7 @@ import {
 } from 'next/navigation'
 import {
   fetchCategories,
-  fetchPuzzles,
+  fetchCategoryPuzzlePage,
   type DisplayDifficulty,
   type PublicCategory,
   type PublicPuzzle,
@@ -39,13 +39,10 @@ import {
   buildCategoryTaxonomy,
   getCategoryAncestors,
   getCategoryChildren,
-  getCategoryDescendants,
-  getCategorySourceSlug,
-  puzzleMatchesCategory,
 } from '@/lib/data/category-taxonomy'
 import { cn } from '@/lib/utils'
 
-const ITEMS_PER_PAGE = 8
+const ITEMS_PER_PAGE = 24
 const VISIBLE_CATEGORY_TABS = 7
 
 type PieceFilter = 'any' | 'small' | 'medium' | 'large'
@@ -103,6 +100,13 @@ function getPaginationItems(totalPages: number, currentPage: number) {
   return items
 }
 
+function getPieceRange(pieceFilter: PieceFilter) {
+  if (pieceFilter === 'small') return { maxPieces: 100 }
+  if (pieceFilter === 'medium') return { minPieces: 101, maxPieces: 200 }
+  if (pieceFilter === 'large') return { minPieces: 201 }
+  return {}
+}
+
 function CategoryContent() {
   const params = useParams()
   const slug = params?.slug as string
@@ -113,7 +117,11 @@ function CategoryContent() {
     combineCategories([])
   )
   const [puzzles, setPuzzles] = useState<PublicPuzzle[]>([])
-  const [loading, setLoading] = useState(true)
+  const [categoryTotal, setCategoryTotal] = useState(0)
+  const [filteredTotal, setFilteredTotal] = useState(0)
+  const [categoriesLoaded, setCategoriesLoaded] = useState(false)
+  const [puzzlesLoaded, setPuzzlesLoaded] = useState(false)
+  const [puzzlesLoading, setPuzzlesLoading] = useState(false)
   const [difficulty, setDifficulty] = useState<'All' | DisplayDifficulty>('All')
   const [pieceFilter, setPieceFilter] = useState<PieceFilter>('any')
   const [sortOrder, setSortOrder] = useState<SortOrder>('popular')
@@ -126,104 +134,71 @@ function CategoryContent() {
   const category = taxonomy.find((node) => node.slug === slug)
   const ancestors = category ? getCategoryAncestors(category, taxonomy) : []
   const children = category ? getCategoryChildren(category.slug, taxonomy) : []
-  const sourceSlug = category
-    ? getCategorySourceSlug(category, taxonomy)
-    : slug
+
+  const requestedPage = Number.parseInt(searchParams.get('page') ?? '1', 10)
+  const totalPages = Math.max(1, Math.ceil(filteredTotal / ITEMS_PER_PAGE))
+  const currentPage = Number.isFinite(requestedPage)
+    ? Math.min(Math.max(requestedPage, 1), totalPages)
+    : 1
 
   useEffect(() => {
     let cancelled = false
 
-    async function loadCategory() {
-      setLoading(true)
+    async function loadCategories() {
+      setCategoriesLoaded(false)
+      setPuzzlesLoaded(false)
       setPuzzles([])
-
       const remoteCategories = await fetchCategories()
       if (cancelled) return
-
-      const mergedCategories = combineCategories(remoteCategories)
-      const loadedTaxonomy = buildCategoryTaxonomy(mergedCategories)
-      const loadedCategory = loadedTaxonomy.find((node) => node.slug === slug)
-
-      setCategories(mergedCategories)
-
-      if (!loadedCategory) {
-        setLoading(false)
-        return
-      }
-
-      const loadedSourceSlug = getCategorySourceSlug(
-        loadedCategory,
-        loadedTaxonomy
-      )
-      const categorySlugs = [
-        loadedSourceSlug,
-        ...getCategoryDescendants(loadedSourceSlug, loadedTaxonomy).map(
-          (node) => node.slug
-        ),
-      ]
-      const loadedPuzzles = await fetchPuzzles({
-        categorySlugs,
-        limit: 500,
-        orderBy: 'plays',
-      })
-
-      if (!cancelled) {
-        setPuzzles(loadedPuzzles)
-        setLoading(false)
-      }
+      setCategories(combineCategories(remoteCategories))
+      setCategoriesLoaded(true)
     }
 
-    loadCategory()
+    loadCategories()
     return () => {
       cancelled = true
     }
   }, [slug])
 
-  const filteredPuzzles = (() => {
-    if (!category) return []
+  useEffect(() => {
+    let cancelled = false
 
-    let result = sourceSlug === category.slug
-      ? [...puzzles]
-      : puzzles.filter((puzzle) => puzzleMatchesCategory(puzzle, category))
+    async function loadPuzzles() {
+      setPuzzlesLoading(true)
 
-    if (difficulty !== 'All') {
-      result = result.filter((puzzle) => puzzle.difficulty === difficulty)
-    }
+      try {
+        const page = await fetchCategoryPuzzlePage({
+          categorySlug: slug,
+          difficulty: difficulty === 'All' ? undefined : difficulty,
+          ...getPieceRange(pieceFilter),
+          sort: sortOrder,
+          limit: ITEMS_PER_PAGE,
+          offset: (currentPage - 1) * ITEMS_PER_PAGE,
+        })
 
-    if (pieceFilter === 'small') {
-      result = result.filter((puzzle) => puzzle.piece_count <= 100)
-    } else if (pieceFilter === 'medium') {
-      result = result.filter(
-        (puzzle) => puzzle.piece_count > 100 && puzzle.piece_count <= 200
-      )
-    } else if (pieceFilter === 'large') {
-      result = result.filter((puzzle) => puzzle.piece_count > 200)
-    }
-
-    result.sort((a, b) => {
-      if (sortOrder === 'rating') return b.rating - a.rating
-      if (sortOrder === 'newest') {
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        if (cancelled) return
+        setPuzzles(page.puzzles)
+        setCategoryTotal(page.categoryTotal)
+        setFilteredTotal(page.filteredTotal)
+      } catch (error) {
+        console.error(error)
+        if (cancelled) return
+        setPuzzles([])
+        setCategoryTotal(0)
+        setFilteredTotal(0)
+      } finally {
+        if (!cancelled) {
+          setPuzzlesLoaded(true)
+          setPuzzlesLoading(false)
+        }
       }
-      if (sortOrder === 'pieces') return a.piece_count - b.piece_count
-      return b.plays_count - a.plays_count
-    })
+    }
 
-    return result
-  })()
-
-  const requestedPage = Number.parseInt(searchParams.get('page') ?? '1', 10)
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filteredPuzzles.length / ITEMS_PER_PAGE)
-  )
-  const currentPage = Number.isFinite(requestedPage)
-    ? Math.min(Math.max(requestedPage, 1), totalPages)
-    : 1
-  const paginatedPuzzles = filteredPuzzles.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  )
+    loadPuzzles()
+    return () => {
+      cancelled = true
+    }
+  }, [currentPage, difficulty, pieceFilter, slug, sortOrder])
 
   const goToPage = (page: number) => {
     const nextPage = Math.min(Math.max(page, 1), totalPages)
@@ -242,7 +217,7 @@ function CategoryContent() {
     if (currentPage !== 1) goToPage(1)
   }
 
-  if (loading) return <CategorySkeleton />
+  if (!categoriesLoaded || !puzzlesLoaded) return <CategorySkeleton />
 
   if (!category) {
     return (
@@ -268,6 +243,13 @@ function CategoryContent() {
   const primaryChildren = children.slice(0, VISIBLE_CATEGORY_TABS)
   const overflowChildren = children.slice(VISIBLE_CATEGORY_TABS)
   const paginationItems = getPaginationItems(totalPages, currentPage)
+  const visibleStart = filteredTotal > 0
+    ? (currentPage - 1) * ITEMS_PER_PAGE + 1
+    : 0
+  const visibleEnd = Math.min(currentPage * ITEMS_PER_PAGE, filteredTotal)
+  const resultSummary = filteredTotal > 0
+    ? `Showing ${visibleStart}–${visibleEnd} of ${filteredTotal}${filteredTotal !== categoryTotal ? ` matching puzzles (${categoryTotal} total)` : ' puzzles'}`
+    : `0 matching puzzles (${categoryTotal} total)`
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -313,7 +295,7 @@ function CategoryContent() {
             </p>
             <p className="mt-1.5 inline-flex items-center gap-2 text-xs font-bold text-muted-foreground">
               <Puzzle className="h-4 w-4 fill-accent text-accent" />
-              {category.puzzleCount.toLocaleString()} puzzles
+              {categoryTotal.toLocaleString()} puzzles
             </p>
           </div>
         </header>
@@ -420,17 +402,32 @@ function CategoryContent() {
                 ['any', 'Any'],
                 ['small', 'Up to 100'],
                 ['medium', '101–200'],
-                ['large', '200+'],
+                ['large', '201+'],
               ]}
             />
           </div>
         </section>
 
-        <section id="puzzle-grid" className="scroll-mt-24 pt-4">
-          {paginatedPuzzles.length > 0 ? (
-            <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
-              {paginatedPuzzles.map((puzzle) => (
-                <PuzzleCard key={puzzle.uuid} puzzle={puzzle} />
+        <div className="mt-3 text-right text-[11px] font-medium text-muted-foreground sm:text-xs">
+          {resultSummary}
+        </div>
+
+        <section
+          id="puzzle-grid"
+          aria-busy={puzzlesLoading}
+          className={cn(
+            'scroll-mt-24 pt-4 transition-opacity',
+            puzzlesLoading && 'opacity-60'
+          )}
+        >
+          {puzzles.length > 0 ? (
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              {puzzles.map((puzzle, index) => (
+                <PuzzleCard
+                  key={puzzle.uuid}
+                  puzzle={puzzle}
+                  priority={index < 4}
+                />
               ))}
             </div>
           ) : (
@@ -444,7 +441,7 @@ function CategoryContent() {
           )}
         </section>
 
-        {filteredPuzzles.length > 0 && (
+        {filteredTotal > 0 && (
           <nav
             aria-label="Puzzle pages"
             className="mt-4 flex items-center justify-center gap-1.5"
@@ -526,46 +523,46 @@ function FilterSelect({
   )
 }
 
-function PuzzleCard({ puzzle }: { puzzle: PublicPuzzle }) {
+function PuzzleCard({
+  puzzle,
+  priority = false,
+}: {
+  puzzle: PublicPuzzle
+  priority?: boolean
+}) {
   return (
     <Link
       href={`/puzzle/${puzzle.slug}`}
-      className="group overflow-hidden rounded-lg border border-[#e7decb] bg-card shadow-[0_10px_30px_-22px_rgba(80,60,25,0.4)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_40px_-24px_rgba(80,60,25,0.5)] dark:border-[#3b3327]"
+      className="group block border border-[#e7decb] bg-card p-2.5 shadow-[0_10px_30px_-22px_rgba(80,60,25,0.4)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_40px_-24px_rgba(80,60,25,0.5)] dark:border-[#3b3327]"
     >
       <div className="relative aspect-[1.55/1] overflow-hidden bg-muted">
         <SafeImage
           src={puzzle.image_url}
           alt={puzzle.title}
           fill
+          priority={priority}
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          className="object-cover transition duration-700 group-hover:scale-[1.04]"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#241d10]/90 via-[#241d10]/15 to-transparent" />
         <span
           className={cn(
-            'absolute right-2.5 top-2 rounded-full px-2.5 py-0.5 text-[10px] font-bold shadow-sm',
+            'absolute right-2.5 top-2.5 rounded-full px-2.5 py-0.5 text-xs font-semibold shadow-sm',
             difficultyStyles[puzzle.difficulty]
           )}
         >
           {puzzle.difficulty}
         </span>
-        <div className="absolute inset-x-0 bottom-0 px-3 pb-2.5">
-          <p className="truncate font-display text-[15px] font-semibold leading-tight text-white [text-shadow:0_1px_8px_rgba(20,14,4,0.7)] sm:text-base">
-            {puzzle.title}
-          </p>
-          <div className="mt-1.5 flex items-center justify-between gap-2 text-[10px] font-medium">
-            <span className="flex min-w-0 items-center gap-1 text-white/90">
-              <Puzzle className="h-3.5 w-3.5 shrink-0" />
-              {puzzle.piece_count} pieces
-              <span className="text-white/50">•</span>
-              {puzzle.difficulty}
-            </span>
-            <span className="flex shrink-0 items-center gap-1 text-white/90">
-              <Star className="h-3.5 w-3.5 fill-[#dca93f] text-[#dca93f]" />
-              {puzzle.rating.toFixed(1)}
-            </span>
-          </div>
-        </div>
+      </div>
+      <div className="px-1.5 pb-1.5 pt-3">
+        <h3 className="font-display text-[19px] font-semibold leading-tight text-foreground transition-colors group-hover:text-accent">
+          {puzzle.title}
+        </h3>
+        <p className="mt-1.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Star className="h-3 w-3 fill-[#dca93f] text-[#dca93f]" />
+          {puzzle.rating.toFixed(1)}
+          <span className="text-[#c9bfa8] dark:text-[#4a4234]">•</span>
+          {puzzle.piece_count} pcs
+        </p>
       </div>
     </Link>
   )
@@ -609,11 +606,14 @@ function CategorySkeleton() {
           </div>
         </div>
         <div className="mt-6 h-8 rounded-lg skeleton" />
-        <div className="mt-4 grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
-          {Array.from({ length: 8 }, (_, index) => (
-            <div key={index} className="overflow-hidden rounded-lg border border-border">
+        <div className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 24 }, (_, index) => (
+            <div key={index} className="border border-border bg-card p-2.5">
               <div className="aspect-[1.55/1] skeleton" />
-              <div className="h-8 skeleton" />
+              <div className="px-1.5 pb-1.5 pt-3">
+                <div className="h-5 w-3/4 rounded skeleton" />
+                <div className="mt-2 h-3.5 w-1/2 rounded skeleton" />
+              </div>
             </div>
           ))}
         </div>

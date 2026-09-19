@@ -119,6 +119,37 @@ ON CONFLICT (slug) DO UPDATE SET
   editor_score = EXCLUDED.editor_score,
   updated_at = now();
 
+-- Explicit multi-category assignments used by the category-tree catalogue.
+-- Requires migration 011_puzzle_category_relations.sql. These are editorial
+-- seed decisions; the public application does not classify by keywords.
+INSERT INTO public.puzzle_categories (puzzle_id, category_id, is_primary)
+SELECT puzzle.id, category.id, false
+FROM (VALUES
+  ('mountain-morning-glow', 'mountains'),
+  ('forest-path-mystery', 'forests'),
+  ('alpine-lake-reflection', 'mountains'),
+  ('alpine-lake-reflection', 'lakes'),
+  ('alpine-lake-reflection', 'alpine-lakes'),
+  ('autumn-valley-colors', 'mountains'),
+  ('desert-dunes-at-dusk', 'deserts'),
+  ('waterfall-garden', 'waterfalls'),
+  ('waterfall-garden', 'gardens'),
+  ('ocean-sunset-waves', 'beaches'),
+  ('tropical-island-escape', 'beaches'),
+  ('blue-lagoon-cliffs', 'beaches'),
+  ('moonlit-magic-forest', 'forests'),
+  ('dragon-mountain-cave', 'mountains'),
+  ('floating-lantern-lake', 'lakes'),
+  ('swiss-village-view', 'mountains'),
+  ('road-trip-canyon', 'deserts'),
+  ('coastal-train-journey', 'beaches'),
+  ('watercolor-flowers', 'flowers'),
+  ('watercolor-flowers', 'gardens')
+) AS assignment(puzzle_slug, category_slug)
+JOIN public.puzzles AS puzzle ON puzzle.slug = assignment.puzzle_slug
+JOIN public.categories AS category ON category.slug = assignment.category_slug
+ON CONFLICT (puzzle_id, category_id) DO NOTHING;
+
 -- Distinct from all-time plays so weekly / all-time ranks can differ.
 -- Requires migration 006_explore_weekly_plays.sql.
 DO $$

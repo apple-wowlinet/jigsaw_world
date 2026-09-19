@@ -1,4 +1,4 @@
-import type { PublicCategory, PublicPuzzle } from '@/lib/data/public'
+import type { PublicCategory } from '@/lib/data/public'
 
 export interface CategoryTaxonomyNode {
   slug: string
@@ -7,9 +7,6 @@ export interface CategoryTaxonomyNode {
   description: string
   icon: string
   color: string
-  puzzleCount: number
-  sourceSlug?: string
-  keywords?: string[]
 }
 
 /**
@@ -25,7 +22,6 @@ const curatedTaxonomy: CategoryTaxonomyNode[] = [
     description: 'Forests, mountains, flowers and peaceful landscapes.',
     icon: 'trees',
     color: '#4b925f',
-    puzzleCount: 128,
   },
   {
     slug: 'forests',
@@ -34,9 +30,6 @@ const curatedTaxonomy: CategoryTaxonomyNode[] = [
     description: 'Woodland trails, towering trees and green canopies.',
     icon: 'trees',
     color: '#4b925f',
-    puzzleCount: 28,
-    sourceSlug: 'nature',
-    keywords: ['forest', 'woodland', 'tree', 'path'],
   },
   {
     slug: 'mountains',
@@ -45,9 +38,6 @@ const curatedTaxonomy: CategoryTaxonomyNode[] = [
     description: 'Majestic peaks, valleys and sweeping alpine views.',
     icon: 'mountain',
     color: '#4b925f',
-    puzzleCount: 24,
-    sourceSlug: 'nature',
-    keywords: ['mountain', 'alpine', 'peak', 'valley'],
   },
   {
     slug: 'flowers',
@@ -56,9 +46,6 @@ const curatedTaxonomy: CategoryTaxonomyNode[] = [
     description: 'Colorful blooms and peaceful flower gardens.',
     icon: 'flower-2',
     color: '#4b925f',
-    puzzleCount: 19,
-    sourceSlug: 'nature',
-    keywords: ['flower', 'floral', 'bloom', 'garden'],
   },
   {
     slug: 'lakes',
@@ -67,9 +54,6 @@ const curatedTaxonomy: CategoryTaxonomyNode[] = [
     description: 'Calm water, reflections and beautiful lakeside scenery.',
     icon: 'waves',
     color: '#4b925f',
-    puzzleCount: 18,
-    sourceSlug: 'nature',
-    keywords: ['lake', 'lagoon', 'reflection', 'water'],
   },
   {
     slug: 'waterfalls',
@@ -78,9 +62,6 @@ const curatedTaxonomy: CategoryTaxonomyNode[] = [
     description: 'Cascading water surrounded by lush natural scenery.',
     icon: 'waves',
     color: '#4b925f',
-    puzzleCount: 14,
-    sourceSlug: 'nature',
-    keywords: ['waterfall', 'cascade'],
   },
   {
     slug: 'beaches',
@@ -89,9 +70,6 @@ const curatedTaxonomy: CategoryTaxonomyNode[] = [
     description: 'Sunny shores, clear water and peaceful coastlines.',
     icon: 'waves',
     color: '#4b925f',
-    puzzleCount: 12,
-    sourceSlug: 'nature',
-    keywords: ['beach', 'coast', 'shore', 'ocean'],
   },
   {
     slug: 'countryside',
@@ -100,9 +78,6 @@ const curatedTaxonomy: CategoryTaxonomyNode[] = [
     description: 'Open fields, farms and quiet rural landscapes.',
     icon: 'trees',
     color: '#4b925f',
-    puzzleCount: 11,
-    sourceSlug: 'nature',
-    keywords: ['countryside', 'field', 'farm', 'rural'],
   },
   {
     slug: 'gardens',
@@ -111,9 +86,6 @@ const curatedTaxonomy: CategoryTaxonomyNode[] = [
     description: 'Peaceful paths through beautifully planted gardens.',
     icon: 'flower-2',
     color: '#4b925f',
-    puzzleCount: 10,
-    sourceSlug: 'nature',
-    keywords: ['garden', 'flower'],
   },
   {
     slug: 'deserts',
@@ -122,9 +94,6 @@ const curatedTaxonomy: CategoryTaxonomyNode[] = [
     description: 'Golden dunes and dramatic desert skies.',
     icon: 'sun',
     color: '#4b925f',
-    puzzleCount: 9,
-    sourceSlug: 'nature',
-    keywords: ['desert', 'dune', 'canyon'],
   },
   {
     slug: 'pine-forests',
@@ -133,9 +102,6 @@ const curatedTaxonomy: CategoryTaxonomyNode[] = [
     description: 'Evergreen trails and peaceful pine woodland.',
     icon: 'trees',
     color: '#4b925f',
-    puzzleCount: 9,
-    sourceSlug: 'nature',
-    keywords: ['pine', 'evergreen', 'forest'],
   },
   {
     slug: 'rainforests',
@@ -144,9 +110,6 @@ const curatedTaxonomy: CategoryTaxonomyNode[] = [
     description: 'Dense tropical greenery and misty jungle paths.',
     icon: 'trees',
     color: '#4b925f',
-    puzzleCount: 7,
-    sourceSlug: 'nature',
-    keywords: ['rainforest', 'tropical', 'jungle'],
   },
   {
     slug: 'alpine-lakes',
@@ -155,9 +118,6 @@ const curatedTaxonomy: CategoryTaxonomyNode[] = [
     description: 'Mountain lakes with clear water and mirrored peaks.',
     icon: 'waves',
     color: '#4b925f',
-    puzzleCount: 8,
-    sourceSlug: 'nature',
-    keywords: ['alpine lake', 'mountain lake', 'reflection'],
   },
 ]
 
@@ -169,7 +129,6 @@ function toTaxonomyNode(category: PublicCategory): CategoryTaxonomyNode {
     description: category.description,
     icon: category.icon,
     color: category.color,
-    puzzleCount: category.puzzle_count,
   }
 }
 
@@ -183,8 +142,6 @@ export function buildCategoryTaxonomy(categories: PublicCategory[]) {
       ...curated,
       ...remote,
       parentSlug: remote.parentSlug ?? curated?.parentSlug,
-      sourceSlug: curated?.sourceSlug,
-      keywords: curated?.keywords,
     })
   })
 
@@ -235,26 +192,4 @@ export function getCategoryDescendants(
   }
 
   return descendants
-}
-
-export function getCategorySourceSlug(
-  category: CategoryTaxonomyNode,
-  taxonomy: CategoryTaxonomyNode[]
-) {
-  if (category.sourceSlug) return category.sourceSlug
-  const ancestors = getCategoryAncestors(category, taxonomy)
-  return ancestors[0]?.slug ?? category.slug
-}
-
-export function puzzleMatchesCategory(
-  puzzle: PublicPuzzle,
-  category: CategoryTaxonomyNode
-) {
-  if (puzzle.category_slug === category.slug) return true
-  if (!category.keywords?.length) return true
-
-  const searchableText = `${puzzle.title} ${puzzle.description}`.toLowerCase()
-  return category.keywords.some((keyword) =>
-    searchableText.includes(keyword.toLowerCase())
-  )
 }
