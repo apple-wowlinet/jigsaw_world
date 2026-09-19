@@ -7,7 +7,7 @@ import { fetchAdminEventsData } from '@/lib/admin-events'
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'Event Administration - JigsawWorld',
+  title: 'Event Administration',
   robots: 'noindex, nofollow, noarchive',
 }
 

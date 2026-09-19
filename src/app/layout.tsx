@@ -5,6 +5,13 @@ import { Header } from '@/components/navigation/Header'
 import { ConditionalFooter } from '@/components/navigation/ConditionalFooter'
 import { ThemeProvider } from '@/components/theme/ThemeProvider'
 import { AuthProvider } from '@/components/auth/AuthProvider'
+import {
+  DEFAULT_SOCIAL_IMAGE,
+  HOME_DESCRIPTION,
+  HOME_TITLE,
+  SITE_NAME,
+  getSiteUrl,
+} from '@/lib/seo'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const cormorant = Cormorant_Garamond({
@@ -15,23 +22,48 @@ const cormorant = Cormorant_Garamond({
 })
 
 export const metadata: Metadata = {
-  title: 'JigsawWorld - Online Jigsaw Puzzle Games',
-  description: 'Play beautiful jigsaw puzzles online. Challenge yourself with daily puzzles, explore categories, and compete with other players.',
-  keywords: 'jigsaw puzzles, online puzzles, daily puzzles, puzzle games, brain games',
-  authors: [{ name: 'JigsawWorld' }],
+  metadataBase: new URL(getSiteUrl()),
+  title: {
+    default: HOME_TITLE,
+    template: `%s | ${SITE_NAME}`,
+  },
+  description: HOME_DESCRIPTION,
+  applicationName: SITE_NAME,
+  authors: [{ name: SITE_NAME }],
+  creator: SITE_NAME,
+  publisher: SITE_NAME,
   openGraph: {
-    title: 'JigsawWorld - Online Jigsaw Puzzle Games',
-    description: 'Play beautiful jigsaw puzzles online. Challenge yourself with daily puzzles, explore categories, and compete with other players.',
+    title: HOME_TITLE,
+    description: HOME_DESCRIPTION,
     type: 'website',
     locale: 'en_US',
-    siteName: 'JigsawWorld',
+    siteName: SITE_NAME,
+    images: [
+      {
+        url: DEFAULT_SOCIAL_IMAGE,
+        width: 1200,
+        height: 630,
+        alt: 'A scenic nature jigsaw puzzle on JigsawWorld',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'JigsawWorld - Online Jigsaw Puzzle Games',
-    description: 'Play beautiful jigsaw puzzles online. Challenge yourself with daily puzzles, explore categories, and compete with other players.',
+    title: HOME_TITLE,
+    description: HOME_DESCRIPTION,
+    images: [DEFAULT_SOCIAL_IMAGE],
   },
-  robots: 'index, follow',
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+      'max-video-preview': -1,
+    },
+  },
 }
 
 export const viewport: Viewport = {

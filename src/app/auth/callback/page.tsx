@@ -3,7 +3,7 @@ import { Suspense } from 'react'
 import { AuthCallback } from '@/components/auth/AuthCallback'
 
 export const metadata: Metadata = {
-  title: 'Signing in - JigsawWorld',
+  title: 'Signing In',
   robots: 'noindex, nofollow',
 }
 

@@ -15,6 +15,10 @@ export interface PublicCategory {
   color: string
   dark_color: string
   puzzle_count: number
+  updated_at?: string
+  seo_title?: string
+  seo_description?: string
+  og_image_url?: string
   parent_id?: string | null
   parent_slug?: string | null
 }
@@ -33,6 +37,7 @@ export interface PublicPuzzle {
   completions_count: number
   rating: number
   created_at: string
+  updated_at: string
   category: string
   category_slug: string
 }
@@ -80,6 +85,10 @@ interface PublicCategoryRow {
   color: string | null
   dark_color: string | null
   puzzle_count: number | null
+  updated_at: string | null
+  seo_title: string | null
+  seo_description: string | null
+  og_image_url: string | null
   parent_id?: string | null
 }
 
@@ -92,6 +101,7 @@ interface PublicThemeRow {
   image_url: string | null
   sort_order: number | null
   is_featured: boolean | null
+  updated_at: string | null
 }
 
 interface PuzzleRow {
@@ -107,6 +117,7 @@ interface PuzzleRow {
   completions_count: number | null
   rating: number | string | null
   created_at: string | null
+  updated_at: string | null
   categories?: CategoryRelation | CategoryRelation[] | null
 }
 
@@ -150,6 +161,7 @@ const PUZZLE_SELECT = `
   completions_count,
   rating,
   created_at,
+  updated_at,
   categories(name, slug)
 `
 
@@ -165,6 +177,7 @@ const PUZZLE_SELECT_WITHOUT_WEEKLY = `
   completions_count,
   rating,
   created_at,
+  updated_at,
   categories(name, slug)
 `
 
@@ -200,6 +213,7 @@ export function mapPuzzle(row: PuzzleRow): PublicPuzzle {
     completions_count: row.completions_count ?? 0,
     rating: Number(row.rating ?? 0),
     created_at: row.created_at ?? new Date(0).toISOString(),
+    updated_at: row.updated_at ?? row.created_at ?? new Date(0).toISOString(),
     category: category?.name ?? 'Uncategorized',
     category_slug: category?.slug ?? 'uncategorized',
   }
@@ -209,7 +223,7 @@ export async function fetchCategories(limit?: number): Promise<PublicCategory[]>
   const selectCategories = (includeParent: boolean) => {
     let query = supabase
       .from('categories')
-      .select(`id, name, slug, description, image_url, icon, color, dark_color, puzzle_count${includeParent ? ', parent_id' : ''}`)
+      .select(`id, name, slug, description, image_url, icon, color, dark_color, puzzle_count, updated_at, seo_title, seo_description, og_image_url${includeParent ? ', parent_id' : ''}`)
       .eq('is_active', true)
       .order('sort_order', { ascending: true })
 
@@ -253,6 +267,10 @@ export async function fetchCategories(limit?: number): Promise<PublicCategory[]>
       color: category.color ?? '#3b82f6',
       dark_color: category.dark_color ?? category.color ?? '#60a5fa',
       puzzle_count: category.puzzle_count ?? 0,
+      updated_at: category.updated_at ?? undefined,
+      seo_title: category.seo_title ?? undefined,
+      seo_description: category.seo_description ?? undefined,
+      og_image_url: category.og_image_url ?? undefined,
       parent_id: parentId,
       parent_slug: parentId ? slugById.get(parentId) ?? null : null,
     }
@@ -263,7 +281,7 @@ export async function fetchThemes(): Promise<PublicTheme[]> {
   const [themesResult, relationsResult] = await Promise.all([
     supabase
       .from('themes')
-      .select('id, name, slug, description, emoji, image_url, sort_order, is_featured')
+      .select('id, name, slug, description, emoji, image_url, sort_order, is_featured, updated_at')
       .eq('is_active', true)
       .order('sort_order', { ascending: true }),
     supabase.from('puzzle_themes').select('theme_id'),
@@ -294,6 +312,7 @@ export async function fetchThemes(): Promise<PublicTheme[]> {
     puzzle_count: counts[theme.id] ?? 0,
     sort_order: theme.sort_order ?? 0,
     is_featured: theme.is_featured ?? false,
+    updated_at: theme.updated_at ?? undefined,
     fallback_category_slugs: [],
     fallback_search: theme.name,
   }))

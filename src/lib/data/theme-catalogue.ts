@@ -8,6 +8,7 @@ export interface PublicTheme {
   puzzle_count: number
   sort_order: number
   is_featured: boolean
+  updated_at?: string
   fallback_category_slugs: string[]
   fallback_search: string
 }
