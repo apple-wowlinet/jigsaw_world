@@ -32,7 +32,7 @@ export function AuthForm({ mode }: AuthFormProps) {
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
   const [message, setMessage] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(() => searchParams.get('error'))
   const [loadingAction, setLoadingAction] = useState<'email' | 'google' | null>(null)
 
   const isRegister = mode === 'register'
