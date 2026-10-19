@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Cormorant_Garamond, Inter } from 'next/font/google'
+import Script from 'next/script'
 import './globals.css'
 import { Header } from '@/components/navigation/Header'
 import { ConditionalFooter } from '@/components/navigation/ConditionalFooter'
@@ -20,6 +21,8 @@ const cormorant = Cormorant_Garamond({
   style: ['normal', 'italic'],
   variable: '--font-cormorant',
 })
+
+const CLARITY_PROJECT_ID = 'z05m2m6d1n'
 
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
@@ -90,6 +93,15 @@ export default function RootLayout({
             </div>
           </AuthProvider>
         </ThemeProvider>
+        <Script id="microsoft-clarity" strategy="afterInteractive">
+          {`
+            (function(c,l,a,r,i,t,y){
+              c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+              t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+              y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+            })(window,document,"clarity","script","${CLARITY_PROJECT_ID}");
+          `}
+        </Script>
       </body>
     </html>
   )
