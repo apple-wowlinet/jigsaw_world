@@ -100,7 +100,7 @@ export function HeroSection() {
                       {dailyPuzzle.title}
                     </h2>
                     <hr className="my-4 w-12 border-[#cfc2a9] dark:border-[#514536]" />
-                    <p className="text-[12px] leading-[1.55] text-[#6e6657] dark:text-[#b8ae9c]">
+                    <p className="line-clamp-4 text-[12px] leading-[1.55] text-[#6e6657] dark:text-[#b8ae9c]">
                       {dailyPuzzle.description ||
                         'A beautiful scene worth every piece. Set aside a quiet moment and enjoy.'}
                     </p>
