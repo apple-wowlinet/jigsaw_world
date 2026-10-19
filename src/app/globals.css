@@ -280,7 +280,9 @@ html {
   position: relative;
   isolation: isolate;
   width: 100%;
-  aspect-ratio: 1.38 / 1;
+  container-type: inline-size;
+  /* Keep the cornice and ledge clear while letting real puzzle copy set the height. */
+  padding: 40px 21px 77px;
   background:
     linear-gradient(90deg,
       rgba(120, 105, 82, 0.14) 0,
@@ -367,12 +369,8 @@ html {
 }
 
 .daily-wall-recess {
-  position: absolute;
+  position: relative;
   z-index: 2;
-  top: 40px;
-  right: 21px;
-  bottom: 77px;
-  left: 21px;
   background:
     radial-gradient(ellipse at 63% 42%, rgba(255, 255, 255, 0.94), transparent 58%),
     linear-gradient(105deg, #f8f3ea 0%, #fffdf8 51%, #eee8dd 100%);
@@ -388,10 +386,9 @@ html {
 
 .daily-puzzle-layout {
   display: grid;
-  grid-template-columns: minmax(150px, 0.78fr) minmax(270px, 1.52fr);
+  grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.52fr);
   align-items: center;
   gap: clamp(16px, 2vw, 28px);
-  height: 100%;
   padding: clamp(25px, 3.5vw, 43px) clamp(23px, 3vw, 35px);
 }
 
@@ -399,11 +396,14 @@ html {
   position: relative;
   z-index: 2;
   min-width: 0;
+  overflow-wrap: anywhere;
   padding-left: clamp(4px, 0.75vw, 10px);
 }
 
 .daily-picture-frame {
   position: relative;
+  display: grid;
+  min-width: 0;
   aspect-ratio: 1.06 / 1;
   width: 100%;
   padding: clamp(7px, 0.8vw, 10px);
@@ -439,7 +439,7 @@ html {
 
 .daily-picture-liner {
   position: relative;
-  height: 100%;
+  min-height: 0;
   padding: 3px;
   background: linear-gradient(135deg, #4f351c, #d5b271 23%, #63431f 58%, #bc9557 100%);
   box-shadow:
@@ -571,23 +571,12 @@ html {
   color: #f7ead2;
 }
 
-@media (max-width: 639px) {
-  .daily-wall {
-    min-height: 735px;
-    aspect-ratio: auto;
-  }
-
-  .daily-wall-recess {
-    right: 17px;
-    bottom: 77px;
-    left: 17px;
-  }
-
+/* The hero shares a row on desktop, so use the card width, not the viewport. */
+@container (max-width: 510px) {
   .daily-puzzle-layout {
     grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr;
     gap: 22px;
-    padding: 39px 27px 30px;
+    padding: 30px clamp(16px, 5cqi, 27px);
   }
 
   .daily-puzzle-copy {
@@ -595,13 +584,14 @@ html {
   }
 
   .daily-puzzle-copy ul {
-    display: grid;
-    grid-template-columns: repeat(3, auto);
+    display: flex;
+    flex-wrap: wrap;
     gap: 10px;
+    align-items: center;
   }
 
-  .daily-picture-frame {
-    align-self: end;
+  .daily-puzzle-copy ul > li {
+    margin: 0;
   }
 }
 
