@@ -6,6 +6,19 @@ import { absoluteUrl } from '@/lib/seo'
 
 export const revalidate = 3600
 
+function escapeXml(value: string): string {
+  return value.replace(/[&<>"']/g, (character) => {
+    const entities: Record<string, string> = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&apos;',
+    }
+    return entities[character]
+  })
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [remoteCategories, remoteThemes, puzzles] = await Promise.all([
     fetchCategories(),
@@ -62,5 +75,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     images: [puzzle.image_url],
   }))
 
-  return [...staticEntries, ...categoryEntries, ...themeEntries, ...puzzleEntries]
+  // Next.js 16.1 inserts these strings into XML without escaping them, including
+  // image URLs whose query parameters contain ampersands.
+  return [...staticEntries, ...categoryEntries, ...themeEntries, ...puzzleEntries].map(
+    (entry) => ({
+      ...entry,
+      url: escapeXml(entry.url),
+      images: entry.images?.map(escapeXml),
+    })
+  )
 }
