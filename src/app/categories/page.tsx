@@ -171,24 +171,6 @@ export default function CategoriesPage() {
       <section className="relative min-h-[194px] overflow-hidden border-b border-border">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_32%_10%,rgba(255,255,255,0.95),rgba(247,243,234,0.85)_55%,rgba(239,232,216,0.9))] dark:bg-[radial-gradient(circle_at_32%_10%,rgba(34,29,21,0.6),rgba(20,23,15,1)_65%)]" />
 
-        <div className="absolute right-0 top-0 hidden h-full w-[43%] overflow-hidden sm:block [clip-path:polygon(18%_0,100%_0,100%_100%,0_88%)]">
-          <SafeImage
-            src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=1400&h=700&fit=crop"
-            alt=""
-            fill
-            priority
-            className="object-cover"
-            sizes="43vw"
-          />
-          <div className="absolute inset-0 bg-gradient-to-l from-transparent via-white/5 to-cream/55 dark:to-[#14170f]/85" />
-          <svg className="absolute inset-0 h-full w-full opacity-25" viewBox="0 0 500 220" fill="none" aria-hidden="true">
-            <path d="M60 0v42c0 13 11 24 24 24h8c13 0 24 11 24 24s-11 24-24 24h-8c-13 0-24 11-24 24v82M188 0v35c0 13 11 24 24 24s24-11 24-24V0M188 220v-34c0-13-11-24-24-24s-24 11-24 24v34M320 0v40c0 13-11 24-24 24s-24 11-24 24 11 24 24 24 24 11 24 24v84M440 0v40c0 13 11 24 24 24h36M440 220v-32c0-13-11-24-24-24s-24-11-24-24 11-24 24-24 24-11 24-24V64M0 66h60M116 66h72M236 66h36M320 66h120M60 138h24M116 138h48M212 138h84M344 138h48M440 138h60" stroke="white" strokeWidth="2" />
-          </svg>
-        </div>
-
-        <Puzzle className="absolute right-[31%] top-7 hidden h-16 w-16 rotate-12 fill-[#e8cf9a] text-[#c9973f] drop-shadow-lg sm:block" strokeWidth={1.5} />
-        <Puzzle className="absolute right-[24%] top-4 hidden h-10 w-10 -rotate-12 fill-white/70 text-sand drop-shadow-md lg:block" strokeWidth={1.5} />
-
         <div className="relative z-10 mx-auto max-w-[1380px] px-4 pb-6 pt-7 sm:px-6 lg:px-8">
           <h1 className="font-display text-[32px] font-semibold tracking-[-0.01em] text-foreground sm:text-[38px]">
             Explore Jigsaw Puzzles
