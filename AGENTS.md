@@ -228,3 +228,4 @@ Designed for Vercel deployment:
 - **Images**: Uses Unsplash for puzzle images (configured in next.config.ts)
 - **Database**: Supabase cloud instance
 - **Fonts**: Inter (Google Fonts via next/font)
+
