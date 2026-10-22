@@ -37,7 +37,7 @@ import {
 import { fetchCategories } from '@/lib/data/public'
 import {
   categoryGroups,
-  mergeCategoryCatalogue,
+  getPublishedCategoryCatalogue,
   type CatalogueCategory,
   type CategoryGroup,
 } from '@/lib/data/category-catalogue'
@@ -119,7 +119,8 @@ function CategoryCard({
 }
 
 export default function CategoriesPage() {
-  const [categories, setCategories] = useState(() => mergeCategoryCatalogue([]))
+  const [categories, setCategories] = useState<CatalogueCategory[]>([])
+  const [loading, setLoading] = useState(true)
   const [query, setQuery] = useState('')
   const [activeGroup, setActiveGroup] = useState<'All' | CategoryGroup>('All')
   const [sortOrder, setSortOrder] = useState<'catalogue' | 'popular' | 'za'>('catalogue')
@@ -129,7 +130,10 @@ export default function CategoriesPage() {
     let cancelled = false
 
     fetchCategories().then((remoteCategories) => {
-      if (!cancelled) setCategories(mergeCategoryCatalogue(remoteCategories))
+      if (!cancelled) {
+        setCategories(getPublishedCategoryCatalogue(remoteCategories))
+        setLoading(false)
+      }
     })
 
     return () => {
@@ -142,7 +146,6 @@ export default function CategoriesPage() {
   const filteredCategories = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase()
     const matches = categories.filter((category) => {
-      if (category.popular) return false
       if (activeGroup !== 'All' && category.group !== activeGroup) return false
       return !normalizedQuery
         || category.name.toLocaleLowerCase().includes(normalizedQuery)
@@ -151,7 +154,7 @@ export default function CategoriesPage() {
 
     if (sortOrder === 'popular') return [...matches].sort((a, b) => b.puzzle_count - a.puzzle_count)
     if (sortOrder === 'za') return [...matches].sort((a, b) => b.name.localeCompare(a.name))
-    return matches
+    return [...matches].sort((a, b) => a.name.localeCompare(b.name))
   }, [activeGroup, categories, query, sortOrder])
 
   const visibleCategories = filteredCategories.slice(0, visibleCount)
@@ -194,27 +197,29 @@ export default function CategoriesPage() {
       </section>
 
       <main className="mx-auto max-w-[1380px] px-4 pb-16 pt-5 sm:px-6 lg:px-8">
-        <section aria-labelledby="popular-categories-title">
-          <div className="mb-4 flex items-center justify-between gap-4">
-            <h2 id="popular-categories-title" className="label-caps flex items-center gap-2 text-foreground">
-              <Star className="h-4 w-4 fill-gold text-gold" />
-              Popular Categories
-            </h2>
-            <button
-              type="button"
-              onClick={() => document.getElementById('all-categories')?.scrollIntoView({ behavior: 'smooth' })}
-              className="hidden items-center text-[13px] font-semibold text-accent transition hover:text-accent/80 sm:inline-flex"
-            >
-              View all categories&nbsp;→
-            </button>
-          </div>
+        {popularCategories.length > 0 && (
+          <section aria-labelledby="popular-categories-title">
+            <div className="mb-4 flex items-center justify-between gap-4">
+              <h2 id="popular-categories-title" className="label-caps flex items-center gap-2 text-foreground">
+                <Star className="h-4 w-4 fill-gold text-gold" />
+                Popular Categories
+              </h2>
+              <button
+                type="button"
+                onClick={() => document.getElementById('all-categories')?.scrollIntoView({ behavior: 'smooth' })}
+                className="hidden items-center text-[13px] font-semibold text-accent transition hover:text-accent/80 sm:inline-flex"
+              >
+                View all categories&nbsp;→
+              </button>
+            </div>
 
-          <div className="grid grid-cols-4 gap-2 md:grid-cols-8">
-            {popularCategories.map((category, index) => (
-              <CategoryCard key={category.slug} category={category} compact priority={index < 4} />
-            ))}
-          </div>
-        </section>
+            <div className="grid grid-cols-4 gap-2 md:grid-cols-8">
+              {popularCategories.map((category, index) => (
+                <CategoryCard key={category.slug} category={category} compact priority={index < 4} />
+              ))}
+            </div>
+          </section>
+        )}
 
         <section id="all-categories" aria-labelledby="all-categories-title" className="scroll-mt-24 pt-8">
           <div className="mb-4 flex items-center gap-5">
@@ -226,7 +231,7 @@ export default function CategoriesPage() {
 
           <div className="mb-3 flex items-center gap-2">
             <div className="-mx-1 flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto px-1 py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {(['All', ...categoryGroups] as const).map((group) => (
+              {(['All', ...categoryGroups.filter((group) => categories.some((category) => category.group === group))] as const).map((group) => (
                 <button
                   key={group}
                   type="button"
@@ -269,7 +274,9 @@ export default function CategoriesPage() {
             </label>
           </div>
 
-          {visibleCategories.length > 0 ? (
+          {loading ? (
+            <p role="status" className="py-14 text-center text-sm text-muted-foreground">Loading categories…</p>
+          ) : visibleCategories.length > 0 ? (
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-5">
               {visibleCategories.map((category) => (
                 <CategoryCard key={category.slug} category={category} />

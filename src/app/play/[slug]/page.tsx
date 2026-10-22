@@ -330,9 +330,7 @@ function PlayPuzzleContent() {
         // 自动尺寸只用于计算档位基准
         const autoSub = Subject.create(img, boardW, boardH)
         baseSizeRef.current = { w: autoSub.width, h: autoSub.height }
-        const allowedCounts = isDaily
-          ? [puzzle.piece_count]
-          : getPuzzlePieceCounts(puzzle.piece_count)
+        const allowedCounts = getPuzzlePieceCounts(puzzle.piece_count)
         const cs = isCustom
           ? computeChoices(autoSub)
           : allowedCounts.map((nop) => {
@@ -752,32 +750,26 @@ function PlayPuzzleContent() {
               </Button>
             </Link>
             <div className="flex items-center gap-3 text-sm text-muted-foreground">
-              {isDaily ? (
-                <span className="rounded-lg border border-border/60 bg-secondary/60 px-2.5 py-1 text-sm font-semibold text-foreground">
-                  {selectedNop || puzzle.piece_count} pieces · Daily rules
-                </span>
-              ) : (
-                <select
-                  value={selectedNop}
-                  onChange={(e) => {
-                    const nop = Number(e.target.value)
-                    const c = choices.find((x) => x.nop === nop)
-                    if (c) {
-                      rebuildWithChoice(c)
-                      navigateToPieceCount(c.nop)
-                    }
-                  }}
-                  className="bg-secondary/60 dark:bg-[#0f172a] border border-border/60 dark:border-primary/35 rounded-lg pl-2.5 pr-1 py-1 shadow-sm dark:shadow-[0_0_0_1px_rgba(96,165,250,0.12)] text-sm font-semibold text-foreground dark:text-white dark:[&>option]:bg-[#0f172a] dark:[&>option]:text-white focus:outline-none focus:ring-2 focus:ring-primary/60 cursor-pointer hover:bg-white/40 dark:hover:bg-primary/10 transition-colors"
-                  aria-label="Select piece count"
-                >
-                  {choices.length === 0 && <option value={0}>… pieces</option>}
-                  {choices.map((c) => (
-                    <option key={c.nop} value={c.nop}>
-                      {c.nop} pieces ({c.rows}×{c.cols})
-                    </option>
-                  ))}
-                </select>
-              )}
+              <select
+                value={selectedNop}
+                onChange={(e) => {
+                  const nop = Number(e.target.value)
+                  const c = choices.find((x) => x.nop === nop)
+                  if (c) {
+                    rebuildWithChoice(c)
+                    navigateToPieceCount(c.nop)
+                  }
+                }}
+                className="bg-secondary/60 dark:bg-[#0f172a] border border-border/60 dark:border-primary/35 rounded-lg pl-2.5 pr-1 py-1 shadow-sm dark:shadow-[0_0_0_1px_rgba(96,165,250,0.12)] text-sm font-semibold text-foreground dark:text-white dark:[&>option]:bg-[#0f172a] dark:[&>option]:text-white focus:outline-none focus:ring-2 focus:ring-primary/60 cursor-pointer hover:bg-white/40 dark:hover:bg-primary/10 transition-colors"
+                aria-label="Select piece count"
+              >
+                {choices.length === 0 && <option value={0}>… pieces</option>}
+                {choices.map((c) => (
+                  <option key={c.nop} value={c.nop}>
+                    {c.nop} pieces ({c.rows}×{c.cols})
+                  </option>
+                ))}
+              </select>
               <span className="hidden sm:inline">•</span>
               <span
                 className={cn(

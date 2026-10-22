@@ -9,6 +9,7 @@ export type CategoryGroup =
   | 'Fantasy'
   | 'Seasonal'
   | 'Vehicles'
+  | 'Other'
 
 export interface CatalogueCategory extends PublicCategory {
   group: CategoryGroup
@@ -24,6 +25,7 @@ export const categoryGroups: CategoryGroup[] = [
   'Fantasy',
   'Seasonal',
   'Vehicles',
+  'Other',
 ]
 
 const catalogue: CatalogueCategory[] = [
@@ -68,5 +70,24 @@ export function mergeCategoryCatalogue(remoteCategories: PublicCategory[]): Cata
     return remote
       ? { ...category, ...remote, group: category.group, popular: category.popular }
       : { ...category, puzzle_count: 0 }
+  })
+}
+
+/** Database membership and public counts determine which categories are listed. */
+export function getPublishedCategoryCatalogue(remoteCategories: PublicCategory[]): CatalogueCategory[] {
+  const metadataBySlug = new Map(catalogue.map((category) => [category.slug, category]))
+  const remoteBySlug = new Map(remoteCategories.map((category) => [category.slug, category]))
+
+  return remoteCategories.filter((category) => category.puzzle_count > 0).map((category) => {
+    const metadata = metadataBySlug.get(category.slug)
+    let group = metadata?.group
+    let parentSlug = category.parent_slug
+    const visited = new Set([category.slug])
+    while (!group && parentSlug && !visited.has(parentSlug)) {
+      visited.add(parentSlug)
+      group = metadataBySlug.get(parentSlug)?.group
+      parentSlug = remoteBySlug.get(parentSlug)?.parent_slug
+    }
+    return { ...category, group: group ?? 'Other', popular: metadata?.popular ?? false }
   })
 }
