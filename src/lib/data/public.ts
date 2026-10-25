@@ -628,7 +628,7 @@ export async function fetchPuzzleLeaderboard(
 
   if (error) {
     console.error('Failed to fetch puzzle leaderboard:', error.message)
-    return []
+    throw error
   }
 
   return ((data ?? []) as PuzzleLeaderboardRow[]).map((entry) => ({

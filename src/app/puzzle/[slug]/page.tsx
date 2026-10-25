@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import {
   ArrowRight,
   CheckCircle2,
@@ -41,17 +41,22 @@ function formatLeaderboardTime(seconds: number) {
 function PuzzleDetailContent() {
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { user, loading: authLoading } = useAuth()
   const slug = params?.slug as string
   const [puzzle, setPuzzle] = useState<PublicPuzzle | null>(null)
   const [relatedPuzzles, setRelatedPuzzles] = useState<PublicPuzzle[]>([])
-  const [leaderboard, setLeaderboard] = useState<PublicPuzzleLeaderboardEntry[]>([])
+  const [leaderboardResult, setLeaderboardResult] = useState<{
+    key: string
+    entries: PublicPuzzleLeaderboardEntry[]
+    error: boolean
+  } | null>(null)
+  const [leaderboardReload, setLeaderboardReload] = useState(0)
   const [loading, setLoading] = useState(true)
   const [isLiked, setIsLiked] = useState(false)
   const [favoriteLoading, setFavoriteLoading] = useState(false)
   const [favoriteError, setFavoriteError] = useState<string | null>(null)
   const [shareStatus, setShareStatus] = useState<'idle' | 'copied' | 'shared' | 'error'>('idle')
-  const [selectedSize, setSelectedSize] = useState<number | null>(null)
   const shareResetTimer = useRef<number | null>(null)
 
   useEffect(() => {
@@ -60,8 +65,6 @@ function PuzzleDetailContent() {
     async function loadPuzzle() {
       setLoading(true)
       setRelatedPuzzles([])
-      setLeaderboard([])
-      setSelectedSize(null)
       setIsLiked(false)
       setFavoriteError(null)
       const item = await fetchPuzzleBySlug(slug)
@@ -70,20 +73,16 @@ function PuzzleDetailContent() {
       setPuzzle(item)
 
       if (item) {
-        const [related, leaderboardEntries] = await Promise.all([
-          fetchPuzzles({
-            categorySlug: item.category_slug,
-            limit: 5,
-            orderBy: 'rating',
-          }),
-          fetchPuzzleLeaderboard(item.uuid, item.piece_count),
-        ])
+        const related = await fetchPuzzles({
+          categorySlug: item.category_slug,
+          limit: 5,
+          orderBy: 'rating',
+        })
 
         if (cancelled) return
         setRelatedPuzzles(
           related.filter((candidate) => candidate.slug !== item.slug).slice(0, 4)
         )
-        setLeaderboard(leaderboardEntries)
       }
 
       setLoading(false)
@@ -94,6 +93,30 @@ function PuzzleDetailContent() {
       cancelled = true
     }
   }, [slug])
+
+  const sizeOptions = getPuzzlePieceCounts(puzzle?.piece_count ?? 100)
+  const requestedSize = Number(searchParams?.get('pieces'))
+  const activeSize = resolvePuzzlePieceCount(requestedSize, sizeOptions, puzzle?.piece_count ?? 100)
+  const leaderboardKey = puzzle ? `${puzzle.uuid}:${activeSize}:${leaderboardReload}` : ''
+  const leaderboardLoading = leaderboardResult?.key !== leaderboardKey
+  const leaderboardError = !leaderboardLoading && leaderboardResult?.error
+  const leaderboard = !leaderboardLoading ? leaderboardResult?.entries ?? [] : []
+
+  useEffect(() => {
+    if (!puzzle) return
+    let cancelled = false
+
+    fetchPuzzleLeaderboard(puzzle.uuid, activeSize).then(
+      (entries) => {
+        if (!cancelled) setLeaderboardResult({ key: leaderboardKey, entries, error: false })
+      },
+      () => {
+        if (!cancelled) setLeaderboardResult({ key: leaderboardKey, entries: [], error: true })
+      }
+    )
+
+    return () => { cancelled = true }
+  }, [puzzle, activeSize, leaderboardKey])
 
   useEffect(() => {
     let cancelled = false
@@ -242,13 +265,6 @@ function PuzzleDetailContent() {
     )
   }
 
-  const canonicalSize = puzzle.piece_count
-  const sizeOptions = getPuzzlePieceCounts(canonicalSize)
-  const activeSize = selectedSize ?? resolvePuzzlePieceCount(
-    null,
-    sizeOptions,
-    canonicalSize
-  )
   const baseMinutes = (activeSize * 18) / 60
   const timeLow = Math.max(5, Math.round((baseMinutes * 0.75) / 5) * 5)
   const timeHigh = Math.max(timeLow + 10, Math.round((baseMinutes * 1.25) / 5) * 5)
@@ -354,7 +370,11 @@ function PuzzleDetailContent() {
                   <button
                     key={count}
                     type="button"
-                    onClick={() => setSelectedSize(count)}
+                    onClick={() => {
+                      const nextParams = new URLSearchParams(searchParams?.toString())
+                      nextParams.set('pieces', String(count))
+                      router.replace(`/puzzle/${puzzle.slug}?${nextParams.toString()}`, { scroll: false })
+                    }}
                     aria-pressed={activeSize === count}
                     className={cn(
                       'h-11 min-w-[64px] rounded-md border text-sm font-bold transition-all',
@@ -470,12 +490,23 @@ function PuzzleDetailContent() {
           </section>
         )}
 
-        {leaderboard.length > 0 ? (
+        {leaderboardLoading || leaderboardError ? (
+          <div className="mt-9 flex items-center justify-between gap-4 rounded-lg border border-border bg-card px-5 py-4" role="status">
+            <p className="text-sm text-muted-foreground">
+              {leaderboardLoading ? 'Loading leaderboard…' : 'Could not load the leaderboard. Please try again.'}
+            </p>
+            {leaderboardError && (
+              <button type="button" className="btn btn-primary btn-sm" onClick={() => setLeaderboardReload((value) => value + 1)}>
+                Retry
+              </button>
+            )}
+          </div>
+        ) : leaderboard.length > 0 ? (
           <section className="relative mt-9 overflow-hidden rounded-lg border border-[#e7decb] bg-card shadow-[0_18px_45px_-32px_rgba(80,60,25,0.5)] dark:border-[#3b3327]">
             <div className="flex items-center justify-between px-6 pb-3 pt-6 sm:px-8 sm:pt-7">
               <h2 className="label-caps flex items-center gap-2.5 text-foreground">
                 <Trophy className="h-5 w-5 fill-gold text-gold" />
-                Fastest Solvers
+                Fastest Solvers · {activeSize} pieces
               </h2>
               <Link
                 href="/leaderboard"
@@ -503,8 +534,7 @@ function PuzzleDetailContent() {
                   Be the first to set the record
                 </p>
                 <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">
-                  No one has completed this puzzle yet. Finish it and claim the first spot on the
-                  leaderboard.
+                  No ranked results for {activeSize} pieces yet. Finish this size while logged in with rotation off to claim the first spot.
                 </p>
               </div>
             </div>

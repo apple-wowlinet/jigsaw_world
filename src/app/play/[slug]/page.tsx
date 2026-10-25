@@ -56,6 +56,7 @@ type RecordingState =
   | 'waiting'
   | 'connecting'
   | 'recording'
+  | 'saving'
   | 'verified'
   | 'local'
   | 'failed'
@@ -126,6 +127,7 @@ function PlayPuzzleContent() {
   const timerRunningRef = useRef(false)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const serverSessionRef = useRef<string | null>(null)
+  const serverStartRef = useRef<Promise<string> | null>(null)
   const serverAttemptRef = useRef(0)
   const lastCheckpointRef = useRef({ sessionId: '', progress: 0, at: 0 })
 
@@ -225,6 +227,7 @@ function PlayPuzzleContent() {
     serverAttemptRef.current += 1
     const sessionId = serverSessionRef.current
     serverSessionRef.current = null
+    serverStartRef.current = null
     lastCheckpointRef.current = { sessionId: '', progress: 0, at: 0 }
     setServerResult(null)
 
@@ -412,7 +415,7 @@ function PlayPuzzleContent() {
   /* ---------------- 游戏事件 ---------------- */
 
   const beginTrustedSession = useCallback(async () => {
-    if (!puzzle || !choice || serverSessionRef.current) return
+    if (!puzzle || !choice || serverSessionRef.current || serverStartRef.current) return
     if (authLoading) return
 
     if (isCustom || !user || pendingSave) {
@@ -423,14 +426,16 @@ function PlayPuzzleContent() {
     const attempt = ++serverAttemptRef.current
     setRecordingState('connecting')
 
-    try {
-      const sessionId = await startGameSession({
-        puzzleId: puzzle.id,
-        pieceCount: choice.nop,
-        rotationEnabled: isDaily ? false : rotationOn,
-        dailyChallengeId,
-      })
+    const startRequest = startGameSession({
+      puzzleId: puzzle.id,
+      pieceCount: choice.nop,
+      rotationEnabled: isDaily ? false : rotationOn,
+      dailyChallengeId,
+    })
+    serverStartRef.current = startRequest
 
+    try {
+      const sessionId = await startRequest
       if (attempt !== serverAttemptRef.current) {
         void abandonGameSession(sessionId).catch(() => undefined)
         return
@@ -443,6 +448,8 @@ function PlayPuzzleContent() {
       if (attempt !== serverAttemptRef.current) return
       console.error('Failed to start trusted game session:', error)
       setRecordingState('failed')
+    } finally {
+      if (serverStartRef.current === startRequest) serverStartRef.current = null
     }
   }, [
     authLoading,
@@ -466,17 +473,45 @@ function PlayPuzzleContent() {
   }, [startClock, pendingSave, beginTrustedSession])
 
   useEffect(() => {
-    if (authLoading || !isReady || recordingState !== 'waiting') return
+    if (authLoading || !isReady || isCompleted || recordingState !== 'waiting') return
     const timerId = window.setTimeout(() => {
       void beginTrustedSession()
     }, 0)
     return () => window.clearTimeout(timerId)
-  }, [authLoading, beginTrustedSession, isReady, recordingState])
+  }, [authLoading, beginTrustedSession, isReady, isCompleted, recordingState])
+
+  const submitCompletion = useCallback(async (completedMoves: number) => {
+    const attempt = serverAttemptRef.current
+    setRecordingState('saving')
+
+    try {
+      // A fast finish may happen before the start RPC returns. Keep that
+      // session and wait for it rather than silently discarding the result.
+      const sessionId = serverSessionRef.current ?? await serverStartRef.current
+      if (attempt !== serverAttemptRef.current) return
+      if (!sessionId) {
+        setRecordingState('local')
+        return
+      }
+
+      setRecordingState('saving')
+      const result = await completeGameSession(sessionId, completedMoves)
+      if (attempt !== serverAttemptRef.current) return
+      serverSessionRef.current = null
+      setServerResult(result)
+      setTimer(result.completion_time)
+      setMoves(result.moves)
+      setRecordingState(result.ranked ? 'recording' : 'verified')
+    } catch (error) {
+      if (attempt !== serverAttemptRef.current) return
+      console.error('Failed to complete trusted game session:', error)
+      setRecordingState('failed')
+    }
+  }, [])
 
   const handleComplete = useCallback(() => {
     const completedMoves = gameRef.current?.getMoves() ?? moves
     const localElapsed = currentElapsed()
-    const sessionId = serverSessionRef.current
 
     setIsCompleted(true)
     setProgress(100)
@@ -485,31 +520,10 @@ function PlayPuzzleContent() {
     pauseClock()
     clearPuzzleSaves(puzzleId)
 
-    if (!sessionId) {
-      serverAttemptRef.current += 1
-      if (recordingState === 'connecting') setRecordingState('local')
-      return
+    if (serverSessionRef.current || serverStartRef.current) {
+      void submitCompletion(completedMoves)
     }
-
-    void completeGameSession(sessionId, completedMoves)
-      .then((result) => {
-        serverSessionRef.current = null
-        setServerResult(result)
-        setTimer(result.completion_time)
-        setMoves(result.moves)
-        setRecordingState(result.ranked ? 'recording' : 'verified')
-      })
-      .catch((error) => {
-        console.error('Failed to complete trusted game session:', error)
-        setRecordingState('failed')
-      })
-  }, [
-    currentElapsed,
-    moves,
-    pauseClock,
-    puzzleId,
-    recordingState,
-  ])
+  }, [currentElapsed, moves, pauseClock, puzzleId, submitCompletion])
 
   /* ---------------- 控制操作 ---------------- */
 
@@ -788,7 +802,7 @@ function PlayPuzzleContent() {
                     'hidden rounded px-2 py-0.5 text-xs font-semibold md:inline',
                     recordingState === 'recording' || recordingState === 'verified'
                       ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                      : recordingState === 'connecting'
+                      : (recordingState === 'connecting' || recordingState === 'saving')
                         ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
                         : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300'
                   )}
@@ -801,6 +815,8 @@ function PlayPuzzleContent() {
                         : 'Score recording'
                     : recordingState === 'verified'
                       ? 'Verified · not ranked'
+                    : recordingState === 'saving'
+                      ? 'Saving result…'
                     : recordingState === 'connecting'
                       ? 'Connecting score…'
                       : recordingState === 'failed'
@@ -1054,9 +1070,27 @@ function PlayPuzzleContent() {
                     <Info className="h-4 w-4 shrink-0" />
                     {user ? (
                       <span>
-                        {serverResult?.ranked
-                          ? 'Result verified and added to eligible records.'
-                          : 'This result is saved on this device.'}
+                        {recordingState === 'saving'
+                          ? 'Saving your result…'
+                          : serverResult?.ranked
+                            ? 'Result verified and added to the leaderboard.'
+                            : recordingState === 'failed'
+                              ? 'Your result could not be saved to the leaderboard.'
+                              : serverResult
+                                ? 'Completion recorded. Rotation games are not ranked.'
+                                : pendingSave
+                                  ? 'Resumed local games are not ranked. Start a new game to set a record.'
+                                  : 'This game is not eligible for the leaderboard.'}
+                        {serverResult?.ranked && (
+                          <Link href={`/puzzle/${puzzle.slug}?pieces=${pieceCount}`} className="ml-2 font-semibold text-primary underline">
+                            View leaderboard
+                          </Link>
+                        )}
+                        {recordingState === 'failed' && serverSessionRef.current && (
+                          <button type="button" className="ml-2 font-semibold text-primary underline" onClick={() => void submitCompletion(moves)}>
+                            Retry saving
+                          </button>
+                        )}
                       </span>
                     ) : (
                       <span>
