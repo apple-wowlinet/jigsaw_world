@@ -13,9 +13,19 @@ export interface Puzzle {
 export type LeaderboardPeriod = 'daily' | 'weekly' | 'monthly' | 'all'
 
 export interface LeaderboardEntry {
-  rank: number       // 1-based
+  rank: number
   userId: string
   username: string
-  avatar: string     // emoji (matches existing puzzle-detail convention)
-  score: number      // points / 积分
+  avatarUrl: string | null
+  totalPieces: number
+  completedPuzzles: number
+  totalTimeSeconds: number
+}
+
+export interface LeaderboardResult {
+  period: LeaderboardPeriod
+  periodStart: string | null
+  periodEnd: string | null
+  totalPlayers: number
+  entries: LeaderboardEntry[]
 }
