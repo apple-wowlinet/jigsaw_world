@@ -575,7 +575,9 @@ function PuzzleDetailSkeleton() {
 }
 
 function LeaderboardRow({ entry }: { entry: PublicPuzzleLeaderboardEntry }) {
-  const { rank, username, timeSeconds } = entry
+  const { rank, username, avatarUrl, timeSeconds } = entry
+  const [failedAvatarUrl, setFailedAvatarUrl] = useState<string | null>(null)
+  const showAvatar = Boolean(avatarUrl && avatarUrl !== failedAvatarUrl)
   const medalClass = {
     1: 'bg-[#c9973f] text-white',
     2: 'bg-[#b8b4a2] text-white',
@@ -607,11 +609,24 @@ function LeaderboardRow({ entry }: { entry: PublicPuzzleLeaderboardEntry }) {
       </span>
       <span
         className={cn(
-          'flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br text-[8px] font-black text-white',
+          'flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br text-[8px] font-black text-white',
           avatarColors[(rank - 1) % avatarColors.length]
         )}
       >
-        {initials}
+        {showAvatar ? (
+          // OAuth avatar hosts vary; load directly without Next's image proxy.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            key={avatarUrl}
+            src={avatarUrl!}
+            alt=""
+            width={28}
+            height={28}
+            className="h-full w-full object-cover"
+            referrerPolicy="no-referrer"
+            onError={() => setFailedAvatarUrl(avatarUrl)}
+          />
+        ) : initials}
       </span>
       <span className="flex-1 truncate font-bold text-foreground">
         {username}

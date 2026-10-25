@@ -54,6 +54,7 @@ export interface PublicPuzzleLeaderboardEntry {
   rank: number
   userId: string
   username: string
+  avatarUrl: string | null
   timeSeconds: number
 }
 
@@ -181,6 +182,7 @@ interface PuzzleLeaderboardRow {
   rank: number | string
   user_id: string
   username: string | null
+  avatar_url: string | null
   score_value: number | string
 }
 
@@ -620,7 +622,7 @@ export async function fetchPuzzleLeaderboard(
 ): Promise<PublicPuzzleLeaderboardEntry[]> {
   const { data, error } = await supabase
     .from('v_leaderboard_time')
-    .select('rank, user_id, username, score_value')
+    .select('rank, user_id, username, avatar_url, score_value')
     .eq('puzzle_id', puzzleId)
     .eq('piece_count', pieceCount)
     .order('rank', { ascending: true })
@@ -635,6 +637,7 @@ export async function fetchPuzzleLeaderboard(
     rank: Number(entry.rank),
     userId: entry.user_id,
     username: entry.username?.trim() || `Player ${entry.user_id.slice(0, 8)}`,
+    avatarUrl: entry.avatar_url?.trim() || null,
     timeSeconds: Number(entry.score_value),
   }))
 }

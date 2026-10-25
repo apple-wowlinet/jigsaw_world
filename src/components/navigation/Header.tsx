@@ -14,8 +14,10 @@ export function Header() {
   const [isSearchFocused, setIsSearchFocused] = useState(false)
   const { user, loading, signOut } = useAuth()
 
-  const displayName = user?.user_metadata?.username
-    || user?.user_metadata?.full_name
+  const displayName = ['username', 'full_name', 'name', 'display_name']
+    .map((key) => user?.user_metadata?.[key])
+    .find((value): value is string => typeof value === 'string' && value.trim().length > 0)
+    ?.trim()
     || user?.email?.split('@')[0]
     || 'Player'
 
