@@ -5,8 +5,8 @@ const footerLinks = {
   categories: [
     { href: '/category/nature', label: 'Nature' },
     { href: '/category/ocean', label: 'Ocean' },
-    { href: '/category/city', label: 'City' },
-    { href: '/category/forest', label: 'Forest' },
+    { href: '/category/cities', label: 'City' },
+    { href: '/category/forests', label: 'Forest' },
     { href: '/category/art', label: 'Art' },
   ],
   explore: [

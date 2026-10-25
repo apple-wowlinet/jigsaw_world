@@ -11,7 +11,7 @@ const contactChannels = [
   {
     icon: Mail,
     label: 'Email',
-    value: 'support@jigsawworld.com',
+    value: 'support@jigsawworld.co',
     hint: 'Best for detailed questions',
   },
   {
