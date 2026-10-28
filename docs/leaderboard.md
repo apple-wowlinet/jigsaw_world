@@ -1,7 +1,8 @@
 # Global leaderboard
 
 Apply `supabase/migrations/015_global_leaderboard.sql` in Supabase after the
-existing game-session migrations, then apply `016_leaderboard_privacy.sql` before
+existing game-session migrations, then apply `016_leaderboard_privacy.sql` and
+`017_restore_leaderboard_identity.sql` before
 deploying the matching frontend. See [security deployment notes](security-auth-users-exposed.md). The page calls `get_global_leaderboard` via
 Supabase RPC; it does not read other users' session rows directly.
 
@@ -23,7 +24,7 @@ Supabase RPC; it does not read other users' session rows directly.
   migration; no replay, backfill, scheduled reset, or counter writes are needed.
   Refreshing, changing tabs, or returning to the visible page fetches current data.
 - The page shows the first 50 users and the total eligible player count.
-- Names fall back through the public username, display_name, then Player
+- Names fall back through username, full_name, name, display_name, then Player
   plus the first 8 user-ID characters. Avatars use avatar_url, then picture;
   absent or broken images show name initials.
 - An unpublished/inactive puzzle's sessions do not count while it is hidden.

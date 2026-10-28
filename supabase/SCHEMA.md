@@ -262,7 +262,7 @@ PRIMARY KEY (event_id, puzzle_id)
 
 均基于 `user_best_records`（非 game_sessions），并再次过滤关联拼图的发布状态。
 
-`016_leaderboard_privacy.sql` 将视图设为 `security_invoker`，撤销客户端读取权限，身份来自内部 `private.leaderboard_profiles`。公开查询通过受限 RPC `get_puzzle_leaderboard` / `get_global_leaderboard`，不直接查询 `auth.users`，不回退到 OAuth 真实姓名。
+`016_leaderboard_privacy.sql` 将视图设为 `security_invoker`，撤销客户端读取权限，身份来自内部 `private.leaderboard_profiles`。公开查询通过受限 RPC `get_puzzle_leaderboard` / `get_global_leaderboard`，不直接查询 `auth.users`。`017_restore_leaderboard_identity.sql` 恢复原有展示名顺序（username/full_name/name/display_name）及头像同步，并回填已有内部资料；仅公开最终展示名和头像，不公开完整认证信息。
 
 ---
 
