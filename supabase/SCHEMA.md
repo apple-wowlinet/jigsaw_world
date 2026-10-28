@@ -262,6 +262,8 @@ PRIMARY KEY (event_id, puzzle_id)
 
 均基于 `user_best_records`（非 game_sessions），并再次过滤关联拼图的发布状态。
 
+`016_leaderboard_privacy.sql` 将视图设为 `security_invoker`，撤销客户端读取权限，身份来自内部 `private.leaderboard_profiles`。公开查询通过受限 RPC `get_puzzle_leaderboard` / `get_global_leaderboard`，不直接查询 `auth.users`，不回退到 OAuth 真实姓名。
+
 ---
 
 ## 典型查询示例
@@ -269,8 +271,7 @@ PRIMARY KEY (event_id, puzzle_id)
 ### 排行榜（某关某档位 Top 10）
 ```sql
 SELECT username, score_value AS best_time, rank
-FROM v_leaderboard_time
-WHERE puzzle_id = $1 AND piece_count = $2 AND rank <= 10;
+FROM public.get_puzzle_leaderboard($1, $2, 10);
 ```
 
 ### 完成率（运营）

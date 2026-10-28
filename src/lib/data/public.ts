@@ -620,13 +620,11 @@ export async function fetchPuzzleLeaderboard(
   pieceCount: number,
   limit = 5
 ): Promise<PublicPuzzleLeaderboardEntry[]> {
-  const { data, error } = await supabase
-    .from('v_leaderboard_time')
-    .select('rank, user_id, username, avatar_url, score_value')
-    .eq('puzzle_id', puzzleId)
-    .eq('piece_count', pieceCount)
-    .order('rank', { ascending: true })
-    .limit(limit)
+  const { data, error } = await supabase.rpc('get_puzzle_leaderboard', {
+    p_puzzle_id: puzzleId,
+    p_piece_count: pieceCount,
+    p_limit: limit,
+  })
 
   if (error) {
     console.error('Failed to fetch puzzle leaderboard:', error.message)
