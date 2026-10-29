@@ -1,31 +1,10 @@
-'use client'
-
-import { useEffect, useState } from 'react'
 import { SafeImage } from '@/components/ui/SafeImage'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
-import { fetchCategories, type PublicCategory } from '@/lib/data/public'
+import type { PublicCategory } from '@/lib/data/public'
 import { themeCatalogue } from '@/lib/data/theme-catalogue'
 
-export function CategoriesSection() {
-  const [categories, setCategories] = useState<PublicCategory[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    let cancelled = false
-
-    fetchCategories(6).then((items) => {
-      if (!cancelled) {
-        setCategories(items)
-        setLoading(false)
-      }
-    })
-
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
+export function CategoriesSection({ categories }: { categories: PublicCategory[] }) {
   return (
     <section className="px-4 pb-12 pt-4 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-[1380px]">
@@ -66,10 +45,7 @@ export function CategoriesSection() {
               </div>
             </Link>
           ))}
-          {loading && Array.from({ length: 6 }, (_, index) => (
-            <div key={index} className="aspect-[1.3/1] rounded-lg skeleton" />
-          ))}
-          {!loading && categories.length === 0 && (
+          {categories.length === 0 && (
             <div className="col-span-2 rounded-lg border border-dashed border-border bg-card px-5 py-8 text-sm text-muted-foreground sm:col-span-3 lg:col-span-6">
               No categories with published puzzles are available yet.
             </div>

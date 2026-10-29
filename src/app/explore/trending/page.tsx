@@ -1,5 +1,5 @@
-import { ExploreListPage } from '@/components/explore/ExploreListPage'
+import { ExplorePage } from '@/components/explore/ExplorePage'
 
 export default function TrendingExplorePage() {
-  return <ExploreListPage mode="trending" />
+  return <ExplorePage mode="trending" />
 }

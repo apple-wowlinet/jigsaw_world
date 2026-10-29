@@ -103,7 +103,7 @@ export function ContinuePuzzleCard() {
   if (!puzzle) return null
 
   return (
-    <div className="mt-10 flex flex-col items-start gap-5 border border-[#e7decb] bg-card px-6 py-5 shadow-[0_18px_45px_-32px_rgba(80,60,25,0.5)] sm:px-8 lg:flex-row lg:items-center lg:gap-10 dark:border-[#3b3327]">
+    <div className="flex flex-col items-start gap-5 border border-[#e7decb] bg-card px-6 py-5 shadow-[0_18px_45px_-32px_rgba(80,60,25,0.5)] sm:px-8 lg:flex-row lg:items-center lg:gap-10 dark:border-[#3b3327]">
       <div className="flex items-center gap-4 lg:w-[250px]">
         <div className="grid h-14 w-14 shrink-0 place-items-center rounded-full border border-[#d8cbb0] bg-panel dark:border-[#3b3327] dark:bg-[#241f17]">
           <div className="grid h-11 w-11 place-items-center rounded-full bg-primary text-primary-foreground">

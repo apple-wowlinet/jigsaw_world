@@ -18,7 +18,6 @@ import {
   Trophy,
 } from 'lucide-react'
 import {
-  fetchPuzzles,
   type DisplayDifficulty,
   type PublicPuzzle,
 } from '@/lib/data/public'
@@ -31,7 +30,6 @@ type PieceFilter = 'any' | 'small' | 'medium' | 'large'
 type OpenMenu = 'sort' | 'difficulty' | 'pieces' | null
 
 const ITEMS_PER_PAGE = 24
-const FETCH_LIMIT = ITEMS_PER_PAGE * 4
 
 const CATEGORY_CHIPS = [
   { slug: 'all', name: 'All' },
@@ -135,10 +133,9 @@ function getPaginationItems(totalPages: number, currentPage: number) {
   return items
 }
 
-export function ExploreListPage({ mode }: { mode: ExploreMode }) {
+export function ExploreListPage({ mode, initialPuzzles }: { mode: ExploreMode; initialPuzzles: PublicPuzzle[] }) {
   const copy = MODE_COPY[mode]
-  const [puzzles, setPuzzles] = useState<PublicPuzzle[]>([])
-  const [loading, setLoading] = useState(true)
+  const puzzles = initialPuzzles
   const [currentPage, setCurrentPage] = useState(1)
   const [categorySlug, setCategorySlug] = useState('all')
   const [sortOrder, setSortOrder] = useState<SortOrder>(copy.defaultSort)
@@ -146,26 +143,6 @@ export function ExploreListPage({ mode }: { mode: ExploreMode }) {
   const [pieceFilter, setPieceFilter] = useState<PieceFilter>('any')
   const [openMenu, setOpenMenu] = useState<OpenMenu>(null)
   const toolbarRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    let cancelled = false
-
-    fetchPuzzles({ limit: FETCH_LIMIT, orderBy: copy.orderBy })
-      .then((items) => {
-        if (cancelled) return
-        setPuzzles(items)
-        setLoading(false)
-      })
-      .catch(() => {
-        if (cancelled) return
-        setPuzzles([])
-        setLoading(false)
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [copy.orderBy])
 
   useEffect(() => {
     if (!openMenu) return
@@ -227,8 +204,6 @@ export function ExploreListPage({ mode }: { mode: ExploreMode }) {
   const paginationItems = getPaginationItems(totalPages, safePage)
 
   const resetToFirstPage = () => setCurrentPage(1)
-
-  if (loading) return <ExploreListSkeleton />
 
   return (
     <div className="min-h-screen bg-background">
@@ -361,7 +336,7 @@ export function ExploreListPage({ mode }: { mode: ExploreMode }) {
               <PuzzleCard
                 key={puzzle.uuid}
                 puzzle={puzzle}
-                priority={index < 4}
+                priority={index === 0}
               />
             ))}
           </section>
@@ -440,7 +415,7 @@ function PuzzleCard({
           alt={puzzle.title}
           fill
           priority={priority}
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1440px) 25vw, 320px"
           className="object-cover transition duration-700 group-hover:scale-[1.04]"
         />
         <span

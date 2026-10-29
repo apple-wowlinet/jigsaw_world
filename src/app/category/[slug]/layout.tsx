@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { fetchCategories } from '@/lib/data/public'
+import { getCategories } from '@/lib/data/server'
 import { mergeCategoryCatalogue } from '@/lib/data/category-catalogue'
 import { categoryDescription, toMetaDescription } from '@/lib/seo'
 
@@ -9,7 +9,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>
 }): Promise<Metadata> {
   const { slug } = await params
-  const remoteCategories = await fetchCategories()
+  const remoteCategories = await getCategories()
   const categories = mergeCategoryCatalogue(remoteCategories)
   const catalogueSlugs = new Set(categories.map((item) => item.slug))
   const category = categories.find((item) => item.slug === slug)

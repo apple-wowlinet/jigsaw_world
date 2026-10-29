@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { SafeImage } from '@/components/ui/SafeImage'
 import Link from 'next/link'
 import { ArrowRight, Puzzle } from 'lucide-react'
-import { fetchPuzzles, type PublicPuzzle } from '@/lib/data/public'
+import type { PublicPuzzle } from '@/lib/data/public'
 import { cn } from '@/lib/utils'
 
 const filters = ['For You', 'Easy', 'Medium', 'Hard', '500+ Pieces'] as const
@@ -34,25 +34,8 @@ function SectionHeading({
   )
 }
 
-export function RecommendationsSection() {
-  const [puzzles, setPuzzles] = useState<PublicPuzzle[]>([])
-  const [loading, setLoading] = useState(true)
+export function RecommendationsSection({ puzzles }: { puzzles: PublicPuzzle[] }) {
   const [activeFilter, setActiveFilter] = useState<Filter>('For You')
-
-  useEffect(() => {
-    let cancelled = false
-
-    fetchPuzzles({ limit: 8, orderBy: 'featured' }).then((items) => {
-      if (!cancelled) {
-        setPuzzles(items)
-        setLoading(false)
-      }
-    })
-
-    return () => {
-      cancelled = true
-    }
-  }, [])
 
   const recommended = useMemo(() => {
     const items = puzzles.slice(4)
@@ -80,7 +63,7 @@ export function RecommendationsSection() {
                   src={item.image_url}
                   alt={item.title}
                   fill
-                  sizes="(max-width: 640px) 100vw, 25vw"
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1440px) 25vw, 320px"
                   className="object-cover transition duration-700 group-hover:scale-[1.04]"
                 />
               </div>
@@ -94,10 +77,7 @@ export function RecommendationsSection() {
               </div>
             </Link>
           ))}
-          {loading && Array.from({ length: 4 }, (_, index) => (
-            <div key={index} className="aspect-[1.3/1] rounded-lg skeleton" />
-          ))}
-          {!loading && puzzles.length === 0 && (
+          {puzzles.length === 0 && (
             <div className="rounded-lg border border-dashed border-border bg-card px-5 py-10 text-sm text-muted-foreground sm:col-span-2 lg:col-span-4">
               No published puzzles are available yet.
             </div>
@@ -138,7 +118,7 @@ export function RecommendationsSection() {
                   src={item.image_url}
                   alt={item.title}
                   fill
-                  sizes="(max-width: 640px) 100vw, 25vw"
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1440px) 25vw, 320px"
                   className="object-cover transition duration-700 group-hover:scale-[1.04]"
                 />
                 <span className="absolute right-2.5 top-2.5 rounded-full bg-white/95 px-2.5 py-0.5 text-xs font-bold text-[#3c382e] shadow-md">
@@ -158,10 +138,7 @@ export function RecommendationsSection() {
               </div>
             </Link>
           ))}
-          {loading && Array.from({ length: 4 }, (_, index) => (
-            <div key={index} className="aspect-[1.3/1] rounded-lg skeleton" />
-          ))}
-          {!loading && recommended.length === 0 && (
+          {recommended.length === 0 && (
             <div className="rounded-lg border border-dashed border-border bg-card px-5 py-10 text-sm text-muted-foreground sm:col-span-2 lg:col-span-4">
               No published puzzles match this selection.
             </div>

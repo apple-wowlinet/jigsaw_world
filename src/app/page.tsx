@@ -1,3 +1,5 @@
+import { connection } from 'next/server'
+import { getDailyPuzzle, getHomePuzzles, getCategories } from '@/lib/data/server'
 import type { Metadata } from 'next'
 import { HeroSection } from '@/components/home/HeroSection'
 import { RecommendationsSection } from '@/components/home/RecommendationsSection'
@@ -29,12 +31,17 @@ export const metadata: Metadata = {
   },
 }
 
-export default function HomePage() {
+export default async function HomePage() {
+  // Read the UTC date per request, even across a cached catalogue's midnight.
+  await connection()
+  const [dailyPuzzle, puzzles, categories] = await Promise.all([
+    getDailyPuzzle(new Date().toISOString().slice(0, 10)), getHomePuzzles(), getCategories(),
+  ])
   return (
     <div className="min-h-screen overflow-hidden bg-background">
-      <HeroSection />
-      <RecommendationsSection />
-      <CategoriesSection />
+      <HeroSection dailyPuzzle={dailyPuzzle} />
+      <RecommendationsSection puzzles={puzzles} />
+      <CategoriesSection categories={categories.slice(0, 6)} />
     </div>
   )
 }

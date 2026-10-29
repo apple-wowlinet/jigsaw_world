@@ -1,32 +1,11 @@
-'use client'
-
-import { useEffect, useState } from 'react'
 import { SafeImage } from '@/components/ui/SafeImage'
 import { JigsawGridOverlay } from '@/components/ui/JigsawGridOverlay'
 import Link from 'next/link'
 import { ArrowRight, Clock3, Layers, Puzzle } from 'lucide-react'
-import { fetchDailyPuzzle, type DailyPuzzle } from '@/lib/data/public'
+import type { DailyPuzzle } from '@/lib/data/public'
 import { ContinuePuzzleCard } from '@/components/home/ContinuePuzzleCard'
 
-export function HeroSection() {
-  const [dailyPuzzle, setDailyPuzzle] = useState<DailyPuzzle | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    let cancelled = false
-
-    fetchDailyPuzzle().then((puzzle) => {
-      if (!cancelled) {
-        setDailyPuzzle(puzzle)
-        setLoading(false)
-      }
-    })
-
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
+export function HeroSection({ dailyPuzzle }: { dailyPuzzle: DailyPuzzle | null }) {
   return (
     <section className="relative overflow-hidden px-4 pt-6 sm:px-6 lg:px-8">
       {/* Soft vignette */}
@@ -77,7 +56,7 @@ export function HeroSection() {
               </Link>
             </div>
 
-            {!loading && !dailyPuzzle && (
+            {!dailyPuzzle && (
               <p className="mt-8 text-sm text-muted-foreground">
                 No daily challenge is published for today. Browse the catalogue in the meantime.
               </p>
@@ -86,9 +65,7 @@ export function HeroSection() {
 
           {/* Right — today's puzzle mounted in a CSS-built gallery wall. */}
           <div className="relative mt-4 lg:mt-0 lg:-mr-5">
-            {loading ? (
-              <div className="min-h-[390px] rounded-2xl skeleton" aria-label="Loading today's puzzle" />
-            ) : dailyPuzzle ? (
+            {dailyPuzzle ? (
               <div className="daily-wall">
               <div className="daily-wall-cornice" aria-hidden="true" />
               <p className="daily-wall-heading">Today&rsquo;s Puzzle</p>
@@ -135,8 +112,8 @@ export function HeroSection() {
                           src={dailyPuzzle.image_url}
                           alt={dailyPuzzle.title}
                           fill
-                          priority
-                          sizes="(max-width: 1024px) 88vw, 430px"
+                          preload
+                          sizes="(max-width: 575px) calc(100vw - 110px), (max-width: 1023px) 55vw, (max-width: 1100px) 42vw, (max-width: 1440px) 25vw, 340px"
                           className="object-cover"
                         />
                         <JigsawGridOverlay
@@ -170,7 +147,9 @@ export function HeroSection() {
           </div>
         </div>
 
-        <ContinuePuzzleCard />
+        <div className="mt-10 min-h-[252px] lg:min-h-[110px]">
+          <ContinuePuzzleCard />
+        </div>
       </div>
     </section>
   )

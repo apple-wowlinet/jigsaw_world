@@ -1,3 +1,4 @@
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 import type { PublicTheme } from '@/lib/data/theme-catalogue'
 
@@ -257,9 +258,14 @@ export function mapPuzzle(row: PuzzleRow): PublicPuzzle {
   }
 }
 
-export async function fetchCategories(limit?: number): Promise<PublicCategory[]> {
+interface PublicReadOptions {
+  client?: SupabaseClient
+  strict?: boolean
+}
+
+export async function fetchCategories(limit?: number, { client = supabase, strict = false }: PublicReadOptions = {}): Promise<PublicCategory[]> {
   const selectCategories = (includeParent: boolean) => {
-    let query = supabase
+    let query = client
       .from('categories')
       .select(`id, name, slug, description, image_url, icon, color, dark_color, puzzle_count, updated_at, seo_title, seo_description, og_image_url${includeParent ? ', parent_id' : ''}`)
       .eq('is_active', true)
@@ -272,7 +278,11 @@ export async function fetchCategories(limit?: number): Promise<PublicCategory[]>
     return query
   }
 
-  let { data, error } = await selectCategories(true)
+  const [categoryResult, countResult] = await Promise.all([
+    selectCategories(true),
+    client.rpc('get_public_category_counts'),
+  ])
+  let { data, error } = categoryResult
 
   // Keep the frontend compatible with databases that have not applied the
   // optional category-hierarchy migration yet.
@@ -283,13 +293,13 @@ export async function fetchCategories(limit?: number): Promise<PublicCategory[]>
   }
 
   if (error) {
+    if (strict) throw error
     console.error('Failed to fetch categories:', error.message)
     return []
   }
 
   const rows = (data ?? []) as unknown as PublicCategoryRow[]
   const slugById = new Map(rows.map((category) => [category.id, category.slug]))
-  const countResult = await supabase.rpc('get_public_category_counts')
   const countRows = (countResult.data ?? []) as PublicCategoryCountRow[]
   const countBySlug = new Map(
     countRows.map((row) => [row.slug, Number(row.puzzle_count)])
@@ -300,6 +310,7 @@ export async function fetchCategories(limit?: number): Promise<PublicCategory[]>
     && countResult.error.code !== 'PGRST202'
     && countResult.error.code !== '42883'
   ) {
+    if (strict) throw countResult.error
     console.error('Failed to fetch category counts:', countResult.error.message)
   }
 
@@ -336,7 +347,7 @@ export async function fetchCategoryPuzzlePage(options: {
   sort?: CategoryPuzzleSort
   limit?: number
   offset?: number
-}): Promise<CategoryPuzzlePage> {
+}, { client = supabase }: PublicReadOptions = {}): Promise<CategoryPuzzlePage> {
   const parameters = {
     p_category_slug: options.categorySlug,
     p_difficulty: options.difficulty?.toLowerCase() ?? null,
@@ -345,13 +356,13 @@ export async function fetchCategoryPuzzlePage(options: {
   }
 
   const [puzzlesResult, countsResult] = await Promise.all([
-    supabase.rpc('get_public_category_puzzles', {
+    client.rpc('get_public_category_puzzles', {
       ...parameters,
       p_sort: options.sort ?? 'popular',
       p_limit: options.limit ?? 24,
       p_offset: options.offset ?? 0,
     }),
-    supabase.rpc('get_public_category_puzzle_counts', parameters),
+    client.rpc('get_public_category_puzzle_counts', parameters),
   ])
 
   if (puzzlesResult.error) {
@@ -427,13 +438,13 @@ export async function fetchPuzzles(options: {
   categorySlugs?: string[]
   search?: string
   orderBy?: 'featured' | 'plays' | 'rating' | 'recent' | 'editor' | 'weekly'
-} = {}): Promise<PublicPuzzle[]> {
+} = {}, { client = supabase, strict = false }: PublicReadOptions = {}): Promise<PublicPuzzle[]> {
   const publishedBefore = new Date().toISOString()
   const runQuery = (select: string, orderBy = options.orderBy) => {
     const selectWithCategoryRelation = requestedCategorySlugs.length
       ? `${select}, puzzle_categories!inner(category_id)`
       : select
-    let query = supabase
+    let query = client
       .from('puzzles')
       .select(selectWithCategoryRelation)
       .eq('is_active', true)
@@ -485,12 +496,13 @@ export async function fetchPuzzles(options: {
 
   let categoryIds: string[] = []
   if (requestedCategorySlugs.length) {
-    const { data: categories, error: categoryError } = await supabase
+    const { data: categories, error: categoryError } = await client
       .from('categories')
       .select('id')
       .in('slug', requestedCategorySlugs)
 
     if (categoryError || !categories?.length) {
+      if (strict && categoryError) throw categoryError
       if (categoryError) console.error('Failed to fetch category:', categoryError.message)
       return []
     }
@@ -512,6 +524,7 @@ export async function fetchPuzzles(options: {
   }
 
   if (error) {
+    if (strict) throw error
     console.error('Failed to fetch puzzles:', error.message)
     return []
   }
@@ -640,9 +653,8 @@ export async function fetchPuzzleLeaderboard(
   }))
 }
 
-export async function fetchDailyPuzzle(): Promise<DailyPuzzle | null> {
-  const today = new Date().toISOString().slice(0, 10)
-  const { data, error } = await supabase
+export async function fetchDailyPuzzle(today = new Date().toISOString().slice(0, 10), { client = supabase, strict = false }: PublicReadOptions = {}): Promise<DailyPuzzle | null> {
+  const { data, error } = await client
     .from('daily_challenges')
     .select(`id, challenge_date, title, description, puzzles(${PUZZLE_SELECT_WITHOUT_WEEKLY})`)
     .eq('challenge_date', today)
@@ -650,6 +662,7 @@ export async function fetchDailyPuzzle(): Promise<DailyPuzzle | null> {
     .maybeSingle()
 
   if (error) {
+    if (strict) throw error
     console.error('Failed to fetch daily puzzle:', error.message)
     return null
   }

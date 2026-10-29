@@ -1,5 +1,5 @@
-import { ExploreListPage } from '@/components/explore/ExploreListPage'
+import { ExplorePage } from '@/components/explore/ExplorePage'
 
 export default function WeeklyExplorePage() {
-  return <ExploreListPage mode="weekly" />
+  return <ExplorePage mode="weekly" />
 }
