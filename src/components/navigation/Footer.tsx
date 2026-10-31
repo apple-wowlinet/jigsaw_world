@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import { Puzzle, Mail, Github, Twitter, Instagram } from 'lucide-react'
+import { Puzzle, Mail } from 'lucide-react'
+import { CONTACT_EMAIL } from '@/lib/contact'
 
 const footerLinks = {
   categories: [
@@ -25,10 +26,7 @@ const footerLinks = {
 }
 
 const socialLinks = [
-  { href: '#', icon: Twitter, label: 'Twitter' },
-  { href: '#', icon: Instagram, label: 'Instagram' },
-  { href: '#', icon: Github, label: 'GitHub' },
-  { href: '#', icon: Mail, label: 'Email' },
+  { href: `mailto:${CONTACT_EMAIL}`, icon: Mail, label: 'Email' },
 ]
 
 export function Footer() {

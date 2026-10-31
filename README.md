@@ -41,6 +41,54 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Contact messages
+
+Apply `supabase/migrations/018_contact_messages.sql` in the Supabase SQL editor.
+This single migration creates the storage-only contact table, permissions,
+indexes and submission function; it includes no email notification fields.
+The table has RLS enabled and no anonymous or signed-in user grants. The server
+service role has SELECT and INSERT permissions for persistence, deduplication
+and rate limiting. Optional rollback-only database checks are in
+`supabase/checks/contact_security.sql`.
+
+Configure the following **server-only** variable in `.env.local` and your hosting
+environment, then restart the application:
+
+```dotenv
+SUPABASE_SERVICE_ROLE_KEY=<Supabase service role key>
+```
+
+The existing `NEXT_PUBLIC_SUPABASE_URL` must also be configured. Never prefix
+the service role key with `NEXT_PUBLIC_` or commit its actual value.
+
+View messages directly in the Supabase dashboard: open **Table Editor →
+public.contact_messages**. Use the `status` column (`new` / `resolved`) to track
+handling. Contact messages do not require an `ADMIN_TOKEN` or a website
+administration page.
+
+The contact form reports success only after database persistence. It does not
+send email. The page also offers a `mailto:support@jigsawworld.co` link so visitors
+can send email directly using their own mail client. No email service or sender
+configuration is required.
+
+Submissions are limited to three per email and per sender in ten minutes, using
+an atomic database function. Sender addresses are stored only as keyed hashes.
+On Vercel the sender bucket uses its trusted forwarding header; outside Vercel
+all senders share a conservative bucket until a trusted proxy is configured.
+Unchanged retries reuse the submission ID, preventing duplicate saved messages
+when a response is lost.
+
+Run isolated checks (no real database writes):
+
+```bash
+node --test scripts/verify-contact.mjs
+```
+
+Manual acceptance after configuration: send a message from `/contact` and confirm
+it appears in Supabase's `public.contact_messages` table. If saving fails, the
+form must keep the input and show an error. The email link should open the
+visitor's own mail client addressed to `support@jigsawworld.co`.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

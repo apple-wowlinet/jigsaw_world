@@ -308,3 +308,13 @@ ORDER BY dc.challenge_date;
 2. **`plays` vs `plays_count`**：DB 统一 `plays_count`
 3. **碎片数量选项**：前端根据图片尺寸与画布动态生成，不从 `puzzles` 或档位表读取
 4. **初始化数据**：levels / achievements / events 字典表需种子数据（可用 seed migration）
+
+## Contact 留言
+
+`018_contact_messages.sql` 添加 `contact_messages`，服务端 `service_role` 仅可查询和插入，
+匿名和已登录用户均无直接访问权限。包含姓名、邮箱、正文、new/resolved 处理状态、
+创建时间和来源地址的密钥哈希。`submit_contact_message` 由服务端调用，
+原子处理幂等提交以及邮箱/来源每十分钟最多三条的限制。
+留言直接在 Supabase 管理后台的 Table Editor → `public.contact_messages` 中查看和处理；
+`018` 已包含建表、索引、权限和提交函数，不包含邮件通知字段，服务端无更新和删除权限。
+表单只保存留言，不发送邮件；用户可以通过页面邮箱链接自行发邮件。配置步骤见 README。

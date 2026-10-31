@@ -8,7 +8,7 @@ export function createSupabaseAdminClient() {
 
   if (!url || !serviceRoleKey) {
     throw new Error(
-      'Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY for event administration.'
+      'Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY for server administration.'
     )
   }
 
