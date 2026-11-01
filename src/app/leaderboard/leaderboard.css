@@ -1,0 +1,103 @@
+/* Each 300 × 425 region of the medal sprite contains one transparent frame. */
+.leaderboard-medals {
+  display: grid;
+  gap: 1rem;
+  padding: 1.5rem;
+}
+
+.leaderboard-medal-card {
+  --medal-tint: #e5ebfc;
+  --medal-border: #dce3ee;
+  --medal-position: 0%;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 0;
+  padding: 0.75rem 1rem 1rem;
+  border: 1px solid var(--medal-border);
+  border-radius: 1.75rem;
+  background: linear-gradient(135deg, var(--color-card) 10%, var(--medal-tint));
+  box-shadow: 0 10px 20px -12px rgb(38 34 25 / 25%);
+}
+
+.leaderboard-medal-card--1 {
+  --medal-tint: #fff1d0;
+  --medal-border: #f3d678;
+  --medal-position: 50%;
+}
+
+.leaderboard-medal-card--3 {
+  --medal-tint: #fae7d4;
+  --medal-border: #efc9a0;
+  --medal-position: 100%;
+}
+
+.leaderboard-medal {
+  position: relative;
+  flex: 0 0 52%;
+  max-width: 200px;
+  aspect-ratio: 300 / 425;
+  filter: drop-shadow(0 12px 12px rgb(38 34 25 / 12%));
+}
+
+.leaderboard-medal-avatar {
+  position: absolute;
+  left: 16%;
+  top: 41%;
+  width: 68%;
+  height: auto;
+  aspect-ratio: 1;
+  font-size: clamp(1.75rem, 4vw, 3.5rem);
+}
+
+.leaderboard-medal-frame {
+  position: absolute;
+  inset: 0;
+  background-image: url('/images/golden_900.png');
+  background-size: 300% 100%;
+  background-position: var(--medal-position) top;
+  background-repeat: no-repeat;
+}
+
+.leaderboard-medal-stat {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem 0.375rem;
+  width: fit-content;
+  max-width: 100%;
+  padding: 0.375rem 0.75rem;
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--color-card) 75%, transparent);
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
+}
+
+.dark .leaderboard-medal-card {
+  --medal-tint: #293343;
+  --medal-border: #445064;
+}
+
+.dark .leaderboard-medal-card--1 {
+  --medal-tint: #44351c;
+  --medal-border: #80662f;
+}
+
+.dark .leaderboard-medal-card--3 {
+  --medal-tint: #422c20;
+  --medal-border: #805638;
+}
+
+@media (min-width: 1024px) {
+  .leaderboard-medals {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: center;
+    padding: 2rem 1.5rem;
+  }
+
+  .leaderboard-medal-card--1 { order: 2; }
+  .leaderboard-medal-card--2 { order: 1; }
+  .leaderboard-medal-card--3 { order: 3; }
+  .leaderboard-medal-card--1 { transform: translateY(-0.5rem); }
+  .leaderboard-medal-card { gap: 0.75rem; padding-inline: 0.75rem; }
+}
+

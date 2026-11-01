@@ -1,10 +1,11 @@
 'use client'
 
+import './leaderboard.css'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { BarChart3, RefreshCw, Trophy } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { LeaderboardPeriod, LeaderboardResult } from '@/lib/types'
+import type { LeaderboardEntry, LeaderboardPeriod, LeaderboardResult } from '@/lib/types'
 import { fetchLeaderboard } from '@/lib/leaderboard'
 import { UserAvatar } from '@/components/ui/UserAvatar'
 
@@ -75,6 +76,35 @@ function formatPeriod(result: LeaderboardResult) {
   // The end is exclusive; display the final included calendar date.
   const lastDay = new Date(Date.parse(result.periodEnd) - 1).toISOString().slice(0, 10)
   return start === lastDay ? `${start} (UTC)` : `${start} – ${lastDay} (UTC)`
+}
+
+function MedalCard({ entry }: { entry: LeaderboardEntry }) {
+  return (
+    <article className={`leaderboard-medal-card leaderboard-medal-card--${entry.rank}`} aria-label={`Rank ${entry.rank}: ${entry.username}`}>
+      <div className="leaderboard-medal" aria-hidden="true">
+        <UserAvatar name={entry.username} avatarUrl={entry.avatarUrl} className="leaderboard-medal-avatar" />
+        <span className="leaderboard-medal-frame" />
+      </div>
+      <div className="min-w-0 flex-1 py-4">
+        <span className="sr-only">Rank {entry.rank}</span>
+        <h3 className="break-words text-lg font-bold leading-snug sm:text-xl">{entry.username}</h3>
+        <dl className="mt-4 space-y-3">
+          <div>
+            <dd className="break-words text-2xl font-bold tabular-nums text-primary sm:text-3xl">{entry.totalPieces.toLocaleString()}</dd>
+            <dt className="text-sm text-muted-foreground">Pieces</dt>
+          </div>
+          <div className="leaderboard-medal-stat">
+            <dd className="font-semibold tabular-nums">{entry.completedPuzzles.toLocaleString()}</dd>
+            <dt>Puzzles</dt>
+          </div>
+          <div className="leaderboard-medal-stat flex-wrap">
+            <dt className="text-muted-foreground">Total time</dt>
+            <dd className="font-semibold tabular-nums">{formatDuration(entry.totalTimeSeconds)}</dd>
+          </div>
+        </dl>
+      </div>
+    </article>
+  )
 }
 
 function LeaderboardResults({ period, periodLabel }: { period: LeaderboardPeriod; periodLabel: string }) {
@@ -153,6 +183,14 @@ function LeaderboardResults({ period, periodLabel }: { period: LeaderboardPeriod
         </div>
       ) : (
         <>
+          {result.entries.some((entry) => entry.rank <= 3) && (
+            <div className="leaderboard-medals" aria-label="Top ranked players">
+              {result.entries.filter((entry) => entry.rank <= 3).map((entry) => (
+                <MedalCard key={entry.userId} entry={entry} />
+              ))}
+            </div>
+          )}
+          {result.entries.some((entry) => entry.rank > 3) && (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <caption className="sr-only">{periodLabel} players ranked by pieces, completions and time</caption>
@@ -166,10 +204,10 @@ function LeaderboardResults({ period, periodLabel }: { period: LeaderboardPeriod
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {result.entries.map((entry) => (
+                {result.entries.filter((entry) => entry.rank > 3).map((entry) => (
                   <tr key={entry.userId} className="leaderboard-item transition-colors hover:bg-secondary/50">
                     <td className="px-5 py-4 font-bold sm:px-7">
-                      <span className={cn('inline-flex h-8 min-w-8 items-center justify-center rounded-full px-1', entry.rank <= 3 && 'bg-accent-subtle text-accent')}>{entry.rank}</span>
+                      <span className="inline-flex h-8 min-w-8 items-center justify-center rounded-full px-1">{entry.rank}</span>
                     </td>
                     <td className="px-3 py-4">
                       <div className="flex items-center gap-3">
@@ -185,6 +223,7 @@ function LeaderboardResults({ period, periodLabel }: { period: LeaderboardPeriod
               </tbody>
             </table>
           </div>
+          )}
           <p className="border-t border-border px-5 py-3 text-xs text-muted-foreground sm:px-7">Showing {result.entries.length} of {result.totalPlayers.toLocaleString()} players · Top 50</p>
         </>
       )}
