@@ -1,3 +1,5 @@
+import type { Metadata } from 'next'
+
 export const SITE_NAME = 'JigsawWorld'
 
 export const HOME_TITLE = 'Free Online Jigsaw Puzzles | JigsawWorld'
@@ -6,6 +8,29 @@ export const HOME_DESCRIPTION =
 
 export const DEFAULT_SOCIAL_IMAGE =
   'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1200&h=630&fit=crop'
+
+export function createPageMetadata(title: string, description: string, path: string): Metadata {
+  const brandedTitle = `${title} | ${SITE_NAME}`
+
+  return {
+    title: { absolute: brandedTitle },
+    description,
+    alternates: { canonical: path },
+    openGraph: {
+      title: brandedTitle,
+      description,
+      url: path,
+      type: 'website',
+      images: [{ url: DEFAULT_SOCIAL_IMAGE, width: 1200, height: 630 }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: brandedTitle,
+      description,
+      images: [DEFAULT_SOCIAL_IMAGE],
+    },
+  }
+}
 
 function normalizeSiteUrl(value: string) {
   const withProtocol = /^https?:\/\//i.test(value) ? value : `https://${value}`

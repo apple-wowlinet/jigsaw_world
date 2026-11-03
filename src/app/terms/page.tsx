@@ -1,4 +1,11 @@
 import Link from 'next/link'
+import { createPageMetadata } from '@/lib/seo'
+
+export const metadata = createPageMetadata(
+  'Terms of Service – Accounts, Content and Site Use',
+  'Review the JigsawWorld Terms of Service, including account responsibilities, acceptable use, user content, intellectual property, and service disclaimers.',
+  '/terms'
+)
 
 const lastUpdated = 'July 1, 2026'
 

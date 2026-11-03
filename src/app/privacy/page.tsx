@@ -1,4 +1,11 @@
 import Link from 'next/link'
+import { createPageMetadata } from '@/lib/seo'
+
+export const metadata = createPageMetadata(
+  'Privacy Policy – Personal Data and Your Rights',
+  'Read how JigsawWorld collects, uses, and shares personal information. Learn about data security, cookies, and your rights to access or delete your data.',
+  '/privacy'
+)
 
 const lastUpdated = 'July 1, 2026'
 

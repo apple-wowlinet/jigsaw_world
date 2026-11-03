@@ -1,11 +1,11 @@
-import type { Metadata } from 'next'
 import Link from 'next/link'
+import { createPageMetadata } from '@/lib/seo'
 
-export const metadata: Metadata = {
-  title: 'Cookie Policy',
-  description:
-    'Learn how JigsawWorld uses cookies and local storage for sign-in, puzzle progress, preferences, and analytics, and how to manage them.',
-}
+export const metadata = createPageMetadata(
+  'Cookie Policy – Cookies and Local Storage',
+  'Learn how JigsawWorld uses cookies and local storage for sign-in, puzzle progress, preferences, and analytics, and how to manage your browser’s site data.',
+  '/cookies'
+)
 
 const lastUpdated = 'October 26, 2026'
 const linkClassName =

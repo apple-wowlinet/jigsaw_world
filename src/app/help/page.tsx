@@ -2,6 +2,13 @@ import Link from 'next/link'
 import { HelpCircle, Puzzle, Users, Monitor, Pause, ArrowRight, Mail } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { createPageMetadata } from '@/lib/seo'
+
+export const metadata = createPageMetadata(
+  'Help Center – How to Play Jigsaw Puzzles',
+  'Get help playing jigsaw puzzles on JigsawWorld. Find answers about piece counts, snapping pieces, pausing, resetting, and supported browsers and devices.',
+  '/help'
+)
 
 const faqs = [
   {
