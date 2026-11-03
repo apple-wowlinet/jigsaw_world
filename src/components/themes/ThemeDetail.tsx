@@ -11,7 +11,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { SafeImage } from '@/components/ui/SafeImage'
-import { ThemePuzzleCard } from '@/components/themes/ThemePuzzleCard'
+import { PuzzleCard } from '@/components/ui/PuzzleCard'
 import {
   fetchPuzzles,
   fetchPuzzlesByThemeSlug,
@@ -237,7 +237,7 @@ export function ThemeDetail() {
             <>
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
                 {filteredPuzzles.slice(0, visibleCount).map((puzzle) => (
-                  <ThemePuzzleCard key={puzzle.uuid} puzzle={puzzle} />
+                  <PuzzleCard key={puzzle.uuid} puzzle={puzzle} />
                 ))}
               </div>
               {visibleCount < filteredPuzzles.length && (
@@ -315,9 +315,12 @@ function ThemeDetailSkeleton() {
         <div className="mt-10 h-5 w-56 rounded-full skeleton" />
         <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {Array.from({ length: 8 }, (_, index) => (
-            <div key={index} className="overflow-hidden rounded-lg border border-border">
+            <div key={index} className="border border-[#e7decb] bg-card p-2.5 dark:border-[#3b3327]">
               <div className="aspect-[1.55/1] skeleton" />
-              <div className="h-8 skeleton" />
+              <div className="px-1.5 pb-1.5 pt-3">
+                <div className="h-5 w-3/4 skeleton" />
+                <div className="mt-1.5 h-4 w-1/3 skeleton" />
+              </div>
             </div>
           ))}
         </div>
