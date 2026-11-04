@@ -79,6 +79,14 @@ export async function completeGameSession(
   return result
 }
 
+export async function setGameSessionPaused(sessionId: string, paused: boolean): Promise<void> {
+  const { error } = await supabase.rpc('set_game_session_paused', {
+    p_session_id: sessionId,
+    p_paused: paused,
+  })
+  if (error) throw error
+}
+
 export async function abandonGameSession(sessionId: string): Promise<void> {
   const { error } = await supabase.rpc('abandon_game_session', {
     p_session_id: sessionId,

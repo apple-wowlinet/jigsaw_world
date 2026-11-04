@@ -32,6 +32,7 @@ import {
   checkpointGameSession,
   completeGameSession,
   startGameSession,
+  setGameSessionPaused,
   type CompletedGameResult,
 } from '@/lib/game-sessions'
 import {
@@ -129,6 +130,7 @@ function PlayPuzzleContent() {
   const serverSessionRef = useRef<string | null>(null)
   const serverStartRef = useRef<Promise<string> | null>(null)
   const serverAttemptRef = useRef(0)
+  const serverClockQueueRef = useRef<Promise<void>>(Promise.resolve())
   const lastCheckpointRef = useRef({ sessionId: '', progress: 0, at: 0 })
 
   useEffect(() => {
@@ -220,7 +222,27 @@ function PlayPuzzleContent() {
       timerLockedRef.current += performance.now() - timerStartRef.current
       timerRunningRef.current = false
     }
+    setTimer(currentElapsed())
     setIsPlaying(false)
+  }, [currentElapsed])
+
+  // Capture the current session (including a pending start) and serialize clock
+  // changes so a slow pause request cannot arrive after its matching resume.
+  const syncServerClock = useCallback((paused: boolean) => {
+    const session = serverSessionRef.current ?? serverStartRef.current
+    if (!session) return
+    const attempt = serverAttemptRef.current
+    const request = serverClockQueueRef.current.then(async () => {
+      const sessionId = await session
+      if (attempt !== serverAttemptRef.current) return
+      await setGameSessionPaused(sessionId, paused)
+    })
+    serverClockQueueRef.current = request
+    void request.catch((error) => {
+      if (attempt !== serverAttemptRef.current) return
+      console.error('Failed to synchronize game clock:', error)
+      setRecordingState('failed')
+    })
   }, [])
 
   const abandonActiveSession = useCallback(() => {
@@ -228,6 +250,7 @@ function PlayPuzzleContent() {
     const sessionId = serverSessionRef.current
     serverSessionRef.current = null
     serverStartRef.current = null
+    serverClockQueueRef.current = Promise.resolve()
     lastCheckpointRef.current = { sessionId: '', progress: 0, at: 0 }
     setServerResult(null)
 
@@ -433,6 +456,7 @@ function PlayPuzzleContent() {
       dailyChallengeId,
     })
     serverStartRef.current = startRequest
+    if (!timerRunningRef.current) syncServerClock(true)
 
     try {
       const sessionId = await startRequest
@@ -460,6 +484,7 @@ function PlayPuzzleContent() {
     pendingSave,
     puzzle,
     rotationOn,
+    syncServerClock,
     user,
   ])
 
@@ -495,6 +520,8 @@ function PlayPuzzleContent() {
       }
 
       setRecordingState('saving')
+      await serverClockQueueRef.current
+      if (attempt !== serverAttemptRef.current) return
       const result = await completeGameSession(sessionId, completedMoves)
       if (attempt !== serverAttemptRef.current) return
       serverSessionRef.current = null
@@ -518,12 +545,13 @@ function PlayPuzzleContent() {
     setMoves(completedMoves)
     setTimer(localElapsed)
     pauseClock()
+    syncServerClock(true)
     clearPuzzleSaves(puzzleId)
 
     if (serverSessionRef.current || serverStartRef.current) {
       void submitCompletion(completedMoves)
     }
-  }, [currentElapsed, moves, pauseClock, puzzleId, submitCompletion])
+  }, [currentElapsed, moves, pauseClock, puzzleId, submitCompletion, syncServerClock])
 
   /* ---------------- 控制操作 ---------------- */
 
@@ -646,6 +674,7 @@ function PlayPuzzleContent() {
   }, [choice, puzzleId, abandonActiveSession, pauseClock])
 
   const togglePause = useCallback(() => {
+    syncServerClock(isPlaying)
     if (isPlaying) {
       pauseClock()
       gameRef.current?.setPaused(true)
@@ -656,7 +685,7 @@ function PlayPuzzleContent() {
       setIsPlaying(true)
       gameRef.current?.setPaused(false)
     }
-  }, [isPlaying, pauseClock, flushSave])
+  }, [isPlaying, pauseClock, flushSave, syncServerClock])
 
   const toggleMute = useCallback(() => {
     sfx.ensureContext()

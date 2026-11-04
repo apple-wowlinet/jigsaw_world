@@ -206,6 +206,7 @@ best_time_session_id, best_moves_session_id -- 分别追溯两种最佳成绩
 ```sql
 daily_challenge_id, rotation_enabled, progress_percent
 started_at         -- 服务端创建；完成时间由数据库计算
+paused_at, paused_duration -- 服务端记录当前暂停起点与累计暂停时间，结算扣除暂停时长
 status, completion_time, moves, stars, completed_at
 ```
 
