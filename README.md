@@ -103,3 +103,55 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Cloudflare image transformations
+
+`next/image` uses a global custom loader in `src/lib/images/cloudflare-loader.ts`.
+Display images (lists, recommendations and detail previews) use a single 960px
+Cloudflare variant via `deviceSizes: [960]` and `imageSizes: []`, regardless of
+screen pixel density. Database image URLs stay unchanged. Images smaller than
+960px are not upscaled (`fit=scale-down`).
+
+1. Enable Image Transformations for your zone under Cloudflare **Images →
+   Transformations**. Use a hostname with Cloudflare proxying enabled.
+2. Under **Sources**, allow `https://img.spotdiffs.com` and
+   `https://images.unsplash.com` (the existing image origins).
+3. Set the following public, build-time variable in `.env.local` and Vercel's
+   production/preview environments, using your actual Cloudflare hostname:
+
+   ```dotenv
+   NEXT_PUBLIC_CLOUDFLARE_IMAGE_ORIGIN=https://images.example.com
+   ```
+
+   Supply only the HTTPS origin, without `/cdn-cgi/image`, a path, or query.
+   No Cloudflare API token is needed in the application.
+4. Restart development or rebuild/redeploy production after changing the variable.
+   A generated image URL should look like:
+
+   ```text
+   https://images.example.com/cdn-cgi/image/width=960,quality=75,fit=scale-down,format=auto/https://img.spotdiffs.com/example.jpg
+   ```
+
+If the variable is absent, images load directly from their original URLs; they
+never fall back to Vercel's image optimizer. Local files, blob URLs and data URLs
+also bypass Cloudflare. CDN failures retry the original image before showing the
+card placeholder.
+
+The game loads remote images via `/api/puzzle-image?url=...`. This same-origin
+endpoint fetches the original image bytes without Cloudflare resizing or
+recompression, preserving the source resolution for gameplay. It ensures canvas
+access even if the source host omits CORS headers. It only accepts the two allowed HTTPS source hosts and raster image
+responses, and caches successful responses for CDN delivery. It does not run image
+transformations on Vercel, but this endpoint still uses hosting bandwidth/functions.
+Uploaded custom puzzles continue loading from local browser storage.
+
+Cloudflare transformation usage has its own plan and limits. Verify your enabled
+plan in the Cloudflare dashboard; switching providers does not remove quotas.
+
+Verification: after deployment, check card `srcset` URLs for `/cdn-cgi/image/`
+and confirm the play page loads `/api/puzzle-image`. New application image requests
+should not use `/_next/image`.
+
+References: [Cloudflare Next.js integration](https://developers.cloudflare.com/images/optimization/transformations/integrate-with-frameworks/),
+[allowed image origins](https://developers.cloudflare.com/images/optimization/transformations/sources/),
+[pricing](https://developers.cloudflare.com/images/pricing/).

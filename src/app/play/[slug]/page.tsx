@@ -12,6 +12,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { Utils } from '@/lib/puzzle/core/utils'
+import { getCanvasImageUrl } from '@/lib/images/urls'
 import {
   Subject,
   computeChoices,
@@ -66,13 +67,6 @@ function parseRequestedPieceCount(value: string | null): number | null {
   if (value === null) return null
   const parsed = Number(value)
   return Number.isSafeInteger(parsed) ? parsed : null
-}
-
-function getCanvasImageUrl(url: string): string {
-  // Load third-party images through Next's same-origin optimizer. Some image
-  // hosts allow display in <img> but omit CORS headers required by canvas.
-  const params = new URLSearchParams({ url, w: '3840', q: '75' })
-  return `/_next/image?${params.toString()}`
 }
 
 function PlayPuzzleContent() {

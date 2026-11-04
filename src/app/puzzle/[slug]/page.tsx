@@ -297,16 +297,16 @@ function PuzzleDetailContent() {
         </nav>
 
         <section className="grid items-start gap-9 lg:grid-cols-[1.15fr_0.85fr] lg:gap-14 xl:gap-[68px]">
-          <div className="relative">
+          <div className="relative mx-auto w-full max-w-[560px]">
             <div className="frame-gold relative p-[10px]">
               <div className="frame-gold-inner p-[7px]">
-                <div className="group relative aspect-[1.055/1] min-h-[320px] overflow-hidden bg-muted sm:min-h-[500px] lg:min-h-0">
+                <div className="group relative aspect-[1.055/1] overflow-hidden bg-muted">
                   <SafeImage
                     src={puzzle.image_url}
                     alt={puzzle.title}
                     fill
                     priority
-                    sizes="(max-width: 1024px) 100vw, 58vw"
+                    sizes="(max-width: 640px) calc(100vw - 66px), 526px"
                     className="object-cover transition-transform duration-700 group-hover:scale-[1.025]"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#241d10]/15 via-transparent to-transparent" />
@@ -639,31 +639,27 @@ function LeaderboardRow({ entry }: { entry: PublicPuzzleLeaderboardEntry }) {
 }
 
 function RelatedPuzzleCard({ puzzle }: { puzzle: PublicPuzzle }) {
-  const [imageError, setImageError] = useState(false)
-
   return (
     <Link
       href={`/puzzle/${puzzle.slug}`}
       className="group overflow-hidden rounded-lg border border-[#e7decb] bg-card shadow-[0_10px_30px_-22px_rgba(80,60,25,0.4)] transition-all hover:-translate-y-1 hover:shadow-[0_20px_40px_-24px_rgba(80,60,25,0.5)] dark:border-[#3b3327]"
     >
       <div className="relative aspect-[1.4/1] overflow-hidden bg-muted">
-        {imageError ? (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-parchment via-panel to-accent-subtle text-olive">
-            <ImageIcon className="mb-2 h-9 w-9" />
-            <span className="label-caps text-[10px]">
-              {puzzle.category}
-            </span>
-          </div>
-        ) : (
-          <SafeImage
-            src={puzzle.image_url}
-            alt={puzzle.title}
-            fill
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-            onError={() => setImageError(true)}
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-        )}
+        <SafeImage
+          src={puzzle.image_url}
+          alt={puzzle.title}
+          fill
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+          fallback={
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-parchment via-panel to-accent-subtle text-olive">
+              <ImageIcon className="mb-2 h-9 w-9" />
+              <span className="label-caps text-[10px]">
+                {puzzle.category}
+              </span>
+            </div>
+          }
+          className="object-cover transition-transform duration-500 group-hover:scale-105"
+        />
         <span className="absolute right-2.5 top-2.5 rounded-full border border-[#e7decb] bg-card/95 px-2.5 py-1 font-display text-xs font-semibold text-foreground shadow-md">
           {puzzle.piece_count}
         </span>

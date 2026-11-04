@@ -366,11 +366,11 @@ export async function fetchCategoryPuzzlePage(options: {
   ])
 
   if (puzzlesResult.error) {
-    throw new Error(`Failed to fetch category puzzles: ${puzzlesResult.error.message}`)
+    throw new Error(`Failed to fetch category puzzles: ${puzzlesResult.error.message}`, { cause: puzzlesResult.error })
   }
 
   if (countsResult.error) {
-    throw new Error(`Failed to count category puzzles: ${countsResult.error.message}`)
+    throw new Error(`Failed to count category puzzles: ${countsResult.error.message}`, { cause: countsResult.error })
   }
 
   const puzzles = ((puzzlesResult.data ?? []) as CategoryPuzzleRow[]).map(
