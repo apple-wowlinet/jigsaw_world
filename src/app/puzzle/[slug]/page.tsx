@@ -296,7 +296,7 @@ function PuzzleDetailContent() {
           <span className="truncate font-semibold text-foreground">{puzzle.title}</span>
         </nav>
 
-        <section className="grid items-start gap-9 lg:grid-cols-[1.15fr_0.85fr] lg:gap-14 xl:gap-[68px]">
+        <section className="grid items-start gap-9 lg:grid-cols-[minmax(0,560px)_minmax(0,1fr)] lg:gap-8 xl:gap-10">
           <div className="relative mx-auto w-full max-w-[560px]">
             <div className="frame-gold relative p-[10px]">
               <div className="frame-gold-inner p-[7px]">
@@ -353,10 +353,10 @@ function PuzzleDetailContent() {
           </div>
 
           <div className="py-1 lg:py-0">
-            <h1 className="font-display max-w-[570px] text-[34px] font-semibold leading-[1.08] tracking-[-0.01em] text-foreground sm:text-[40px] lg:text-[46px]">
+            <h1 className="font-display text-[34px] font-semibold leading-[1.08] tracking-[-0.01em] text-foreground sm:text-[40px] lg:text-[46px]">
               {puzzle.title}
             </h1>
-            <p className="mt-4 max-w-[520px] text-sm leading-7 text-muted-foreground sm:text-base sm:leading-7">
+            <p className="mt-4 text-sm leading-7 text-muted-foreground sm:text-base sm:leading-7">
               {puzzle.description ||
                 `A beautiful ${puzzle.category.toLowerCase()} puzzle made for a relaxing challenge.`}
             </p>
@@ -556,7 +556,7 @@ function PuzzleDetailSkeleton() {
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-[1380px] px-4 py-6 sm:px-6 lg:px-8">
         <div className="mb-7 h-4 w-72 rounded-full skeleton" />
-        <div className="grid gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:gap-14">
+        <div className="grid gap-9 lg:grid-cols-[minmax(0,560px)_minmax(0,1fr)] lg:gap-8 xl:gap-10">
           <div className="aspect-[1.055/1] rounded-lg skeleton" />
           <div className="space-y-7 py-8">
             <div className="h-14 w-4/5 rounded-lg skeleton" />
